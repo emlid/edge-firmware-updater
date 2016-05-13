@@ -3,9 +3,55 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdbool.h>
+
+struct scsi_block_device {
+    char* vid;
+    char* pid;
+    char* manufacturer;
+    char* product;
+    char* node_path;
+    char* size;
+    int scsi;
+    int block;
+};
 
 
-void list_properties(struct udev_device *dev){
+void print_scsi_block(struct scsi_block_device* dev) {
+    printf("   VID/PID: %s/%s\n", dev->vid, dev->pid);
+    printf("   Manufacturer: %s\n", dev->manufacturer);
+    printf("   Product: %s\n", dev->product);
+    printf("   Size: %s blocks\n", dev->size);
+    printf("   Node path: %s\n", dev->node_path);
+}
+
+
+void fill_device_param_list (struct udev_device* dev, struct scsi_block_device* dist) {
+    const char* subsys;
+    subsys = udev_device_get_subsystem(dev);
+    if (strcmp (subsys,"scsi") == 0) {
+        dist->vid = (char*) udev_device_get_property_value(dev, "ID_VENDOR_ID");
+        dist->pid = (char*) udev_device_get_property_value(dev, "ID_MODEL_ID");
+        dist->manufacturer = (char*)udev_device_get_property_value(dev, "ID_VENDOR");
+        dist->product = (char*)udev_device_get_property_value(dev, "ID_MODEL");
+        dist->scsi = 1;
+    }
+    if (strcmp (subsys,"block") == 0) {
+        dist->size = (char*)udev_device_get_sysattr_value(dev, "size");
+        dist->node_path = (char*)udev_device_get_devnode(dev);
+        dist->block = 1;
+    }
+    if ((dist->block == 1) && (dist->scsi == 1)) {
+        printf("\nAction: %s\n", udev_device_get_action(dev));
+        print_scsi_block(dist);
+        dist->block = 0;
+        dist->scsi = 0;
+        udev_device_unref(dev);
+    }
+}
+
+void list_properties(struct udev_device *dev) {
     struct udev_list_entry *list;
     struct udev_list_entry *node;
 
@@ -18,8 +64,7 @@ void list_properties(struct udev_device *dev){
 
 
 
-static struct udev_device* get_child(struct udev* udev, struct udev_device* parent,
-                                     const char* subsystem) {
+static struct udev_device* get_child(struct udev* udev, struct udev_device* parent, const char* subsystem) {
     struct udev_device* child = NULL;
     struct udev_enumerate *enumerate;
     struct udev_list_entry *devices;
@@ -50,16 +95,13 @@ static void enumerate_usb_mass_storage(struct udev* udev) {
     const char* path;
     struct udev_device* scsi;
     struct udev_device* block;
-    struct udev_device* scsi_disk;
     struct udev_device* usb;
 
     enumerate = udev_enumerate_new(udev);
 
-
-udev_enumerate_add_match_subsystem(enumerate, "scsi");
+    udev_enumerate_add_match_subsystem(enumerate, "scsi");
     udev_enumerate_add_match_property(enumerate, "DEVTYPE", "scsi_device");
-//    udev_enumerate_add_match_subsystem(enumerate, "block");
-//    udev_enumerate_add_match_property(enumerate, "DEVTYPE", "partition");
+
     udev_enumerate_scan_devices(enumerate);
 
     devices = udev_enumerate_get_list_entry(enumerate);
@@ -69,32 +111,21 @@ udev_enumerate_add_match_subsystem(enumerate, "scsi");
         scsi = udev_device_new_from_syspath(udev, path);
 
         block = get_child(udev, scsi, "block");
-        scsi_disk = get_child(udev, scsi, "scsi_disk");
 
         usb = udev_device_get_parent_with_subsystem_devtype(scsi, "usb", "usb_device");
 
-        if (/*block && scsi_disk && usb*/scsi&&usb) {
+        if (block && usb) {
             printf("Device Node Path = %s\n", udev_device_get_devnode(block));
             printf("  VID/PID: %s/%s\n",
-                   udev_device_get_sysattr_value(usb, "idVendor"),
-                   udev_device_get_sysattr_value(usb, "idProduct"));
-
-            // printf("  Vendor: %s\n", udev_device_get_sysattr_value(scsi, "vendor"));
-
-            printf("  Manufacturer:  %s\n", udev_device_get_sysattr_value(usb, "manufacturer"));
-            printf("  Product: %s\n", udev_device_get_sysattr_value(usb,"product"));
-            printf("  Partition Size: %s\n", udev_device_get_property_value(scsi, "ID_PART_ENTRY_SIZE"));
-            printf("  Serial: %s\n", udev_device_get_sysattr_value(usb, "serial"));
-            printf("  size?: %s\n", udev_device_get_sysattr_value(block, "size"));
+                    udev_device_get_property_value(usb, "ID_VENDOR_ID"),
+                    udev_device_get_property_value(usb, "ID_MODEL_ID"));
+            printf("  Manufacturer:  %s\n", udev_device_get_property_value(usb, "ID_VENDOR"));
+            printf("  Product: %s\n", udev_device_get_property_value(usb,"ID_MODEL"));
+            printf("  Size: %s blocks\n", udev_device_get_sysattr_value(block, "size"));
         }
-
 
         if (block) {
             udev_device_unref(block);
-        }
-
-        if (scsi_disk) {
-            udev_device_unref(scsi_disk);
         }
 
         udev_device_unref(scsi);
@@ -107,46 +138,30 @@ udev_enumerate_add_match_subsystem(enumerate, "scsi");
 
 
 
-void udev_device_parameters(struct udev_device *dev) {
-    if (dev) {
-        printf("Got Device\n");
-      //  list_properties(dev);
-        printf("   Name: %s\n", udev_device_get_property_value(dev, "ID_MODEL"));
-        printf("   sysnameame: %s\n", udev_device_get_sysname(dev));
-        printf("   Partition Size: %s\n", udev_device_get_property_value(dev, "ID_PART_ENTRY_SIZE"));
-            printf("  size?: %s\n", udev_device_get_sysattr_value(dev, "size"));
-        //printf("   Node: %s\n ", udev_device_get_property_value(dev, "DEVPATH"));
-        printf("   Node: %s\n", udev_device_get_devnode (dev));
-        printf("   Sysname: %s\n", udev_device_get_sysname (dev));
-        printf("   Subsystem: %s\n", udev_device_get_subsystem(dev));
-        printf("   Devtype: %s\n", udev_device_get_devtype(dev));
-        printf("   Action: %s\n", udev_device_get_action(dev));
-        udev_device_unref(dev);
-    } else {
-        printf("No Device from receive_device(). An error occured.\n");
-    }
-
-}
 
 int main() {
     struct udev* udev = udev_new();
-    struct udev_device *dev;//
-    struct udev_device *scsi;//
+    struct udev_device* dev;
+    struct udev_device* scsi;
     struct udev_device* usb;
     struct udev_device* block;
-    struct udev_monitor *mon;//
-    int fd;//
-    struct timeval tv;//
-    int ret;//
+    struct udev_monitor* mon;
+    struct scsi_block_device dev_properties;
+    int fd;
+    struct timeval tv;
+    int ret;
 
-    mon = udev_monitor_new_from_netlink(udev, "udev");//
-    udev_monitor_filter_add_match_subsystem_devtype(mon, "scsi", "scsi_device");//
-    udev_monitor_filter_add_match_subsystem_devtype(mon, "block", "disk");//
-   // udev_monitor_filter_add_match_subsystem_devtype(mon, "usb", NULL);//
-    udev_monitor_enable_receiving(mon);//
-    fd = udev_monitor_get_fd(mon);//
+    dev_properties.scsi = 0;
+    dev_properties.block = 0;
+
+    mon = udev_monitor_new_from_netlink(udev, "udev");
+    udev_monitor_filter_add_match_subsystem_devtype(mon, "scsi", "scsi_device");
+    udev_monitor_filter_add_match_subsystem_devtype(mon, "block", "disk");
+    udev_monitor_enable_receiving(mon);
+    fd = udev_monitor_get_fd(mon);
 
     enumerate_usb_mass_storage(udev);
+
     while (1) {
         fd_set fds;
 
@@ -157,17 +172,11 @@ int main() {
 
         ret = select(fd+1, &fds, NULL, NULL, &tv);
 
-        /* Check if our file descriptor has received data. */
         if (ret > 0 && FD_ISSET(fd, &fds)) {
-            printf("\nselect() says there should be data\n");
-
-            printf(" +++++++++++ start for device ++++++\n");
             dev = udev_monitor_receive_device(mon);
-        //    list_properties(dev);
-            udev_device_parameters(dev);
-            printf(" +++++++++++ end for device ++++++\n");
+            fill_device_param_list(dev, &dev_properties);
         }
-        usleep(250*1000);
+        usleep(500*1000);
         printf(".");
         fflush(stdout);
     }
