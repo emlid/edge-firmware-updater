@@ -27,6 +27,7 @@ void print_scsi_block(struct scsi_block_device* dev) {
 }
 
 
+
 void fill_device_param_list (struct udev_device* dev, struct scsi_block_device* dist) {
     const char* subsys;
     subsys = udev_device_get_subsystem(dev);
@@ -42,25 +43,16 @@ void fill_device_param_list (struct udev_device* dev, struct scsi_block_device* 
         dist->node_path = (char*)udev_device_get_devnode(dev);
         dist->block = 1;
     }
+    /* this part moved to main while loop
     if ((dist->block == 1) && (dist->scsi == 1)) {
         printf("\nAction: %s\n", udev_device_get_action(dev));
         print_scsi_block(dist);
         dist->block = 0;
         dist->scsi = 0;
         udev_device_unref(dev);
-    }
+    }*/ 
 }
 
-void list_properties(struct udev_device *dev) {
-    struct udev_list_entry *list;
-    struct udev_list_entry *node;
-
-    list = udev_device_get_properties_list_entry (dev);
-    printf("list\n");
-    udev_list_entry_foreach (node, list) {
-        printf ("%s: %s\n", udev_list_entry_get_name(node), udev_list_entry_get_value(node));
-    }
-}
 
 
 
@@ -134,8 +126,13 @@ static void enumerate_usb_mass_storage(struct udev* udev) {
     udev_enumerate_unref(enumerate);
 }
 
-
-
+void run_rpiboot() {
+    int ret =  system("sudo rpiboot");
+    if (WEXITSTATUS(ret) < 0) {
+        fprintf(stderr, "Rpiboot failed\n");
+        exit(EXIT_FAILURE); 
+    }
+}
 
 
 
@@ -151,6 +148,8 @@ int main() {
     struct timeval tv;
     int ret;
 
+    run_rpiboot();
+
     dev_properties.scsi = 0;
     dev_properties.block = 0;
 
@@ -161,7 +160,7 @@ int main() {
     fd = udev_monitor_get_fd(mon);
 
     enumerate_usb_mass_storage(udev);
-
+   
     while (1) {
         fd_set fds;
 
@@ -175,10 +174,15 @@ int main() {
         if (ret > 0 && FD_ISSET(fd, &fds)) {
             dev = udev_monitor_receive_device(mon);
             fill_device_param_list(dev, &dev_properties);
+            if ((dev_properties.block == 1) && (dev_properties.scsi == 1)) {
+                printf("\nDetected storage device:\n");
+                print_scsi_block(&dev_properties);
+                dev_properties.block = 0;
+                dev_properties.scsi = 0;
+                udev_device_unref(dev);
+                break;
+            }
         }
-        usleep(500*1000);
-        printf(".");
-        fflush(stdout);
     }
 
     udev_unref(udev);
