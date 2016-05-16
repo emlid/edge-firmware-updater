@@ -26,12 +26,12 @@ void free_parameters(struct scsi_block_device dev_prop){
     free (dev_prop.product);
 }
 
-void print_scsi_block(struct scsi_block_device* dev) {
-    printf("   VID/PID: %s/%s\n", dev->vid, dev->pid);
-    printf("   Manufacturer: %s\n", dev->manufacturer);
-    printf("   Product: %s\n", dev->product);
-    printf("   Size: %s blocks (%f GB)\n", dev->size, atof(dev->size) * 512 / 1e9);
-    printf("   Node path: %s\n\n", dev->node_path);
+void print_scsi_block(struct scsi_block_device dev) {
+    printf("   VID/PID: %s/%s\n", dev.vid, dev.pid);
+    printf("   Manufacturer: %s\n", dev.manufacturer);
+    printf("   Product: %s\n", dev.product);
+    printf("   Size: %s blocks (%f GB)\n", dev.size, atof(dev.size) * 512 / 1e9);
+    printf("   Node path: %s\n\n", dev.node_path);
 }
 
 
@@ -74,21 +74,14 @@ void run_rpiboot() {
 }
 
 
+void device_monitoring(struct scsi_block_device* dev_prop){
 
-int main() {
     struct udev* udev = udev_new();
     struct udev_device* dev;
     struct udev_monitor* mon;
-    struct scsi_block_device dev_properties;
     int fd;
     struct timeval tv;
     int ret;
-
-
-    dev_properties.scsi = 0;
-    dev_properties.block = 0;
-
-    run_rpiboot();
 
     mon = udev_monitor_new_from_netlink(udev, "udev");
     udev_monitor_filter_add_match_subsystem_devtype(mon, "scsi", "scsi_device");
@@ -109,12 +102,12 @@ int main() {
         if (ret > 0 && FD_ISSET(fd, &fds)) {
             dev = udev_monitor_receive_device(mon);
             if (!strcmp( udev_device_get_action(dev), "add") && !strcmp( udev_device_get_property_value(dev, "ID_VENDOR_ID"), "0a5c")){
-                fill_device_param_list(dev, &dev_properties);
-                if ((dev_properties.block == 1) && (dev_properties.scsi == 1)) {
+                fill_device_param_list(dev, dev_prop);
+                if ((dev_prop->block == 1) && (dev_prop->scsi == 1)) {
                     printf("\nDetected storage device:\n");
-                    print_scsi_block(&dev_properties);
-                    dev_properties.block = 0;
-                    dev_properties.scsi = 0;
+                    print_scsi_block(*dev_prop);
+                    dev_prop->block = 0;
+                    dev_prop->scsi = 0;
                     break;
                 }
             }
@@ -123,6 +116,17 @@ int main() {
 
     udev_device_unref(dev);
     udev_unref(udev);
+}
+
+int main() {
+    struct scsi_block_device dev_properties;
+
+    dev_properties.scsi = 0;
+    dev_properties.block = 0;
+
+    run_rpiboot();
+    device_monitoring(&dev_properties);
+    print_scsi_block(dev_properties);
     free_parameters(dev_properties);    
     return 0;
 }
