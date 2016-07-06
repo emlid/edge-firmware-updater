@@ -1,5 +1,3 @@
-
-
 #include "libusb-1.0/libusb.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -282,6 +280,6 @@ void rpiboot(void)
 	}
 	while(fp == fp1);
 
-	libusb_exit(ctx);
+    libusb_exit(ctx);
     QThread::currentThread()->exit(0);
 }

@@ -1,7 +1,3 @@
-
-
-
-
 /*-
  * Copyright (c) 1991, 1993, 1994
  * The Regents of the University of California.  All rights reserved.
@@ -38,6 +34,7 @@
  */
 
 #include "flashing_parameters.h"
+
 /* Input/output stream state. */
 typedef struct {
     u_char      *db;        /* buffer address */

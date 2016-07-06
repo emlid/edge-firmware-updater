@@ -30,9 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
 */
-#include <QtDebug>
-#include <QThread>
-#include <QtCore/QCoreApplication>
+
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
@@ -49,25 +47,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
+#include <QList>
+#include <iostream>
 #include "dd.h"
 #include "flashing_parameters.h"
-
+using namespace std;
 #define NO_CONV
 
-//#include "extern.h"
-void block(void);
-void block_close(void);
 void dd_out(int);
 void def(void);
 void def_close(void);
-void jcl(char **);
+
+int jcl(struct FlashingParameters);
 void pos_in(void);
 void pos_out(void);
 void summary(void);
 void terminate(int notused);
-void unblock(void);
-void unblock_close(void);
 ssize_t bwrite(int, const void *, size_t);
 
 extern IO       in, out;
@@ -78,19 +73,13 @@ extern uint64_t     cbsz;
 extern u_int        ddflags;
 extern u_int        files_cnt;
 extern int      progress;
-extern const u_char *ctab;
-extern const u_char a2e_32V[], a2e_POSIX[];
-extern const u_char e2a_32V[], e2a_POSIX[];
-extern const u_char a2ibm_32V[], a2ibm_POSIX[];
-extern u_char       casetab[];
-
 
 
 static void dd_close(void);
 static void dd_in(void);
 static void getfdtype(IO *);
 static int redup_clean_fd(int);
-static void setup(void);
+static int setup(void);
 off_t fsize(const char *);
 void current_summary(void);
 
@@ -105,7 +94,7 @@ u_int       files_cnt = 1;      /* # of files to copy */
 int     progress = 1;       /* display sign of life */
 const u_char    *ctab;          /* conversion table */
 sigset_t    infoset;        /* a set blocking SIGINFO */
-bool interrupted=0;
+bool interrupted = 0;
 
 off_t fsize(const char *filename) {
     struct stat fileinfo;
@@ -113,35 +102,42 @@ off_t fsize(const char *filename) {
     if (stat(filename, &fileinfo) == 0){
         return fileinfo.st_size;
     }
-    printf("fsize error\n");
+    cerr << "fsize error" << endl;
     return -1;
 }
 
 
-int flashDevice(FlashingParameters fp) {
+int flashDevice(struct FlashingParameters params) {
 
-    int numberOfParams=3;
-    char *flash_params[numberOfParams];
-    fp.getAllParams(flash_params);
+    int ret = jcl(params);
+    if (ret){
+        fprintf(stderr, "%s\n", "Failed to set flashing parameters");
+        return 1;
+    }
 
-    jcl(flash_params);
-    setup();
-
+    ret = setup();
+    if (ret){
+        cerr << "Failed to prepare data transfer" << endl;
+        return 1;
+    }
 
     (void)signal(SIGINT, terminate);
     (void)sigemptyset(&infoset);
 
     (void)atexit(summary);
 
-    while (files_cnt--)
-        dd_in();
+    cout << "Flashing " << out.name << " with " << (strrchr(in.name,'/') + 1) << endl;
 
+    while (files_cnt--){
+        dd_in();
+    }
     dd_close();
 
-    exit(0);
+    progress = 0;
+    return 0;
 }
 
-static void setup(void) {
+static int setup(void) {
 
     if (in.name == NULL) {
         in.name = "stdin";
@@ -149,10 +145,9 @@ static void setup(void) {
     } else {
         in.fd = open(in.name, O_RDONLY, 0);
         if (in.fd < 0) {
-            fprintf(stderr, "%s: cannot open for read: %s\n",
-                    in.name, strerror(errno));
-            exit(1);
-            /* NOTREACHED */
+            cerr << in.name << ": cannot open for read:" << strerror(errno) << endl;
+            return 1;
+
         }
         st.size = (uint64_t) fsize(in.name);
 
@@ -165,8 +160,7 @@ static void setup(void) {
     if (files_cnt > 1 && !(in.flags & ISTAPE)) {
         fprintf(stderr,
                 "files is not supported for non-tape devices\n");
-        exit(1);
-        /* NOTREACHED */
+       return 1;
     }
 
     if (out.name == NULL) {
@@ -189,8 +183,7 @@ static void setup(void) {
         if (out.fd < 0) {
             fprintf(stderr, "%s: cannot open for write: %s\n",
                     out.name, strerror(errno));
-            exit(1);
-            /* NOTREACHED */
+            return 1;
         }
 
         /* Ensure out.fd is outside the stdio descriptor range */
@@ -205,14 +198,14 @@ static void setup(void) {
          */
     if (!(ddflags & (C_BLOCK|C_UNBLOCK))) {
         if ((in.db = (uchar *)malloc(out.dbsz + in.dbsz - 1)) == NULL) {
-            exit(1);
-            /* NOTREACHED */
+            fprintf(stderr, "Failed to allocate single buffer for input and output\n");
+            return 1;
         }
         out.db = in.db;
     } else if ((in.db = (uchar *)malloc((u_int)(MAX(in.dbsz, cbsz) + cbsz))) == NULL ||
                (out.db = (uchar *)malloc((u_int)(out.dbsz + cbsz))) == NULL) {
-        exit(1);
-        /* NOTREACHED */
+        fprintf(stderr, "Failed to allocate space for input or output buffer\n");
+        return 1;
     }
     in.dbp = in.db;
     out.dbp = out.db;
@@ -236,37 +229,13 @@ static void setup(void) {
                  * built-in tables.
                      */
     if (ddflags & (C_LCASE|C_UCASE)) {
-#ifdef  NO_CONV
-        /* Should not get here, but just in case... */
         fprintf(stderr, "case conv and -DNO_CONV\n");
-        exit(1);
-        /* NOTREACHED */
-#else   /* NO_CONV */
-        u_int cnt;
+        return 1;
 
-        if (ddflags & C_ASCII || ddflags & C_EBCDIC) {
-            if (ddflags & C_LCASE) {
-                for (cnt = 0; cnt < 0377; ++cnt)
-                    casetab[cnt] = tolower(ctab[cnt]);
-            } else {
-                for (cnt = 0; cnt < 0377; ++cnt)
-                    casetab[cnt] = toupper(ctab[cnt]);
-            }
-        } else {
-            if (ddflags & C_LCASE) {
-                for (cnt = 0; cnt < 0377; ++cnt)
-                    casetab[cnt] = tolower(cnt);
-            } else {
-                for (cnt = 0; cnt < 0377; ++cnt)
-                    casetab[cnt] = toupper(cnt);
-            }
-        }
-
-        ctab = casetab;
-#endif  /* NO_CONV */
     }
 
     (void)gettimeofday(&st.start, NULL);    /* Statistics timestamp. */
+    return 0;
 }
 
 static void getfdtype(IO *io) {
@@ -277,7 +246,7 @@ static void getfdtype(IO *io) {
         fprintf(stderr, "%s: cannot fstat: %s\n",
                 io->name, strerror(errno));
         exit(1);
-        /* NOTREACHED */
+        // NOTREACHED
     }
     if (S_ISCHR(sb.st_mode))
         io->flags |= /*ioctl(io->fd, MTIOCGET, &mt) ? ISCHR : ISTAPE; */ ISCHR;
@@ -307,7 +276,7 @@ static int redup_clean_fd(int fd) {
     if (newfd < 0) {
         fprintf(stderr, "dupfd IO: %s\n", strerror(errno));
         exit(1);
-        /* NOTREACHED */
+        // NOTREACHED
     }
 
     close(fd);
@@ -354,7 +323,7 @@ static void dd_in(void) {
                     in.name, strerror(errno));
             if (!(flags & C_NOERROR)) {
                 exit(1);
-                /* NOTREACHED */
+                // NOTREACHED
             }
             summary();
 
@@ -378,7 +347,7 @@ static void dd_in(void) {
             ++st.in_full;
 
             /* Handle full input blocks. */
-        } else if (n == in.dbsz) {
+        } else if ((uint64_t)n == in.dbsz) {
             in.dbcnt += in.dbrcnt = n;
             ++st.in_full;
 
@@ -453,12 +422,12 @@ static void dd_close(void) {
     if (out.fd == STDOUT_FILENO && fsync(out.fd) == -1 && errno != EINVAL) {
         fprintf(stderr, "fsync stdout: %s\n", strerror(errno));
         exit(1);
-        /* NOTREACHED */
+        // NOTREACHED
     }
     if (close(out.fd) == -1) {
         fprintf(stderr, "close: %s\n", strerror(errno));
         exit(1);
-        /* NOTREACHED */
+        // NOTREACHED
     }
 }
 
@@ -518,12 +487,12 @@ void dd_out(int force) {
                     fprintf(stderr, "%s: end of device\n",
                             out.name);
                     exit(1);
-                    /* NOTREACHED */
+                    // NOTREACHED
                 }
                 if (errno != EINTR) {
                     fprintf(stderr, "%s: write error: %s\n",
                             out.name, strerror(errno));
-                    /* NOTREACHED */
+                    // NOTREACHED
                     exit(1);
                 }
                 nw = 0;
@@ -537,7 +506,7 @@ void dd_out(int force) {
             outp += nw;
             st.bytes += nw;
             if (nw == n) {
-                if (n != out.dbsz)
+                if ((uint64_t)n != out.dbsz)
                     ++st.out_part;
                 else
                     ++st.out_full;
@@ -556,7 +525,7 @@ void dd_out(int force) {
                         "%s: short write on tape device",
                         out.name);
                 exit(1);
-                /* NOTREACHED */
+                // NOTREACHED
             }
         }
         if ((out.dbcnt -= n) < out.dbsz)
@@ -604,10 +573,10 @@ void pos_in(void) {
             fprintf(stderr, "%s: seek error: %s",
                     in.name, strerror(errno));
             exit(1);
-            /* NOTREACHED */
+            // NOTREACHED
         }
         return;
-        /* NOTREACHED */
+        // NOTREACHED
     }
 
     /*
@@ -634,7 +603,7 @@ void pos_in(void) {
             }
             fprintf(stderr, "skip reached end of input\n");
             exit(1);
-            /* NOTREACHED */
+            // NOTREACHED
         }
 
         /*
@@ -645,22 +614,21 @@ void pos_in(void) {
         if (ddflags & C_NOERROR) {
             if (!warned) {
 
-                fprintf(stderr, "%s: error occurred\n",
-                        in.name);
-                warned = 1;
+                fprintf(stderr, "%s: error occurred\n", in.name);
                 summary();
             }
             continue;
         }
         fprintf(stderr, "%s: read error: %s", in.name, strerror(errno));
         exit(1);
-        /* NOTREACHED */
+        // NOTREACHED
     }
 }
 
 void pos_out(void) {
     //  struct mtop t_op;
-    int cnt, n;
+    uint64_t cnt;
+    int n;
 
     /*
      * If not a tape, try seeking on the file.  Seeking on a pipe is
@@ -673,7 +641,7 @@ void pos_out(void) {
             fprintf(stderr, "%s: seek error: %s\n",
                     out.name, strerror(errno));
             exit(1);
-            /* NOTREACHED */
+            // NOTREACHED
         }
         return;
     }
@@ -686,7 +654,7 @@ void pos_out(void) {
                         if (ioctl(out.fd, MTIOCTOP, &t_op) < 0)*/
         fprintf(stderr, "%s: cannot read", out.name);
         exit(1);
-        /* NOTREACHED */
+        // NOTREACHED
         return;
     }
 
@@ -699,7 +667,7 @@ void pos_out(void) {
             fprintf(stderr, "%s: cannot position by reading: %s\n",
                     out.name, strerror(errno));
             exit(1);
-            /* NOTREACHED */
+            // NOTREACHED
         }
 
         /*
@@ -712,16 +680,16 @@ void pos_out(void) {
                        if (ioctl(out.fd, MTIOCTOP, &t_op) == -1) */ {
             fprintf(stderr, "%s: cannot position\n", out.name);
             exit(1);
-            /* NOTREACHED */
+            // NOTREACHED
         }
 
         while (cnt++ < out.offset)
-            if ((n = bwrite(out.fd, out.db, out.dbsz)) != out.dbsz) {
+            if ((n = bwrite(out.fd, out.db, out.dbsz)) != (long int)out.dbsz) {
                 fprintf(stderr, "%s: cannot position "
                                 "by writing: %s\n",
                         out.name, strerror(errno));
                 exit(1);
-                /* NOTREACHED */
+                // NOTREACHED
             }
         break;
     }
@@ -767,27 +735,7 @@ void def_close(void) {
 }
 
 
-//#ifdef  NO_CONV
-/* Build a smaller version (i.e. for a miniroot) */
-/* These can not be called, but just in case...  */
-/*static const char no_block[] = "unblock and -DNO_CONV?\n";
-void block(void) {
-    fprintf(stderr, "%s", no_block + 2);
-    exit(1);
-}
-void block_close(void) {
-    fprintf(stderr, "%s", no_block + 2);
-    exit(1);
-}
-void unblock(void) {
-    fprintf(stderr, "%s", no_block);
-    exit(1);
-}
-void unblock_close(void) {
-    fprintf(stderr, "%s", no_block);
-    exit(1);
-}
-#endif */ /* NO_CONV */
+
 
 #define tv2mS(tv) ((tv).tv_sec * 1000LL + ((tv).tv_usec + 500) / 1000)
 
@@ -797,9 +745,11 @@ void summary(void) {
     int64_t mS;
     struct timeval tv;
 
-    if (progress && !interrupted){
+    if (!progress && !interrupted){
         (void)snprintf(buf, sizeof(buf), "\r [100%%] %ld blocks (%ld MB) written.",
                        (long)st.out_full, (long) st.bytes/1000000);
+        (void)write(STDERR_FILENO, buf, strlen(buf));
+        (void)snprintf(buf, sizeof(buf), "\nFlashing is finished successfully");
         (void)write(STDERR_FILENO, buf, strlen(buf));
     } else {
         current_summary();
@@ -837,7 +787,6 @@ void summary(void) {
         (void)write(STDERR_FILENO, buf, strlen(buf));
     }
     (void)snprintf(buf, sizeof(buf),
-                   //    "%llu bytes (%f GB) transferred in %lu.%03d s (%llu bytes/sec)\n",
                    "%llu bytes (%4.1f MB) transferred in %lu.%03d s (%4.1f MB/s)\n",
                    (unsigned long long) st.bytes,
                    (unsigned long long) st.bytes / 1e6,
@@ -845,6 +794,7 @@ void summary(void) {
                    (int) (mS % 1000),
                    (double) (st.bytes / 1e3 / mS));
     (void)write(STDERR_FILENO, buf, strlen(buf));
+
 
 }
 
@@ -866,7 +816,6 @@ void current_summary(void) {
 void terminate(int notused) {
     interrupted = 1;
     exit(0);
-    /* NOTREACHED */
 }
 
 static int  c_arg(const void *, const void *);
@@ -889,62 +838,42 @@ static const struct arg {
 /*
  * args -- parse JCL syntax of dd.
   */
-void jcl(char **argv) {
+
+int jcl(struct FlashingParameters fp) {
 
     struct arg *ap, tmp;
-    char *oper, *arg;
 
-    int n = 3;
+    QByteArray operand;
+    QByteArray value;
+    QList<QString> parameters;
+    parameters.append(fp.blockSize);
+    parameters.append(fp.inputFile);
+    parameters.append(fp.outputFile);
+
+    int n = parameters.size();
     in.dbsz = out.dbsz = 512; //default
 
     for (int i = 0; i < n; i++) {
-        oper = *argv;
 
-        if (( arg = strchr(oper, '=')) == NULL) {
-            fprintf(stderr, "unknown operand %s\n", oper);
-            QThread::sleep(3);
-            exit(1);
-            // NOTREACHED
-        }
+        operand = parameters.at(i).left(2).toLatin1();
+        value = parameters.at(i).section('=',-1).toLocal8Bit();
 
-        if (!*(arg+1)) {
-            fprintf(stderr, "no value specified for %s\n", oper);
-            QThread::sleep(3);
-            exit(1);
-            // NOTREACHED
-        }
+        tmp.name = operand.data();
 
-        int index = (int)(arg - oper);
-        char operandName[10];
-
-        strncpy(operandName,oper,index);
-        operandName[index]='\0';
-
-        tmp.name = operandName;
-
-        if (!(ap = (struct arg *)bsearch(&tmp, args,
-                                         sizeof(args)/sizeof(struct arg), sizeof(struct arg),
-                                         c_arg))) {
+        if (!(ap = (struct arg *)bsearch(&tmp, args, sizeof(args)/sizeof(struct arg), sizeof(struct arg), c_arg))) {
             fprintf(stderr, "unknown operand %s\n", tmp.name);
-            QThread::sleep(3);
-            exit(1);
-            /* NOTREACHED */
+            return 1;
         }
+
         if (ddflags & ap->noset) {
-            fprintf(stderr,
-                    "%s: illegal argument combination or already set\n",
-                    tmp.name);
-            QThread::sleep(3);
-            exit(1);
-            /* NOTREACHED */
+            fprintf(stderr, "%s: illegal argument combination or already set\n", tmp.name);
+            return 1;
         }
         ddflags |= ap->set;
-        ap->f(arg+1);
-        *argv++;
-
+        ap->f(value.data());
     }
-
     cfunc = def;
+    return 0;
 }
 
 static int c_arg(const void *a, const void *b) {
@@ -962,16 +891,13 @@ static long long strsuftoll(const char* arg, int def) {
 }
 
 static void f_bs(char *arg) {
-
     in.dbsz = out.dbsz = strsuftoll(arg, 1);
 }
 
 static void f_if(char *arg) {
-
     in.name = arg;
 }
 
 static void f_of(char *arg) {
-
     out.name = arg;
 }

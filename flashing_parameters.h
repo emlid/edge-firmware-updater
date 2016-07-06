@@ -1,24 +1,14 @@
-#ifndef RPIDEVICEFLASHING_H
-#define RPIDEVICEFLASHING_H
+#ifndef FLASHINGPARAMETERS_H
+#define FLASHINGPARAMETERS_H
 
+#include <QString>
 
-class FlashingParameters{
-public:
-    FlashingParameters();
+struct FlashingParameters{
+    QString blockSize;
+    QString inputFile;
+    QString outputFile;
 
-    void setBs(char *);
-    void setIf(char *);
-    void setOf(char *);
-
-    char *getBs();
-    char *getOf();
-    char *getIf();
-    void getAllParams(char **);
-
-private:
-    char _blockSize[11];
-    char _inputFile[200];
-    char _outputFile[100];
+    FlashingParameters(): blockSize("bs=1000000"), inputFile("if="), outputFile("of=") {}
 };
 
 #endif

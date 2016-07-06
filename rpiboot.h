@@ -3,6 +3,6 @@
 
 void rpiboot(void);
 
-#endif // USBBOOTRPI_H
+#endif
 
 
