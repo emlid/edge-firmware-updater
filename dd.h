@@ -38,10 +38,11 @@
  */
 
 #include "flashing_parameters.h"
+
 /* Input/output stream state. */
 typedef struct {
-    u_char      *db;        /* buffer address */
-    u_char      *dbp;       /* current buffer I/O address */
+    uchar      *db;        /* buffer address */
+    uchar      *dbp;       /* current buffer I/O address */
     uint64_t    dbcnt;      /* current buffer byte count */
     int64_t     dbrcnt;     /* last read byte count */
     uint64_t    dbsz;       /* buffer size */
@@ -50,7 +51,7 @@ typedef struct {
 #define ISPIPE      0x02        /* pipe (not truncatable) */
 #define ISTAPE      0x04        /* tape (not seekable) */
 #define NOREAD      0x08        /* not readable */
-    u_int       flags;
+    uint       flags;
 
     const char      *name;      /* name */
     int     fd;     /* file descriptor */

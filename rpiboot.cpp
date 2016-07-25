@@ -1,5 +1,3 @@
-
-
 #include "libusb-1.0/libusb.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,11 +6,14 @@
 #include <unistd.h>
 #include <QThread>
 #include <QtDebug>
+#include <iostream>
+#include <flashing_parameters.h>
+
+using namespace std;
 
 int verbose = 0;
 int out_ep = 1;
 int in_ep = 2;
-
 
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	libusb_context *ctx, uint16_t vendor_id)
@@ -33,8 +34,8 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 		if (r < 0)
 			goto out;
 		if (desc.idVendor == vendor_id) {
-			if(desc.idProduct == 0x2763 ||
-			   desc.idProduct == 0x2764)
+            if(desc.idProduct == PRODUCT_ID1 ||
+               desc.idProduct == PRODUCT_ID2)
 			{
 				found = dev;
 				break;
@@ -63,7 +64,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 	int interface;
 	struct libusb_config_descriptor *config;
 
-	*usb_device = open_device_with_vid(*ctx, 0x0a5c);
+    *usb_device = open_device_with_vid(*ctx, VENDOR_ID);
 	if (*usb_device == NULL)
 	{
 		return -1;
@@ -125,6 +126,13 @@ int ep_read(unsigned char *buf, int len, libusb_device_handle * usb_device)
     return len;
 }
 
+void startRpiBoot(QThread *thread){
+    thread->setObjectName("rpiboot Thread");
+    QObject::connect(thread, &QThread::started, rpiboot);
+    thread->start();
+}
+
+
 void rpiboot(void)
 {
 
@@ -155,15 +163,13 @@ void rpiboot(void)
 		unsigned char signature[20];
 	} message;
 	
-#if defined (__CYGWIN__)
-  //printf("Running under Cygwin\n");
-#else
+#if defined Q_OS_LINUX
 	//exit if not run as sudo
-	if(getuid() != 0)
+    if(getuid() != 0)
 	{
 		printf("Must be run with sudo...\n");
 		exit(-1);
-	}
+    }
 #endif
 
 	fp1 = fopen(stage1, "rb");
@@ -282,6 +288,6 @@ void rpiboot(void)
 	}
 	while(fp == fp1);
 
-	libusb_exit(ctx);
+    libusb_exit(ctx);
     QThread::currentThread()->exit(0);
 }

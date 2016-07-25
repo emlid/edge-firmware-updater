@@ -6,7 +6,6 @@ TARGET = edge_fw_update
 CONFIG += console
 CONFIG -= app_bundle
 
-
 QMAKE_CFLAGS = -fpermissive
 QMAKE_CXXFLAGS = -fpermissive
 QMAKE_LFLAGS = -fpermissive
@@ -14,15 +13,35 @@ QMAKE_LFLAGS = -fpermissive
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    dd.cpp \
-    rpiboot.cpp
+    rpiboot.cpp \
+
+
+HEADERS += \
+    rpiboot.h \
+    flashing_parameters.h \
+
+
+
+win32{
+    SOURCES += dd_win.cpp \
+        handledevice_win.cpp
+    HEADERS += dd_win.h \
+        handledevice_win.h
+}
+
+unix{
+    SOURCES += dd.cpp \
+        handledevice_linux.cpp
+    HEADERS += dd.h \
+        handledevice_linux.h
+
+    LIBS += -L/usr/lib/ -ludev
+}
+
+
+
 
 LIBS += -lusb-1.0
 
 LIBS += -L/usr/local/lib/ -lusb-1.0
-LIBS += -L/usr/lib/ -ludev
 
-HEADERS += \
-    dd.h \
-    rpiboot.h \
-    flashing_parameters.h

@@ -1,25 +1,22 @@
+#include <QString>
+#include <QList>
+
 #ifndef RPIDEVICEFLASHING_H
 #define RPIDEVICEFLASHING_H
 
+#define VENDOR_ID       0xa5c
+#define VENDOR_ID_CHAR   "0a5c"
+#define PRODUCT_ID1     0x2763
+#define PRODUCT_ID2     0x2764
 
-class FlashingParameters{
-public:
-    FlashingParameters();
+struct FlashingParameters{
+    QString blockSize;
+    QString inputFile;
+    QString outputFile;
 
-    void setBs(char *);
-    void setIf(char *);
-    void setOf(char *);
-
-    char *getBs();
-    char *getOf();
-    char *getIf();
-    void getAllParams(char **);
-
-private:
-    char _blockSize[11];
-    char _inputFile[200];
-    char _outputFile[100];
+    FlashingParameters(): blockSize("bs=1000000"), inputFile("if="), outputFile("of=") {}
 };
+
 
 #endif
 

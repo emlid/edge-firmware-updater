@@ -1,0 +1,483 @@
+#include "flashing_parameters.h"
+#include <QFileInfo>
+#include <QTime>
+#include <QDebug>
+#include <QCoreApplication>
+#include <iostream>
+#include <windows.h>
+#include <winioctl.h>
+#include <wchar.h>
+#include <dd_win.h>
+#include <handledevice_win.h>
+
+
+unsigned long long sectorsize;
+
+HANDLE getHandleOnFile(LPCWSTR filelocation, DWORD access)
+{
+    HANDLE hFile;
+    hFile = CreateFileW((wchar_t *)filelocation, access, 0, NULL, (access == GENERIC_READ) ? OPEN_EXISTING:CREATE_ALWAYS, 0, NULL);
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0,
+                         (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+
+        qWarning()<<   QObject::tr("An error occurred when attempting to get a handle on the file.\n" "Error %1: %2").arg(GetLastError()).arg(errText);
+
+        LocalFree(errormessage);
+    }
+    return hFile;
+}
+
+HANDLE getHandleOnDevice(int device, DWORD access)
+{
+    HANDLE hDevice;
+    wchar_t devicename[] = L"\\\\.\\PhysicalDrive0";
+    devicename[17] += device;
+
+    hDevice = CreateFile( devicename, access, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    if (hDevice == INVALID_HANDLE_VALUE)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning() << QObject::tr("An error occurred when attempting to get a handle on the device.\n" "Error %1: %2").arg(GetLastError()).arg(errText);
+
+        LocalFree(errormessage);
+    }
+    return hDevice;
+}
+
+HANDLE getHandleOnVolume(int volume, DWORD access)
+{
+    HANDLE hVolume;
+    wchar_t volumename[] = L"\\\\.\\A:";
+    volumename[4] += volume;
+
+    hVolume = CreateFile(volumename, access, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (hVolume == INVALID_HANDLE_VALUE)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), LANG_SYSTEM_DEFAULT, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+
+        qWarning()<< QObject::tr("An error occurred when attempting to get a handle on the volume.\n"
+                                                  "Error %1: %2").arg(GetLastError()).arg(errText);
+
+        LocalFree(errormessage);
+    }
+    return hVolume;
+}
+
+
+
+bool getLockOnVolume(HANDLE handle)
+{
+    DWORD bytesreturned;
+    BOOL bResult;
+    bResult = DeviceIoControl(handle, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytesreturned, NULL);
+    if (!bResult)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred when attempting to lock the volume.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+       LocalFree(errormessage);
+    }
+    return (bResult);
+}
+
+bool removeLockOnVolume(HANDLE handle)
+{
+    DWORD junk;
+    BOOL bResult;
+    bResult = DeviceIoControl(handle, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &junk, NULL);
+    if (!bResult)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred when attempting to unlock the volume.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+        LocalFree(errormessage);
+    }
+    return (bResult);
+}
+
+
+bool unmountVolume(HANDLE handle)
+{
+    DWORD junk;
+    BOOL bResult;
+    bResult = DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, NULL, 0, NULL, 0, &junk, NULL);
+    if (!bResult)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred when attempting to dismount the volume.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+        LocalFree(errormessage);
+    }
+    return (bResult);
+}
+
+
+
+unsigned long long getNumberOfSectors(HANDLE handle, unsigned long long *sectorsize)
+{
+    DWORD junk;
+    DISK_GEOMETRY_EX diskgeometry;
+    BOOL bResult;
+    bResult = DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, NULL, 0, &diskgeometry, sizeof(diskgeometry), &junk, NULL);
+    if (!bResult)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred when attempting to get the device's geometry.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+        LocalFree(errormessage);
+        return 0;
+    }
+    if (sectorsize != NULL)
+    {
+        *sectorsize = (unsigned long long)diskgeometry.Geometry.BytesPerSector;
+    }
+    return (unsigned long long)diskgeometry.DiskSize.QuadPart / (unsigned long long)diskgeometry.Geometry.BytesPerSector;
+}
+
+unsigned long long getFileSizeInSectors(HANDLE handle, unsigned long long sectorsize)
+{
+    unsigned long long retVal = 0;
+    LARGE_INTEGER filesize;
+    if(GetFileSizeEx(handle, &filesize) == 0)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred while getting the file size.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+        LocalFree(errormessage);
+        retVal = 0;
+    }
+    else
+    {
+        retVal = ((unsigned long long)filesize.QuadPart / sectorsize ) + (((unsigned long long)filesize.QuadPart % sectorsize )?1:0);
+    }
+    return(retVal);
+}
+
+bool spaceAvailable(char *location, unsigned long long spaceneeded)
+{
+    ULARGE_INTEGER freespace;
+    BOOL bResult;
+    bResult = GetDiskFreeSpaceEx((LPCWSTR)location, NULL, NULL, &freespace);
+    if (!bResult)
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("Failed to get the free space on drive %s.\nError %lu: %s\n", location, GetLastError(), qPrintable(errText));
+        return true;
+    }
+    return (spaceneeded <= freespace.QuadPart);
+}
+
+
+char *readSectorDataFromHandle(HANDLE handle, unsigned long long startsector, unsigned long long numsectors, unsigned long long sectorsize)
+{
+    unsigned long bytesread;
+    char *data = new char[sectorsize * numsectors];
+    LARGE_INTEGER li;
+    li.QuadPart = startsector * sectorsize;
+    SetFilePointer(handle, li.LowPart, &li.HighPart, FILE_BEGIN);
+    if (!ReadFile(handle, data, sectorsize * numsectors, &bytesread, NULL))
+    {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred when attempting to read data from handle.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+        LocalFree(errormessage);
+        delete data;
+        data = NULL;
+    }
+    if (bytesread < (sectorsize * numsectors))
+    {
+            memset(data + bytesread,0,(sectorsize * numsectors) - bytesread);
+    }
+    return data;
+}
+
+
+bool writeSectorDataToHandle(HANDLE handle, char *data, unsigned long long startsector, unsigned long long numsectors, unsigned long long sectorsize)
+{
+    unsigned long byteswritten;
+    BOOL bResult;
+    LARGE_INTEGER li;
+    li.QuadPart = startsector * sectorsize;
+    SetFilePointer(handle, li.LowPart, &li.HighPart, FILE_BEGIN);
+    bResult = WriteFile(handle, data, sectorsize * numsectors, &byteswritten, NULL);
+    if (!bResult)
+    {
+        wchar_t *errormessage = NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        qWarning("An error occurred when attempting to write data to handle.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+
+        LocalFree(errormessage);
+    }
+    return (bResult);
+}
+
+
+void current_summary(unsigned long long numsectors, int i, int *lastValue) {
+    long int percent = (numsectors % 100) == 0 ? numsectors/100 : numsectors/100+1;
+    if ( i / (percent * 1) > (*lastValue)){
+        std::cout << "\r [" <<i / percent<< "%] "<<i <<" blocks ("<<i*sectorsize/1000000<< "MB) written.";
+        (*lastValue)++;
+    }
+}
+
+
+bool getPhysicalDriveNumber(QString drivename, int *pid)
+{
+    QString expandName = "\\\\.\\" + drivename + '\0';
+    wchar_t name[expandName.size()];
+    expandName.toWCharArray(name);
+
+    HANDLE hDevice;
+    PSTORAGE_DEVICE_DESCRIPTOR pDevDesc;
+    DEVICE_NUMBER deviceInfo;
+
+    wchar_t *nameWithSlash;
+    wchar_t *nameNoSlash;
+
+    // some calls require no tailing slash, some require a trailing slash...
+    if ( !(slashify(name, &nameWithSlash, &nameNoSlash)) )
+    {
+        return 0;
+    }
+        hDevice = CreateFile(nameNoSlash, FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+        if (hDevice == INVALID_HANDLE_VALUE)
+        {
+            wchar_t *errormessage = NULL;
+            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+            QString errText = QString::fromUtf16((const ushort *)errormessage);
+            qWarning()<<QObject::tr("An error occurred when attempting to get a handle.\n" "Error %1: %2").arg(GetLastError()).arg(errText);
+            LocalFree(errormessage);
+
+            return 0;
+        }
+        else
+        {
+            int arrSz = sizeof(STORAGE_DEVICE_DESCRIPTOR) + 512 - 1;
+            pDevDesc = (PSTORAGE_DEVICE_DESCRIPTOR)new BYTE[arrSz];
+            pDevDesc->Size = arrSz;
+
+            GetDisksProperty(hDevice, pDevDesc, &deviceInfo);
+            *pid = deviceInfo.DeviceNumber;
+
+            delete pDevDesc;
+            CloseHandle(hDevice);
+        }
+
+
+    // free the strings allocated by slashify
+    free(nameWithSlash);
+    free(nameNoSlash);
+
+    return 1;
+}
+
+
+int flashDevice(struct FlashingParameters params) {
+    int status;
+
+    bool passfail = true;
+        QString fileName = params.inputFile.mid(3);
+        QString drive = params.outputFile.mid(3);
+
+        QFileInfo fileinfo(fileName); //path to the img file
+        if (fileinfo.exists() && fileinfo.isFile() &&
+                fileinfo.isReadable() && (fileinfo.size() > 0) )
+        {
+
+            if (fileName.at(0) == drive.at(0))
+            {
+                qWarning("Image file cannot be located on the target device.\n");
+                return 1;
+            }
+
+            status = STATUS_WRITING;
+
+            unsigned long long i, availablesectors, numsectors;
+
+            int volumeID = drive.at(0).toLatin1() - 'A';
+            int deviceID;
+            getPhysicalDriveNumber(drive, &deviceID);
+
+            HANDLE hVolume;
+            hVolume = getHandleOnVolume(volumeID, GENERIC_WRITE);
+            if (hVolume == INVALID_HANDLE_VALUE)
+            {
+                status = STATUS_IDLE;
+                return 1;
+            }
+
+            if (!getLockOnVolume(hVolume))
+            {
+                CloseHandle(hVolume);
+                status = STATUS_IDLE;
+                hVolume = INVALID_HANDLE_VALUE;
+                return 1;
+            }
+            if (!unmountVolume(hVolume))
+            {
+                removeLockOnVolume(hVolume);
+                CloseHandle(hVolume);
+                status = STATUS_IDLE;
+                hVolume = INVALID_HANDLE_VALUE;
+                return 1;
+            }
+
+            const wchar_t * encodedName = reinterpret_cast<const wchar_t *>(fileName.utf16());
+
+            HANDLE hFile;
+            hFile = getHandleOnFile(encodedName, GENERIC_READ);
+
+            if (hFile == INVALID_HANDLE_VALUE)
+            {
+                removeLockOnVolume(hVolume);
+                CloseHandle(hVolume);
+                status = STATUS_IDLE;
+                hVolume = INVALID_HANDLE_VALUE;
+                return 1;
+            }
+
+            HANDLE hRawDisk;
+            hRawDisk = getHandleOnDevice(deviceID, GENERIC_WRITE);
+
+            if (hRawDisk == INVALID_HANDLE_VALUE)
+            {
+                removeLockOnVolume(hVolume);
+                CloseHandle(hFile);
+                CloseHandle(hVolume);
+                status = STATUS_IDLE;
+                hVolume = INVALID_HANDLE_VALUE;
+                hFile = INVALID_HANDLE_VALUE;
+                return 1;
+            }
+            availablesectors = getNumberOfSectors(hRawDisk, &sectorsize);
+            numsectors = getFileSizeInSectors(hFile, sectorsize);
+
+            if (numsectors > availablesectors)
+            {
+                qWarning("Not enough space on disk: Size: %llu sectors  Available: %llu sectors  Sector size: %llu\n", numsectors, availablesectors, sectorsize);
+
+                removeLockOnVolume(hVolume);
+                CloseHandle(hRawDisk);
+                CloseHandle(hFile);
+                CloseHandle(hVolume);
+                status = STATUS_IDLE;
+                hVolume = INVALID_HANDLE_VALUE;
+                hFile = INVALID_HANDLE_VALUE;
+                hRawDisk = INVALID_HANDLE_VALUE;
+                return 1;
+            }
+
+            QTime timer;
+            timer.start();
+            int percent = 0;
+            char *sectorData;
+
+            std::cout << "Flashing " << qPrintable(drive) << " with " << qPrintable(fileName.mid(fileName.lastIndexOf('\\')+1)) << std::endl;
+
+            for (i = 0ul; i < numsectors && status == STATUS_WRITING; i += 1024ul)
+            {
+                sectorData = readSectorDataFromHandle(hFile, i, (numsectors - i >= 1024ul) ? 1024ul:(numsectors - i), sectorsize);
+                if (sectorData == NULL)
+                {
+                    delete sectorData;
+                    removeLockOnVolume(hVolume);
+                    CloseHandle(hRawDisk);
+                    CloseHandle(hFile);
+                    CloseHandle(hVolume);
+                    status = STATUS_IDLE;
+                    sectorData = NULL;
+                    hRawDisk = INVALID_HANDLE_VALUE;
+                    hFile = INVALID_HANDLE_VALUE;
+                    hVolume = INVALID_HANDLE_VALUE;
+
+                    return 1;
+                }
+                if (!writeSectorDataToHandle(hRawDisk, sectorData, i, (numsectors - i >= 1024ul) ? 1024ul:(numsectors - i), sectorsize))
+                {
+                    delete sectorData;
+                    removeLockOnVolume(hVolume);
+                    CloseHandle(hRawDisk);
+                    CloseHandle(hFile);
+                    CloseHandle(hVolume);
+                    status = STATUS_IDLE;
+                    sectorData = NULL;
+                    hRawDisk = INVALID_HANDLE_VALUE;
+                    hFile = INVALID_HANDLE_VALUE;
+                    hVolume = INVALID_HANDLE_VALUE;
+
+                    return 1;
+                }
+                delete sectorData;
+                sectorData = NULL;
+                current_summary(numsectors, i, &percent);
+
+            }
+            std::cout << "\n\n";
+
+            LARGE_INTEGER filesize;
+            GetFileSizeEx(hFile, &filesize);
+            std::cout <<  filesize.QuadPart <<  " bytes (" << filesize.QuadPart/1000000 << " MB) transferred ";
+            std::cout <<  "in " << timer.elapsed()/1000 << " s (" << (double)(filesize.QuadPart/1000000)/(timer.elapsed()/1000) << " MB/s)\n";
+
+            removeLockOnVolume(hVolume);
+            CloseHandle(hRawDisk);
+            CloseHandle(hFile);
+            CloseHandle(hVolume);
+            sectorData = NULL;
+            hRawDisk = INVALID_HANDLE_VALUE;
+            hFile = INVALID_HANDLE_VALUE;
+            hVolume = INVALID_HANDLE_VALUE;
+
+            if (status == STATUS_CANCELED){
+                passfail = false;
+            }
+        }
+        else if (!fileinfo.exists() || !fileinfo.isFile())
+        {
+            qWarning("File error. The selected file does not exist.");
+            passfail = false;
+        }
+        else if (!fileinfo.isReadable())
+        {
+            qWarning("File error. You do not have permision to read the selected file.");
+            passfail = false;
+        }
+        else if (fileinfo.size() == 0)
+        {
+            qWarning("File Error. The specified file contains no data.");
+            passfail = false;
+        }
+
+        if (passfail){
+            qWarning("Write Successful.");
+        }
+
+
+    status = STATUS_IDLE;
+    return 0;
+}
+
