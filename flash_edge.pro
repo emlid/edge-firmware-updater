@@ -45,3 +45,6 @@ LIBS += -lusb-1.0
 
 LIBS += -L/usr/local/lib/ -lusb-1.0
 
+FORMS += \
+    mainwindow.ui
+
