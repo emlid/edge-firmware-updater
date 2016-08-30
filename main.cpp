@@ -1,4 +1,4 @@
-#include <QCoreApplication>
+#include <QApplication>
 #include <QThread>
 #include "libusb-1.0/libusb.h"
 #include <stdio.h>
@@ -15,6 +15,7 @@
 
 #include <rpiboot.h>
 #include <flashing_parameters.h>
+#include <mainwindow.h>
 
 #include <QCommandLineOption>
 #include <QCommandLineParser>
@@ -79,7 +80,11 @@ int main(int argc, char *argv[])
     int ret = 0;
     struct FlashingParameters flashParams;
 
-    QCoreApplication a(argc, argv);
+    QApplication a(argc, argv);
+
+    MainWindow mainwindow;
+    mainwindow.show();
+    a.exec();
 
     ret = parseCommandLineArguments(a.arguments(), &flashParams);
     if (ret) {

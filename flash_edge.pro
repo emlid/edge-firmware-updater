@@ -3,8 +3,12 @@ QT -= gui
 QT += serialport
 
 TARGET = edge_fw_update
-CONFIG += console
-CONFIG -= app_bundle
+#CONFIG += console
+#CONFIG -= app_bundle
+QT += widgets
+
+FORMS += \
+    mainwindow.ui
 
 QMAKE_CFLAGS = -fpermissive
 QMAKE_CXXFLAGS = -fpermissive
@@ -14,11 +18,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     rpiboot.cpp \
+    mainwindow.cpp
 
 
 HEADERS += \
     rpiboot.h \
     flashing_parameters.h \
+    mainwindow.h
 
 
 
@@ -45,6 +51,4 @@ LIBS += -lusb-1.0
 
 LIBS += -L/usr/local/lib/ -lusb-1.0
 
-FORMS += \
-    mainwindow.ui
 
