@@ -43,7 +43,7 @@
      <item row="0" column="0">
       <widget class="QLineEdit" name="leFileName">
        <property name="statusTip">
-        <string>Path to image file (source)</string>
+        <string/>
        </property>
        <property name="text">
         <string>Path to file..</string>
@@ -74,7 +74,7 @@
      <item>
       <widget class="QPushButton" name="cancelButton">
        <property name="statusTip">
-        <string>Cancel current process</string>
+        <string/>
        </property>
        <property name="text">
         <string>Cancel</string>
@@ -84,7 +84,7 @@
      <item>
       <widget class="QPushButton" name="startButton">
        <property name="statusTip">
-        <string>Start writing from 'Image file' to 'Devices'</string>
+        <string/>
        </property>
        <property name="text">
         <string>Start</string>
@@ -115,7 +115,7 @@
       </rect>
      </property>
      <property name="statusTip">
-      <string>Current progress</string>
+      <string/>
      </property>
      <property name="value">
       <number>0</number>
@@ -132,7 +132,7 @@
      </rect>
     </property>
     <property name="statusTip">
-     <string>Process log</string>
+     <string/>
     </property>
    </widget>
   </widget>
@@ -159,38 +159,5 @@
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>cancelButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>220</x>
-     <y>223</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>184</x>
-     <y>189</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancelButton</sender>
-   <signal>pressed()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>220</x>
-     <y>223</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>184</x>
-     <y>189</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
