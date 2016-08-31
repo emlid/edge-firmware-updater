@@ -16,9 +16,10 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-
 private:
     Ui::MainWindow *ui;
+
+    void alignToCenter();
 };
 
 #endif // MAINWINDOW_H
