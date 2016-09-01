@@ -22,6 +22,7 @@ private:
     void alignToCenter();
 
 private slots:
+    void on_refreshButton_clicked();
     void on_browseButton_clicked();
 };
 
