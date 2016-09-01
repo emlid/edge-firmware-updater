@@ -20,6 +20,9 @@ private:
     Ui::MainWindow *ui;
 
     void alignToCenter();
+
+private slots:
+    void on_browseButton_clicked();
 };
 
 #endif // MAINWINDOW_H

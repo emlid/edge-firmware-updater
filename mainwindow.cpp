@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 
 #include <QDesktopWidget>
+#include <QStandardPaths>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -22,4 +24,13 @@ void MainWindow::alignToCenter()
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_browseButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+          tr("Open Image"),QStandardPaths::displayName(QStandardPaths::DesktopLocation), tr("Image Files (*.img);;All files (*.*)"));
+    if (!fileName.isEmpty()) {
+        ui->leFileName->setText(fileName);
+    }
 }

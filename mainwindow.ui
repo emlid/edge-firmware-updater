@@ -46,13 +46,16 @@
         <string/>
        </property>
        <property name="text">
-        <string>Path to file..</string>
+        <string/>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
        <property name="dragEnabled">
         <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>path to file...</string>
        </property>
       </widget>
      </item>
