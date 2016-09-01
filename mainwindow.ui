@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>375</width>
-    <height>379</height>
+    <height>474</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -65,7 +65,7 @@
     <property name="geometry">
      <rect>
       <x>180</x>
-      <y>190</y>
+      <y>280</y>
       <width>172</width>
       <height>31</height>
      </rect>
@@ -100,7 +100,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>220</y>
       <width>351</width>
       <height>61</height>
      </rect>
@@ -129,13 +129,39 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>240</y>
+      <y>330</y>
       <width>351</width>
       <height>91</height>
      </rect>
     </property>
     <property name="statusTip">
      <string/>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="lwDeviceList">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>351</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="midLineWidth">
+     <number>-3</number>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="refreshButton">
+    <property name="geometry">
+     <rect>
+      <x>269</x>
+      <y>190</y>
+      <width>91</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Refresh</string>
     </property>
    </widget>
   </widget>
