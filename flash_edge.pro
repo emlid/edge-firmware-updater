@@ -18,13 +18,17 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     rpiboot.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    firmwareupgradecontroller.cpp \
+    storagedevice.cpp
 
 
 HEADERS += \
     rpiboot.h \
     flashing_parameters.h \
-    mainwindow.h
+    mainwindow.h \
+    firmwareupgradecontroller.h \
+    storagedevice.h
 
 
 
