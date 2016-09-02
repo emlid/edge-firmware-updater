@@ -16,6 +16,11 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void show();
+
+signals:
+    void windowShown();
+
 private:
     Ui::MainWindow *ui;
 

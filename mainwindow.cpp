@@ -32,6 +32,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::show()
+{
+   QMainWindow::show();
+   QApplication::processEvents();
+   emit windowShown();
+}
+
 void MainWindow::on_refreshButton_clicked()
 {
     ui->teLog->append(QString("Scan for devices..."));
