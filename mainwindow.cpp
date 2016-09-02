@@ -12,12 +12,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     _upgradeController = new FirmwareUpgradeController(this);
+    connect(this, &MainWindow::windowShown, _upgradeController, &FirmwareUpgradeController::startFindDevices);
     ui->setupUi(this);
     this->alignToCenter();
 
     ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
-
-    on_refreshButton_clicked();
 }
 
 void MainWindow::alignToCenter()

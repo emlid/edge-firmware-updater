@@ -5,3 +5,8 @@ FirmwareUpgradeController::FirmwareUpgradeController(QObject *parent) : QObject(
 {
     qDebug() << "firmwareUpgradeController constructor";
 }
+
+void FirmwareUpgradeController::startFindDevices()
+{
+    qDebug() << "start Find defices";
+}

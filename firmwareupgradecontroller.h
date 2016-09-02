@@ -9,6 +9,8 @@ class FirmwareUpgradeController : public QObject
 public:
     explicit FirmwareUpgradeController(QObject *parent = 0);
 
+    void startFindDevices();
+
 signals:
 
 public slots:
