@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    _upgradeController = new FirmwareUpgradeController(this);
     ui->setupUi(this);
     this->alignToCenter();
 

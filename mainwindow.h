@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "ui_mainwindow.h"
+#include <firmwareupgradecontroller.h>
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +24,7 @@ signals:
 
 private:
     Ui::MainWindow *ui;
+    FirmwareUpgradeController* _upgradeController;
 
     void alignToCenter();
 
