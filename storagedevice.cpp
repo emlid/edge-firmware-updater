@@ -36,3 +36,21 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 
     _workerThread->start();
 }
+
+StorageDevice::~StorageDevice()
+{
+    _workerThread->quit();
+    _workerThread->wait();
+
+    delete _workerThread;
+}
+
+StorageDevice& StorageDevice::operator=(const StorageDevice& other){
+
+    if (this != &other) {
+        this->_vid = other._vid;
+        this->_pid = other._pid;
+        this->_deviceNode = other._deviceNode;
+    }
+    return *this;
+}

@@ -38,8 +38,10 @@ class StorageDevice : public QObject
 
     Q_OBJECT
 public:
-    explicit StorageDevice(QObject *parent = 0);
-    ~StorageDevice(){}
+    StorageDevice(QObject *parent = 0);
+    ~StorageDevice();
+
+    StorageDevice &operator=(const StorageDevice &other);
 
     //internal signals to communicate with thread
 signals:
@@ -55,8 +57,8 @@ public slots:
     void _updateProgress(int curr, int total) { emit updateProgress(curr, total); }
 
 private:
-    QString _vid;
-    QString _pid;
+    uint32_t _vid;
+    uint32_t _pid;
     QString _deviceNode;
 
     StorageDeviceThreadWorker*  _worker;
