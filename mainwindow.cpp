@@ -41,6 +41,7 @@ void MainWindow::on_refreshButton_clicked()
 {
     ui->teLog->append(QString("Scan for devices..."));
     ui->lwDeviceList->clear();
+    _upgradeController->clearDeviceList();
 
     emit _upgradeController->findBoard();
 
