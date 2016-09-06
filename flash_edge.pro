@@ -20,6 +20,7 @@ SOURCES += main.cpp \
     rpiboot.cpp \
     mainwindow.cpp \
     firmwareupgradecontroller.cpp \
+    devicesearcher.cpp \
     storagedevice.cpp
 
 
