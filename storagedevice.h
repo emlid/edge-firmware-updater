@@ -43,6 +43,8 @@ public:
 
     StorageDevice &operator=(const StorageDevice &other);
 
+    static int deviceCount;
+
     //internal signals to communicate with thread
 signals:
     void _flashOnThread(void);
