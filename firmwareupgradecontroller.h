@@ -4,6 +4,8 @@
 #include <QObject>
 #include <storagedevice.h>
 
+#define VENDOR_ID "0a5c"
+
 class FirmwareUpgradeController;
 
 class DeviceSearcher : public QObject
@@ -33,9 +35,10 @@ public:
     void clearDeviceList() {_connectedDevices.clear();}
 
 signals:
-    void statFindBoardLoop();
+    void findBoard();
 
 public slots:
+    void startFindBoardLoop() {emit findBoard();}
     void addDevice(uint32_t vid, uint32_t pid, QString node);
 private:
     QList<StorageDevice*> _connectedDevices;

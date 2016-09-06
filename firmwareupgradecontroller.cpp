@@ -3,7 +3,7 @@
 
 DeviceSearcher::DeviceSearcher(FirmwareUpgradeController *parent)
 {
-    connect(parent, &FirmwareUpgradeController::statFindBoardLoop, this, &DeviceSearcher::startFindBoardLoop, Qt::ConnectionType::DirectConnection);
+    connect(parent, &FirmwareUpgradeController::findBoard, this, &DeviceSearcher::startFindBoardLoop, Qt::ConnectionType::DirectConnection);
 }
 
 FirmwareUpgradeController::FirmwareUpgradeController(QObject *parent) : QObject(parent)
@@ -26,11 +26,6 @@ FirmwareUpgradeController::~FirmwareUpgradeController(){
     searchWorkerThread->wait();
 
     delete searchWorkerThread;
-}
-
-void FirmwareUpgradeController::startFindDevices()
-{
-    qDebug() << "start Find defices";
 }
 
 
