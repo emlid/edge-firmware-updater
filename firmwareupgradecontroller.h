@@ -18,6 +18,8 @@ public:
 
 signals:
     void foundDevice(uint32_t vid, uint32_t pid, QString systemLocation);
+    void noDeviceFound();
+    void searchFinished();
 
 public slots:
     void startFindBoardLoop();

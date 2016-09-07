@@ -49,7 +49,7 @@ void DeviceSearcher::startFindBoardLoop()
     udev_enumerate_unref(enumerate);
     udev_unref(udev);
     if (noDevice) {
-        //print message to log
+        emit noDeviceFound();
     }
-
+    emit searchFinished();
 }
