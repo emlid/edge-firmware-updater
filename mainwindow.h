@@ -29,6 +29,7 @@ private:
     void alignToCenter();
 
 private slots:
+    void appendStatusLog(const QString& text, bool critical = 0);
     void on_refreshButton_clicked();
     void on_browseButton_clicked();
 };

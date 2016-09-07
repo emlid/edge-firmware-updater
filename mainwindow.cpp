@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     _upgradeController = new FirmwareUpgradeController(this);
     connect(this, &MainWindow::windowShown, _upgradeController, &FirmwareUpgradeController::startFindBoardLoop);
+    connect(_upgradeController, &FirmwareUpgradeController::logMessage, this, &MainWindow::appendStatusLog);
     ui->setupUi(this);
     this->alignToCenter();
 
@@ -39,7 +40,7 @@ void MainWindow::show()
 
 void MainWindow::on_refreshButton_clicked()
 {
-    ui->teLog->append(QString("Scan for devices..."));
+    appendStatusLog("Scan for devices...");
     ui->lwDeviceList->clear();
     _upgradeController->clearDeviceList();
 
@@ -55,4 +56,14 @@ void MainWindow::on_browseButton_clicked()
     if (!fileName.isEmpty()) {
         ui->leFileName->setText(fileName);
     }
+}
+
+
+void MainWindow::appendStatusLog(const QString &text, bool critical) {
+
+    if (critical) {
+            ui->teLog->append(QString("<font color=\"red\">%1</font>").arg(text));
+        } else {
+            ui->teLog->append(text);
+        }
 }
