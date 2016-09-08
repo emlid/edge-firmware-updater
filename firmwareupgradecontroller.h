@@ -40,11 +40,13 @@ public:
 signals:
     void findBoard();
     void logMessage(const QString& text, bool critical = 0);
+    void updateDeviceList();
 
 public slots:
     void startFindBoardLoop() {emit findBoard();}
     void addDevice(uint32_t vid, uint32_t pid, QString node);
     void appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
+    void searchFinished() {emit updateDeviceList();}
 
 private:
     QList<StorageDevice*> _connectedDevices;

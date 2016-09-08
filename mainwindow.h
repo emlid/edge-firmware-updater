@@ -27,6 +27,7 @@ private:
     FirmwareUpgradeController* _upgradeController;
 
     void alignToCenter();
+    void updateList();
 
 private slots:
     void appendStatusLog(const QString& text, bool critical = 0);

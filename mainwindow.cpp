@@ -12,10 +12,11 @@ MainWindow::MainWindow(QWidget *parent) :
     _upgradeController = new FirmwareUpgradeController(this);
     connect(this, &MainWindow::windowShown, _upgradeController, &FirmwareUpgradeController::startFindBoardLoop);
     connect(_upgradeController, &FirmwareUpgradeController::logMessage, this, &MainWindow::appendStatusLog);
+    connect(_upgradeController, &FirmwareUpgradeController::updateDeviceList, this, &MainWindow::updateList);
     ui->setupUi(this);
     this->alignToCenter();
 
-    ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui->lwDeviceList->setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 void MainWindow::alignToCenter()
@@ -66,4 +67,15 @@ void MainWindow::appendStatusLog(const QString &text, bool critical) {
         } else {
             ui->teLog->append(text);
         }
+}
+
+void MainWindow::updateList()
+{
+    QList<StorageDevice*> availableDevices = _upgradeController->getDevices();
+
+    QList<StorageDevice*>::iterator i;
+
+    for (i = availableDevices.begin(); i != availableDevices.end(); i++) {
+        ui->lwDeviceList->addItem((*i)->getNode());
+    }
 }

@@ -17,6 +17,7 @@ FirmwareUpgradeController::FirmwareUpgradeController(QObject *parent) : QObject(
     searchWorker->moveToThread(searchWorkerThread);
 
     connect(searchWorker, &DeviceSearcher::foundDevice, this, &FirmwareUpgradeController::addDevice);
+    connect(searchWorker, &DeviceSearcher::searchFinished, this, &FirmwareUpgradeController::searchFinished);
 
     searchWorkerThread->start();
 }
