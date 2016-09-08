@@ -28,11 +28,16 @@ private:
 
     void alignToCenter();
     void updateList();
+    void setCancelStartButtonState();
+    bool fileSelected();
+    bool deviceSelected();
 
 private slots:
     void appendStatusLog(const QString& text, bool critical = 0);
     void on_refreshButton_clicked();
     void on_browseButton_clicked();
+    void on_leFileName_textChanged();
+    void on_lwDeviceList_itemSelectionChanged();
 };
 
 #endif // MAINWINDOW_H

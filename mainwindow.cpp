@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::logMessage, this, &MainWindow::appendStatusLog);
     connect(_upgradeController, &FirmwareUpgradeController::updateDeviceList, this, &MainWindow::updateList);
     ui->setupUi(this);
+    setCancelStartButtonState();
     this->alignToCenter();
 
     ui->lwDeviceList->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -37,6 +38,34 @@ void MainWindow::show()
    QMainWindow::show();
    QApplication::processEvents();
    emit windowShown();
+}
+
+void MainWindow::setCancelStartButtonState()
+{
+    ui->startButton->setEnabled(false);
+    ui->cancelButton->setEnabled(false);
+
+    ui->startButton->setEnabled(deviceSelected() && fileSelected());
+}
+
+bool MainWindow::fileSelected()
+{
+    return !(ui->leFileName->text().isEmpty());
+}
+
+bool MainWindow::deviceSelected()
+{
+    return !(ui->lwDeviceList->selectedItems().isEmpty());
+}
+
+void MainWindow::on_leFileName_textChanged()
+{
+    setCancelStartButtonState();
+}
+
+void MainWindow::on_lwDeviceList_itemSelectionChanged()
+{
+    setCancelStartButtonState();
 }
 
 void MainWindow::on_refreshButton_clicked()
@@ -77,5 +106,9 @@ void MainWindow::updateList()
 
     for (i = availableDevices.begin(); i != availableDevices.end(); i++) {
         ui->lwDeviceList->addItem((*i)->getNode());
+    }
+
+    if (ui->lwDeviceList->count() == 1) {
+        ui->lwDeviceList->item(0)->setSelected(true);
     }
 }
