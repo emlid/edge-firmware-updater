@@ -35,6 +35,7 @@ public:
 
     void startFindDevices();
     void clearDeviceList() {_connectedDevices.clear();}
+    QList<StorageDevice*> getDevices() {return _connectedDevices;}
 
 signals:
     void findBoard();
