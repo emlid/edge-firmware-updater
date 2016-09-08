@@ -1,4 +1,5 @@
 #include "storagedevice.h"
+#include <QDebug>
 
 int StorageDevice::deviceCount = 0;
 
@@ -9,6 +10,9 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
 
     connect(_deviceToFlash, &StorageDevice::_flashOnThread,  this, &StorageDeviceThreadWorker::_flash);
     connect(_deviceToFlash, &StorageDevice:: _cancel,  this, &StorageDeviceThreadWorker::_cancel, Qt::DirectConnection);
+
+    _flasher = new StorageDeviceFlasher(this);
+    connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
 }
 
 void StorageDeviceThreadWorker::_flash()
@@ -26,6 +30,8 @@ void StorageDeviceThreadWorker::_cancel()
 
 StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 {
+    qDebug() << "ctor with parent";
+    qDebug() << "this->parent:" << this->parent()->objectName();
     deviceCount++;
     _worker = new StorageDeviceThreadWorker(this);
     Q_CHECK_PTR(_worker);

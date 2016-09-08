@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     firmwareupgradecontroller.cpp \
     devicesearcher.cpp \
-    storagedevice.cpp
+    storagedevice.cpp \
+    storagedeviceflasher.cpp
 
 
 HEADERS += \
@@ -29,7 +30,8 @@ HEADERS += \
     flashing_parameters.h \
     mainwindow.h \
     firmwareupgradecontroller.h \
-    storagedevice.h
+    storagedevice.h \
+    storagedeviceflasher.h
 
 
 

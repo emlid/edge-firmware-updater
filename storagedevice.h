@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <storagedeviceflasher.h>
 
 class StorageDevice;
 
@@ -26,7 +27,7 @@ private slots:
 
 
 private:
-    //StorageDeviceFlasher*   _flasher;
+    StorageDeviceFlasher*   _flasher;
     StorageDevice* _deviceToFlash;
 };
 
@@ -46,6 +47,8 @@ public:
     static int deviceCount;
 
     void setParams(uint32_t v, uint32_t p, QString d){_vid=v, _pid=p; _deviceNode=d;}
+    QString getNode(){ return _deviceNode;}
+    QString show() {return QString("%1 %2 %3").arg(_vid).arg(_pid).arg(_deviceNode);}
     //internal signals to communicate with thread
 signals:
     void _flashOnThread(void);
