@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::windowShown, _upgradeController, &FirmwareUpgradeController::startFindBoardLoop);
     connect(_upgradeController, &FirmwareUpgradeController::logMessage, this, &MainWindow::appendStatusLog);
     connect(_upgradeController, &FirmwareUpgradeController::updateDeviceList, this, &MainWindow::updateList);
+    connect(_upgradeController, &FirmwareUpgradeController::_updateProgress, this, &MainWindow::updateProgressBar);
+
     ui->setupUi(this);
     setCancelStartButtonState();
     this->alignToCenter();
@@ -88,6 +90,12 @@ void MainWindow::on_browseButton_clicked()
     }
 }
 
+void MainWindow::on_startButton_clicked()
+{
+    QString fileName = ui->leFileName->text();
+    int selectedDeviceIndex = ui->lwDeviceList->currentRow();
+    _upgradeController->flash(selectedDeviceIndex, fileName);
+}
 
 void MainWindow::appendStatusLog(const QString &text, bool critical) {
 
@@ -109,6 +117,6 @@ void MainWindow::updateList()
     }
 
     if (ui->lwDeviceList->count() == 1) {
-        ui->lwDeviceList->item(0)->setSelected(true);
+        ui->lwDeviceList->setCurrentRow(0);
     }
 }

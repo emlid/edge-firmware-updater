@@ -36,17 +36,20 @@ public:
     void startFindDevices();
     void clearDeviceList() {_connectedDevices.clear();}
     QList<StorageDevice*> getDevices() {return _connectedDevices;}
+    void flash(int selectedDeviceIndex, QString fileName);
 
 signals:
     void findBoard();
     void logMessage(const QString& text, bool critical = 0);
     void updateDeviceList();
+    void _updateProgress(int bytesSent, int fileSize);
 
 public slots:
     void startFindBoardLoop() {emit findBoard();}
     void addDevice(uint32_t vid, uint32_t pid, QString node);
     void appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
     void searchFinished() {emit updateDeviceList();}
+    void updateProgress(int bytesSent, int fileSize) {emit _updateProgress(bytesSent, fileSize);}
 
 private:
     QList<StorageDevice*> _connectedDevices;

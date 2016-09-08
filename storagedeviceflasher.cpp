@@ -84,6 +84,7 @@ off_t StorageDeviceFlasher::fsize(const char *filename) {
 
 int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
 
+    ddflags = 0;
     int ret = jcl(params);
     if (ret){
         cerr << "Failed to set flashing parameters";

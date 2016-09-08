@@ -35,4 +35,11 @@ void FirmwareUpgradeController::addDevice(uint32_t vid, uint32_t pid, QString no
     StorageDevice* dev = new StorageDevice(this->parent());
     dev->setParams(vid, pid, node);
     _connectedDevices.append(dev);
+    connect(_connectedDevices.last(), &StorageDevice::updateProgress, this, &FirmwareUpgradeController::updateProgress);
+}
+
+
+void FirmwareUpgradeController::flash(int selectedDeviceIndex, QString fileName)
+{
+     _connectedDevices[selectedDeviceIndex]->flash(fileName);
 }

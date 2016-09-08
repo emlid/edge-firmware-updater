@@ -15,15 +15,37 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
 }
 
-void StorageDeviceThreadWorker::_flash()
+void StorageDeviceThreadWorker::_flash(QString fileName)
 {
-    //flashing...
+     struct FlashingParameters testParams;
+
+     testParams.inputFile.append(fileName);//passed parameter
+     testParams.outputFile .append(QString("%1").arg(_deviceToFlash->getNode()));//parent device node
+     qDebug() << "bs =" << testParams.blockSize;
+     qDebug() << "in =" << testParams.inputFile;
+     qDebug() << "of =" << testParams.outputFile;
+
+   //  emit status("Flashing "+ _deviceNode + " with " + testParams.inputFile + "...");
+     //StorageDeviceFlasher* flasher = new StorageDeviceFlasher(this);
+
+     int ret = _flasher->flashDevice(testParams);
+
+     if (ret) {
+         qDebug() << "Failed to Flash" << ret;
+         // add this: emit error(error string..)
+     } else {
+         //emit status("Flashing complete");
+         qDebug() << "status(\"Flashing complete\")";
+     }
+
     emit flashComplete();
 }
 
 void StorageDeviceThreadWorker::_cancel()
 {
-    //cancel
+    _flasher->terminate();
+    _flasher->deleteLater();
+
 }
 
 
