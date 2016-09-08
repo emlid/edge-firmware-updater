@@ -117,6 +117,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::TabFocus</enum>
+     </property>
      <property name="statusTip">
       <string/>
      </property>
@@ -149,6 +152,9 @@
     </property>
     <property name="midLineWidth">
      <number>-3</number>
+    </property>
+    <property name="uniformItemSizes">
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="refreshButton">

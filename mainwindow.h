@@ -30,6 +30,7 @@ private:
 
 private slots:
     void appendStatusLog(const QString& text, bool critical = 0);
+    void refreshListWidget();
     void on_refreshButton_clicked();
     void on_browseButton_clicked();
 };

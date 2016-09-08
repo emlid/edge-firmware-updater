@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <storagedevice.h>
+#include <QDebug>
 
 #define VENDOR_ID "0a5c"
 
@@ -36,14 +37,25 @@ public:
     void startFindDevices();
     void clearDeviceList() {_connectedDevices.clear();}
 
+    void print(){
+        QList<StorageDevice*>::iterator i;
+        for (i = _connectedDevices.begin(); i != _connectedDevices.end(); i++) {
+            qDebug() << (*i)->show();
+        }
+    }
+
+    QList<StorageDevice*> getDevices() {return _connectedDevices;}
+
 signals:
     void findBoard();
     void logMessage(const QString& text, bool critical = 0);
+    void refreshDeviceList();
 
 public slots:
     void startFindBoardLoop() {emit findBoard();}
     void addDevice(uint32_t vid, uint32_t pid, QString node);
     void appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
+    void showDevices() {emit refreshDeviceList();}
 
 private:
     QList<StorageDevice*> _connectedDevices;
