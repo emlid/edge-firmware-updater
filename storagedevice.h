@@ -19,11 +19,13 @@ public:
 signals:
      void updateProgress(int curr, int total);
      void flashComplete(void);
+     void deviceWorkerMessage(const QString& text, bool critical);
 
 private slots:
      void _flash(QString fileName);
      void _updateProgress(int curr, int total) { emit updateProgress(curr, total); }
      void _cancel(void);
+     void deviceWorkerLog(const QString& text, bool critical = 0) {emit deviceWorkerMessage(text, critical);}
 
 
 private:
@@ -48,6 +50,7 @@ public:
 
     void setParams(uint32_t v, uint32_t p, QString d){_vid=v, _pid=p; _deviceNode=d;}
     QString getNode(){ return _deviceNode;}
+
 
     //internal signals to communicate with thread
 signals:

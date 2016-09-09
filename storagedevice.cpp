@@ -19,23 +19,16 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
 {
      struct FlashingParameters testParams;
 
-     testParams.inputFile.append(fileName);//passed parameter
-     testParams.outputFile .append(QString("%1").arg(_deviceToFlash->getNode()));//parent device node
-     qDebug() << "bs =" << testParams.blockSize;
-     qDebug() << "in =" << testParams.inputFile;
-     qDebug() << "of =" << testParams.outputFile;
+     testParams.inputFile.append(fileName);
+     testParams.outputFile.append(QString("%1").arg(_deviceToFlash->getNode()));
 
-   //  emit status("Flashing "+ _deviceNode + " with " + testParams.inputFile + "...");
-     //StorageDeviceFlasher* flasher = new StorageDeviceFlasher(this);
+     emit deviceWorkerLog(QString("Flashing %1 with %2").arg(testParams.outputFile).arg(testParams.inputFile));
 
      int ret = _flasher->flashDevice(testParams);
-
      if (ret) {
-         qDebug() << "Failed to Flash" << ret;
-         // add this: emit error(error string..)
+         emit deviceWorkerLog(QString("Failed to Flash: %1").arg(ret), true);
      } else {
-         //emit status("Flashing complete");
-         qDebug() << "status(\"Flashing complete\")";
+         emit deviceWorkerLog("Flashing complete");
      }
 
     emit flashComplete();
@@ -64,6 +57,7 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 
     connect(_worker, &StorageDeviceThreadWorker::updateProgress, this, &StorageDevice::_updateProgress);
     connect(_worker, &StorageDeviceThreadWorker::flashComplete, this, &StorageDevice::_flashComplete);
+    connect(_worker, &StorageDeviceThreadWorker::deviceWorkerMessage, this, &StorageDevice::deviceLog);
 
     _workerThread->start();
 }
