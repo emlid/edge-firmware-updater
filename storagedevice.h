@@ -48,7 +48,7 @@ public:
 
     void setParams(uint32_t v, uint32_t p, QString d){_vid=v, _pid=p; _deviceNode=d;}
     QString getNode(){ return _deviceNode;}
-    QString show() {return QString("%1 %2 %3").arg(_vid).arg(_pid).arg(_deviceNode);}
+
     //internal signals to communicate with thread
 signals:
     void _flashOnThread(QString fileName);
@@ -56,12 +56,15 @@ signals:
     void flashComplete(void);
     void updateProgress(int curr, int total);
     void status(const QString& statusText);
+    void deviceMessage(const QString& text, bool critical = 0);
 
 public slots:
     //void _error(const QString& errorString) { emit error(errorString); }
     void _flashComplete(void) { emit flashComplete(); }
     void _updateProgress(int curr, int total) { emit updateProgress(curr, total); }
     void flash(QString fileName) {emit _flashOnThread(fileName);}
+    void deviceLog(const QString& text, bool critical = 0) {emit deviceMessage(text, critical);}
+
 private:
     uint32_t _vid;
     uint32_t _pid;
