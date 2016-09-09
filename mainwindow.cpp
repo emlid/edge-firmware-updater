@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     setCancelStartButtonState();
+    this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
 
     ui->lwDeviceList->setSelectionMode(QAbstractItemView::SingleSelection);
