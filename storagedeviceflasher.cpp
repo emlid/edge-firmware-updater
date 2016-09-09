@@ -77,7 +77,7 @@ off_t StorageDeviceFlasher::fsize(const char *filename) {
     if (stat(filename, &fileinfo) == 0){
         return fileinfo.st_size;
     }
-    cerr << "fsize error" << endl;
+    flasherLog("fsize error", true);
     return -1;
 }
 
@@ -87,21 +87,18 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
     ddflags = 0;
     int ret = jcl(params);
     if (ret){
-        cerr << "Failed to set flashing parameters";
+        flasherLog("Failed to set flashing parameters", true);
         return 1;
     }
-    cout << "params:" << endl;
-    cout << "in.name: " << in.name << endl;
-    cout << "out.name" << out.name << endl;
+
     ret = setup();
     if (ret){
-        cerr << "Failed to prepare data transfer" << endl;
-        return 1;
+        flasherLog("Failed to prepare data transfer", true);
+        return 2;
     }
     if (out.name == NULL || in.name == NULL){
-        cout << "null name" << endl;
-        cout.flush();
-        return 1;
+        flasherLog("null name", true);
+        return 3;
     }
 
     (void)sigemptyset(&infoset);
@@ -109,17 +106,13 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
 
     (void)atexit(summary);
 
-    cout << "Flashing " << out.name << " with " << (strrchr(in.name,'/') + 1) << endl;
-
     if (out.name == NULL || in.name == NULL){
-        cout << "null name" << endl;
-        cout.flush();
-        return 1;
+        flasherLog("null name", true);
+        return 4;
     }
-    if (strstr(out.name, "dev") == NULL || strstr(in.name, ".img") == NULL){
-        cout << "broken name" << endl;
-                cout.flush();
-        return 1;
+    if (strstr(out.name, "dev") == NULL /*|| strstr(in.name, ".img") == NULL*/){
+        flasherLog("broken name", true);
+        return 5;
     }
 
     while (files_cnt--){
@@ -132,14 +125,13 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
 }
 
 int StorageDeviceFlasher::setup(void) {
-cout << "stup: in.name = " << in.name << " out.name = " << out.name << endl;
     if (in.name == NULL) {
         in.name = "stdin";
         in.fd = STDIN_FILENO;
     } else {
         in.fd = open(in.name, O_RDONLY, 0);
         if (in.fd < 0) {
-            cerr << in.name << ": cannot open for read:" << strerror(errno) << endl;
+            flasherLog(QString("%1: cannot open for read: %2").arg(in.name).arg(strerror(errno)), true);
             return 1;
 
         }
@@ -152,9 +144,8 @@ cout << "stup: in.name = " << in.name << " out.name = " << out.name << endl;
     getfdtype(&in);
 
     if (files_cnt > 1 && !(in.flags & ISTAPE)) {
-        fprintf(stderr,
-                "files is not supported for non-tape devices\n");
-       return 1;
+        flasherLog("files is not supported for non-tape devices", true);
+        return 1;
     }
 
     if (out.name == NULL) {
@@ -175,8 +166,7 @@ cout << "stup: in.name = " << in.name << " out.name = " << out.name << endl;
             out.flags |= NOREAD;
         }
         if (out.fd < 0) {
-            fprintf(stderr, "%s: cannot open for write: %s\n",
-                    out.name, strerror(errno));
+            flasherLog(QString("%1: cannot open for write: %2").arg(out.name).arg(strerror(errno)), true);
             return 1;
         }
 
@@ -192,13 +182,13 @@ cout << "stup: in.name = " << in.name << " out.name = " << out.name << endl;
          */
     if (!(ddflags & (C_BLOCK|C_UNBLOCK))) {
         if ((in.db = (uchar *)malloc(out.dbsz + in.dbsz - 1)) == NULL) {
-            fprintf(stderr, "Failed to allocate single buffer for input and output\n");
+            flasherLog("Failed to allocate single buffer for input and output", true);
             return 1;
         }
         out.db = in.db;
     } else if ((in.db = (uchar *)malloc((uint)(MAX(in.dbsz, cbsz) + cbsz))) == NULL ||
                (out.db = (uchar *)malloc((uint)(out.dbsz + cbsz))) == NULL) {
-        fprintf(stderr, "Failed to allocate space for input or output buffer\n");
+        flasherLog("Failed to allocate space for input or output buffer", true);
         return 1;
     }
     in.dbp = in.db;
@@ -223,7 +213,7 @@ cout << "stup: in.name = " << in.name << " out.name = " << out.name << endl;
                  * built-in tables.
                      */
     if (ddflags & (C_LCASE|C_UCASE)) {
-        fprintf(stderr, "case conv and -DNO_CONV\n");
+        flasherLog("case conv and -DNO_CONV", true);
         return 1;
 
     }
@@ -238,8 +228,7 @@ void StorageDeviceFlasher::getfdtype(IO *io) {
     struct stat sb;
 
     if (fstat(io->fd, &sb)) {
-        fprintf(stderr, "%s: cannot fstat: %s\n",
-                io->name, strerror(errno));
+        flasherLog(QString("%1: cannot fstat: %2").arg(io->name).arg(strerror(errno)), true);
         exit(1);
         // NOTREACHED
     }
@@ -270,7 +259,7 @@ int StorageDeviceFlasher::redup_clean_fd(int fd) {
     newfd = fcntl(fd, F_DUPFD, 3); //duplicates file descriptor
 
     if (newfd < 0) {
-        fprintf(stderr, "dupfd IO: %s\n", strerror(errno));
+        flasherLog(QString("dupfd IO: %1").arg(strerror(errno)), true);
         exit(1);
         // NOTREACHED
     }
@@ -319,8 +308,7 @@ void StorageDeviceFlasher::dd_in(void) {
              * If noerror not specified, die.  POSIX requires that
              * the warning message be followed by an I/O display.
              */
-            fprintf(stderr, "%s: read error: %s\n",
-                    in.name, strerror(errno));
+            flasherLog(QString("%1: read error: %2").arg(in.name).arg(strerror(errno)), true);
             if (!(flags & C_NOERROR)) {
                 exit(1);
                 // NOTREACHED
@@ -335,8 +323,7 @@ void StorageDeviceFlasher::dd_in(void) {
              */
             if (!(in.flags & (ISPIPE|ISTAPE)) &&
                     lseek(in.fd, (off_t)in.dbsz, SEEK_CUR))
-                fprintf(stderr, "%s: seek error: %s\n",
-                        in.name, strerror(errno));
+                flasherLog(QString("%1: seek error: %2").arg(in.name).arg(strerror(errno)), true);
 
             /* If sync not specified, omit block and continue. */
             if (!(ddflags & C_SYNC))
@@ -422,12 +409,12 @@ void StorageDeviceFlasher::dd_close(void) {
      */
     if (out.fd == STDOUT_FILENO && fsync(out.fd) == -1 && errno != EINVAL) { //linux
 
-        fprintf(stderr, "fsync stdout: %s\n", strerror(errno));
+        flasherLog(QString("fsync stdout: %1").arg(strerror(errno)), true);
         exit(1);
         // NOTREACHED
     }
     if (close(out.fd) == -1) {
-        fprintf(stderr, "close: %s\n", strerror(errno));
+        flasherLog(QString("close: %1").arg(strerror(errno)), true);
         exit(1);
         // NOTREACHED
     }
@@ -476,24 +463,19 @@ void StorageDeviceFlasher::dd_out(int force) {
             if (pending != 0) {
                 if (lseek(out.fd, pending, SEEK_CUR) ==
                         -1) {
-                    fprintf(stderr,
-                            "%s: seek error creating "
-                            "sparse file: %s\n",
-                            out.name, strerror(errno));
+                    flasherLog(QString("%1: seek error creating sparse file: %2").arg(out.name).arg(strerror(errno)), true);
                     exit(1);
                 }
             }
             nw = bwrite(out.fd, outp, cnt);
             if (nw <= 0) {
                 if (nw == 0) {
-                    fprintf(stderr, "%s: end of device\n",
-                            out.name);
+                    flasherLog(QString("%1: end of device").arg(out.name), true);
                     exit(1);
                     // NOTREACHED
                 }
                 if (errno != EINTR) {
-                    fprintf(stderr, "%s: write error: %s\n",
-                            out.name, strerror(errno));
+                    flasherLog(QString("%1: write error: %2").arg(out.name).arg(strerror(errno)), true);
                     // NOTREACHED
                     exit(1);
                 }
@@ -519,13 +501,10 @@ void StorageDeviceFlasher::dd_out(int force) {
                 break;
             if (out.flags & ISCHR && !warned) {
                 warned = 1;
-                fprintf(stderr, "%s: short write on character "
-                                "device\n", out.name);
+                flasherLog(QString("%1: short write on character " "device").arg(out.name), true);
             }
             if (out.flags & ISTAPE) {
-                fprintf(stderr,
-                        "%s: short write on tape device",
-                        out.name);
+                flasherLog(QString("%1: short write on tape device").arg(out.name), true);
                 exit(1);
                 // NOTREACHED
             }
@@ -573,8 +552,7 @@ void StorageDeviceFlasher::pos_in(void) {
     if (!(in.flags & (ISPIPE|ISTAPE))) {
         if (lseek(in.fd,
                   (off_t)in.offset * (off_t)in.dbsz, SEEK_CUR) == -1) {
-            fprintf(stderr, "%s: seek error: %s",
-                    in.name, strerror(errno));
+            flasherLog(QString("%1: seek error: %2").arg(in.name).arg(strerror(errno)), true);
             exit(1);
             // NOTREACHED
         }
@@ -604,7 +582,7 @@ void StorageDeviceFlasher::pos_in(void) {
                 --files_cnt;
                 continue;
             }
-            fprintf(stderr, "skip reached end of input\n");
+            flasherLog("skip reached end of input", true);
             exit(1);
             // NOTREACHED
         }
@@ -617,14 +595,13 @@ void StorageDeviceFlasher::pos_in(void) {
         if (ddflags & C_NOERROR) {
             if (!warned) {
 
-                fprintf(stderr, "%s: error occurred\n",
-                        in.name);
+                flasherLog(QString("%1: error occurred").arg(in.name), true);
                 warned = 1;
                 summary();
             }
             continue;
         }
-        fprintf(stderr, "%s: read error: %s", in.name, strerror(errno));
+        flasherLog(QString("%1: read error: %2").arg(in.name).arg(strerror(errno)), true);
         exit(1);
         // NOTREACHED
     }
@@ -643,8 +620,7 @@ void StorageDeviceFlasher::pos_out(void) {
     if (!(out.flags & ISTAPE)) {
         if (lseek(out.fd,
                   (off_t)out.offset * (off_t)out.dbsz, SEEK_SET) == -1) {
-            fprintf(stderr, "%s: seek error: %s\n",
-                    out.name, strerror(errno));
+            flasherLog(QString("%1: seek error: %2").arg(out.name).arg(strerror(errno)), true);
             exit(1);
             // NOTREACHED
         }
@@ -657,7 +633,7 @@ void StorageDeviceFlasher::pos_out(void) {
                 t_op.mt_count = out.offset;
 
                         if (ioctl(out.fd, MTIOCTOP, &t_op) < 0)*/
-        fprintf(stderr, "%s: cannot read", out.name);
+        flasherLog(QString("%1: cannot read").arg(out.name), true);
         exit(1);
         // NOTREACHED
         return;
@@ -669,8 +645,7 @@ void StorageDeviceFlasher::pos_out(void) {
             continue;
 
         if (n < 0) {
-            fprintf(stderr, "%s: cannot position by reading: %s\n",
-                    out.name, strerror(errno));
+            flasherLog(QString("%1: cannot position by reading: %2").arg(out.name).arg(strerror(errno)), true);
             exit(1);
             // NOTREACHED
         }
@@ -683,16 +658,14 @@ void StorageDeviceFlasher::pos_out(void) {
         /*     t_op.mt_op = MTBSR;
                t_op.mt_count = 1;
                        if (ioctl(out.fd, MTIOCTOP, &t_op) == -1) */ {
-            fprintf(stderr, "%s: cannot position\n", out.name);
+            flasherLog(QString("%1: cannot position").arg(out.name), true);
             exit(1);
             // NOTREACHED
         }
 
         while (cnt++ < out.offset)
             if ((n = bwrite(out.fd, out.db, out.dbsz)) != (long int)out.dbsz) {
-                fprintf(stderr, "%s: cannot position "
-                                "by writing: %s\n",
-                        out.name, strerror(errno));
+                flasherLog(QString("%1: cannot position by writing: %2").arg(out.name).arg(strerror(errno)), true);
                 exit(1);
                 // NOTREACHED
             }
@@ -856,12 +829,12 @@ int StorageDeviceFlasher::jcl(struct FlashingParameters fp) {
         tmp.name = operand.data();
 
         if (!(ap = (struct arg *)bsearch(&tmp, args, sizeof(args)/sizeof(struct arg), sizeof(struct arg), c_arg))) {
-            fprintf(stderr, "unknown operand %s\n", tmp.name);
+            flasherLog(QString("unknown operand %1").arg(tmp.name), true);
             return 1;
         }
 
         if (ddflags & ap->noset) {
-            fprintf(stderr, "%s: illegal argument combination or already set\n", tmp.name);
+            flasherLog(QString("%1: illegal argument combination or already set").arg(tmp.name), true);
             return 1;
         }
         ddflags |= ap->set;
@@ -890,12 +863,9 @@ void StorageDeviceFlasher::f_bs(char *arg) {
 }
 
 void StorageDeviceFlasher::f_if(char *arg) {
-    cout << "f_if " << arg << endl;
     in.name = arg;
-    cout << "f_if  after: " << in.name << endl;
 }
 
 void StorageDeviceFlasher::f_of(char *arg) {
-    cout << "f_of " << arg << endl;
     out.name = arg;
 }
