@@ -13,6 +13,7 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
 
     _flasher = new StorageDeviceFlasher(this);
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
+    connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::deviceWorkerLog);
 }
 
 void StorageDeviceThreadWorker::_flash(QString fileName)

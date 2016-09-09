@@ -120,6 +120,10 @@ public:
 
 signals:
     void updateProgress(int bytesSent, int fileSize);
+    void flasherMessage(const QString& text, bool critical);
+
+private slots:
+    void flasherLog(const QString& text, bool critical = 0) {emit flasherMessage(text, critical);}
 
 private:
     static STAT st;         /* statistics */
