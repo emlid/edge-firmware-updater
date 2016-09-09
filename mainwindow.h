@@ -38,6 +38,7 @@ private slots:
     void on_refreshButton_clicked();
     void on_browseButton_clicked();
     void on_startButton_clicked();
+    void on_cancelButton_clicked();
     void on_leFileName_textChanged();
     void on_lwDeviceList_itemSelectionChanged();
 };

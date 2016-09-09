@@ -67,6 +67,7 @@ public slots:
     void _updateProgress(int curr, int total) { emit updateProgress(curr, total); }
     void flash(QString fileName) {emit _flashOnThread(fileName);}
     void deviceLog(const QString& text, bool critical = 0) {emit deviceMessage(text, critical);}
+    void cancel() {emit _cancel();}
 
 private:
     uint32_t _vid;

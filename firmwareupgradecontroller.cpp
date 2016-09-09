@@ -46,3 +46,8 @@ void FirmwareUpgradeController::flash(int selectedDeviceIndex, QString fileName)
 {
      _connectedDevices[selectedDeviceIndex]->flash(fileName);
 }
+
+void FirmwareUpgradeController::cancel(int selectedDeviceIndex)
+{
+    _connectedDevices[selectedDeviceIndex]->cancel();
+}

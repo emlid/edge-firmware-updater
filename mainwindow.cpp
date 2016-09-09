@@ -97,6 +97,11 @@ void MainWindow::on_startButton_clicked()
     _upgradeController->flash(selectedDeviceIndex, fileName);
 }
 
+void MainWindow::on_cancelButton_clicked()
+{
+    _upgradeController->cancel(ui->lwDeviceList->currentRow());
+}
+
 void MainWindow::appendStatusLog(const QString &text, bool critical) {
 
     if (critical) {

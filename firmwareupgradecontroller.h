@@ -38,6 +38,7 @@ public:
     void clearDeviceList() {_connectedDevices.clear();}
     QList<StorageDevice*> getDevices() {return _connectedDevices;}
     void flash(int selectedDeviceIndex, QString fileName);
+    void cancel(int selectedDeviceIndex);
 
 signals:
     void findBoard();
