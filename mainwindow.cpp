@@ -73,7 +73,6 @@ void MainWindow::on_lwDeviceList_itemSelectionChanged()
 
 void MainWindow::on_refreshButton_clicked()
 {
-    appendStatusLog("Scan for devices...");
     ui->lwDeviceList->clear();
     _upgradeController->clearDeviceList();
 

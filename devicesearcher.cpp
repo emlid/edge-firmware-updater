@@ -7,6 +7,7 @@
 
 void DeviceSearcher::startFindBoardLoop()
 {
+    emit searcherMessage("Scan for devices...");
     struct udev *udev = udev_new();
     struct udev_enumerate* enumerate;
     struct udev_list_entry *devices;
@@ -49,7 +50,7 @@ void DeviceSearcher::startFindBoardLoop()
     udev_enumerate_unref(enumerate);
     udev_unref(udev);
     if (noDevice) {
-        emit noDeviceFound();
+        emit searcherMessage("No device found", true);
     }
     emit searchFinished();
 }
