@@ -28,6 +28,7 @@ FirmwareUpgradeController::~FirmwareUpgradeController(){
     searchWorkerThread->wait();
 
     delete searchWorkerThread;
+    delete searchWorker;
 }
 
 
