@@ -116,7 +116,7 @@ public:
     int flashDevice(FlashingParameters);
     uint64_t getImageSize(void) {return st.size;}
     uint64_t getBytesSent(void) {return st.bytes;}
-    static void terminate(void);
+    void terminate(void);
 
 signals:
     void updateProgress(uint32_t bytesSent, uint32_t fileSize);
@@ -126,7 +126,7 @@ private slots:
     void flasherLog(const QString& text, bool critical = 0) {emit flasherMessage(text, critical);}
 
 private:
-    static STAT st;         /* statistics */
+    STAT st;         /* statistics */
     void dd_out(int);
     void def(void);
     void def_close(void);
@@ -134,7 +134,7 @@ private:
     int jcl(struct FlashingParameters);
     void pos_in(void);
     void pos_out(void);
-    static void summary(void);
+    void summary(void);
     ssize_t bwrite(int, const void *, size_t);
 
     static int  c_arg(const void *, const void *);
@@ -149,20 +149,20 @@ private:
     int redup_clean_fd(int);
     int setup(void);
     off_t fsize(const char *);
-    static void current_summary(void);
+    void current_summary(void);
 
-    static arg      args[];
+    arg      args[];
 
-    static IO       in, out;        /* input/output state */
+    IO       in, out;        /* input/output state */
     uint64_t        cpy_cnt;        /* # of blocks to copy */
-    static off_t    pending;        /* pending seek if sparse */
+    off_t    pending;        /* pending seek if sparse */
     uint            ddflags;        /* conversion options */
     uint64_t        cbsz;           /* conversion block size */
     uint            files_cnt = 1;  /* # of files to copy */
-    static int      progress;       /* display sign of life */
+    int      progress;       /* display sign of life */
     const uchar*    ctab;           /* conversion table */
     sigset_t        infoset;        /* a set blocking SIGINFO */
-    static bool     interrupted;
+    bool     interrupted;
 
 
 };

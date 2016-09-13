@@ -64,13 +64,6 @@ StorageDeviceFlasher::StorageDeviceFlasher(QObject *parent):
 
 }
 
-off_t   StorageDeviceFlasher::pending = 0;
-int     StorageDeviceFlasher::progress = 1;
-bool    StorageDeviceFlasher::interrupted = 0;
-IO      StorageDeviceFlasher::in;
-IO      StorageDeviceFlasher::out;
-STAT    StorageDeviceFlasher::st;
-
 off_t StorageDeviceFlasher::fsize(const char *filename) {
     struct stat fileinfo;
 
@@ -85,6 +78,8 @@ off_t StorageDeviceFlasher::fsize(const char *filename) {
 int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
 
     ddflags = 0;
+    interrupted = 0;
+    progress = 1;
     int ret = jcl(params);
     if (ret){
         flasherLog("Failed to set flashing parameters", true);
@@ -104,7 +99,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
     (void)sigemptyset(&infoset);
     //(void)sigaddset(&infoset, SIGINFO);
 
-    (void)atexit(summary);
+    //(void)atexit(summary);
 
     if (out.name == NULL || in.name == NULL){
         flasherLog("null name", true);
@@ -518,7 +513,7 @@ void StorageDeviceFlasher::dd_out(int force) {
         (void)memmove(out.db, out.dbp - out.dbcnt, out.dbcnt);
     out.dbp = out.db + out.dbcnt;
 
-    if (progress) {
+    if (progress == 1 && interrupted == 0) {
         current_summary();
         emit updateProgress(st.bytes, st.size);
     }
@@ -797,17 +792,18 @@ void StorageDeviceFlasher::terminate(void) {
     interrupted = 1;
 }
 
-/*
- * args -- parse JCL syntax of dd.
-  */
-arg StorageDeviceFlasher::args[3] = {
-    { "bs",     &StorageDeviceFlasher::f_bs,       C_BS,    C_BS|C_IBS|C_OBS|C_OSYNC }, //read and write up to BYTES bytes at a time
-    { "if",     &StorageDeviceFlasher::f_if,       C_IF,    C_IF },//read from FILE instead of stdin
-    { "of",     &StorageDeviceFlasher::f_of,       C_OF,    C_OF } //write to FILE instead of stdout
-
-};
 
 int StorageDeviceFlasher::jcl(struct FlashingParameters fp) {
+    /*
+     * args -- parse JCL syntax of dd.
+      */
+    arg /*StorageDeviceFlasher::*/args[3] = {
+        { "bs",     &StorageDeviceFlasher::f_bs,       C_BS,    C_BS|C_IBS|C_OBS|C_OSYNC }, //read and write up to BYTES bytes at a time
+        { "if",     &StorageDeviceFlasher::f_if,       C_IF,    C_IF },//read from FILE instead of stdin
+        { "of",     &StorageDeviceFlasher::f_of,       C_OF,    C_OF } //write to FILE instead of stdout
+
+    };
+
 
     struct arg *ap, tmp;
 
