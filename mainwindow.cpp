@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->alignToCenter();
 
     ui->lwDeviceList->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->teLog->setReadOnly(true);
+    ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
 }
 
 void MainWindow::alignToCenter()
