@@ -34,7 +34,7 @@ FirmwareUpgradeController::~FirmwareUpgradeController(){
 
 void FirmwareUpgradeController::addDevice(uint32_t vid, uint32_t pid, QString node)
 {
-    StorageDevice* dev = new StorageDevice(this->parent());
+    StorageDevice* dev = new StorageDevice(this);
     dev->setParams(vid, pid, node);
     _connectedDevices.append(dev);
 
