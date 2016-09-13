@@ -119,7 +119,7 @@ public:
     static void terminate(void);
 
 signals:
-    void updateProgress(int bytesSent, int fileSize);
+    void updateProgress(uint32_t bytesSent, uint32_t fileSize);
     void flasherMessage(const QString& text, bool critical);
 
 private slots:

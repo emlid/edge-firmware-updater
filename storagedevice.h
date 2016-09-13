@@ -17,13 +17,13 @@ public:
 
 
 signals:
-     void updateProgress(int curr, int total);
+     void updateProgress(uint32_t curr, uint32_t total);
      void flashComplete(void);
      void deviceWorkerMessage(const QString& text, bool critical);
 
 private slots:
      void _flash(QString fileName);
-     void _updateProgress(int curr, int total) { emit updateProgress(curr, total); }
+     void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
      void _cancel(void);
      void deviceWorkerLog(const QString& text, bool critical = 0) {emit deviceWorkerMessage(text, critical);}
 
@@ -57,14 +57,14 @@ signals:
     void _flashOnThread(QString fileName);
     void _cancel(void);
     void flashComplete(void);
-    void updateProgress(int curr, int total);
+    void updateProgress(uint32_t curr, uint32_t total);
     void status(const QString& statusText);
     void deviceMessage(const QString& text, bool critical = 0);
 
 public slots:
     //void _error(const QString& errorString) { emit error(errorString); }
     void _flashComplete(void) { emit flashComplete(); }
-    void _updateProgress(int curr, int total) { emit updateProgress(curr, total); }
+    void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
     void flash(QString fileName) {emit _flashOnThread(fileName);}
     void deviceLog(const QString& text, bool critical = 0) {emit deviceMessage(text, critical);}
     void cancel() {emit _cancel();}

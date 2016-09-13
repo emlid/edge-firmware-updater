@@ -34,7 +34,7 @@ private:
 
 private slots:
     void appendStatusLog(const QString& text, bool critical = 0);
-    void updateProgressBar(int curr, int total) {ui->progressBar->setValue(100 * (float)curr / (float)total);;}
+    void updateProgressBar(uint32_t curr, uint32_t total) {ui->progressBar->setValue(100 * (float)curr / (float)total);}
     void on_refreshButton_clicked();
     void on_browseButton_clicked();
     void on_startButton_clicked();
