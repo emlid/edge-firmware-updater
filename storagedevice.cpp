@@ -8,9 +8,13 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
 {
     Q_ASSERT(_deviceToFlash);
 
+    connect(_deviceToFlash, &StorageDevice::_initWorkerThread, this, &StorageDeviceThreadWorker::_init);
     connect(_deviceToFlash, &StorageDevice::_flashOnThread,  this, &StorageDeviceThreadWorker::_flash);
     connect(_deviceToFlash, &StorageDevice:: _cancel,  this, &StorageDeviceThreadWorker::_cancel, Qt::DirectConnection);
+}
 
+void StorageDeviceThreadWorker::_init()
+{
     _flasher = new StorageDeviceFlasher(this);
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
     connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::deviceWorkerLog);
@@ -54,6 +58,7 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 
     _workerThread = new QThread(this);
     Q_CHECK_PTR(_workerThread);
+
     _worker->moveToThread(_workerThread);
 
     connect(_worker, &StorageDeviceThreadWorker::updateProgress, this, &StorageDevice::_updateProgress);
@@ -61,6 +66,8 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
     connect(_worker, &StorageDeviceThreadWorker::deviceWorkerMessage, this, &StorageDevice::deviceLog);
 
     _workerThread->start();
+
+    emit _initWorkerThread();
 }
 
 StorageDevice::~StorageDevice()

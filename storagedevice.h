@@ -22,6 +22,7 @@ signals:
      void deviceWorkerMessage(const QString& text, bool critical);
 
 private slots:
+     void _init();
      void _flash(QString fileName);
      void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
      void _cancel(void);
@@ -54,6 +55,7 @@ public:
 
     //internal signals to communicate with thread
 signals:
+    void _initWorkerThread();
     void _flashOnThread(QString fileName);
     void _cancel(void);
     void flashComplete(void);
