@@ -19,10 +19,9 @@ public:
 signals:
      void updateProgress(uint32_t curr, uint32_t total);
      void flashComplete(void);
-     void deviceWorkerMessage(const QString& text, bool critical);
+     void deviceWorkerMessage(const QString& text, bool critical = 0);
 
 private slots:
-     void _init();
      void _flash(QString fileName);
      void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
      void _cancel(void);
@@ -30,7 +29,7 @@ private slots:
 
 
 private:
-    StorageDeviceFlasher*   _flasher;
+    StorageDeviceFlasher*   _flasher = 0;
     StorageDevice* _deviceToFlash;
 };
 
@@ -55,7 +54,6 @@ public:
 
     //internal signals to communicate with thread
 signals:
-    void _initWorkerThread();
     void _flashOnThread(QString fileName);
     void _cancel(void);
     void flashComplete(void);

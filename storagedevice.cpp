@@ -7,21 +7,17 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
     _deviceToFlash(device)
 {
     Q_ASSERT(_deviceToFlash);
-
-    connect(_deviceToFlash, &StorageDevice::_initWorkerThread, this, &StorageDeviceThreadWorker::_init);
     connect(_deviceToFlash, &StorageDevice::_flashOnThread,  this, &StorageDeviceThreadWorker::_flash);
     connect(_deviceToFlash, &StorageDevice:: _cancel,  this, &StorageDeviceThreadWorker::_cancel, Qt::DirectConnection);
 }
 
-void StorageDeviceThreadWorker::_init()
+
+void StorageDeviceThreadWorker::_flash(QString fileName)
 {
     _flasher = new StorageDeviceFlasher(this);
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
     connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::deviceWorkerLog);
-}
 
-void StorageDeviceThreadWorker::_flash(QString fileName)
-{
      struct FlashingParameters testParams;
 
      testParams.inputFile.append(fileName);
@@ -37,21 +33,20 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
      }
 
     emit flashComplete();
+    delete _flasher;
 }
 
 void StorageDeviceThreadWorker::_cancel()
 {
+    if (_flasher){
     _flasher->terminate();
-    _flasher->deleteLater();
-
+    }
 }
 
 
 
 StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 {
-    qDebug() << "ctor with parent";
-    qDebug() << "this->parent:" << this->parent()->objectName();
     deviceCount++;
     _worker = new StorageDeviceThreadWorker(this);
     Q_CHECK_PTR(_worker);
@@ -66,15 +61,15 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
     connect(_worker, &StorageDeviceThreadWorker::deviceWorkerMessage, this, &StorageDevice::deviceLog);
 
     _workerThread->start();
-
-    emit _initWorkerThread();
 }
 
 StorageDevice::~StorageDevice()
 {
+    cancel();
     _workerThread->quit();
     _workerThread->wait();
 
+    delete _worker;
     delete _workerThread;
 }
 
