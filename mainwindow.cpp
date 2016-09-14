@@ -95,6 +95,11 @@ void MainWindow::on_browseButton_clicked()
 void MainWindow::on_startButton_clicked()
 {
     QString fileName = ui->leFileName->text();
+    if (!QFileInfo(fileName).exists()) {
+        appendStatusLog(QString("File does not exist"), true);
+        return;
+    }
+
     int selectedDeviceIndex = ui->lwDeviceList->currentRow();
     _upgradeController->flash(selectedDeviceIndex, fileName);
 }
