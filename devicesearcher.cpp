@@ -2,12 +2,16 @@
 #include <libudev.h>
 
 #include "firmwareupgradecontroller.h"
+#include "rpiboot.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 void DeviceSearcher::startFindBoardLoop()
 {
     emit searcherMessage("Scan for devices...");
+
+    prepareBoards();
+
     struct udev *udev = udev_new();
     struct udev_enumerate* enumerate;
     struct udev_list_entry *devices;
@@ -51,6 +55,48 @@ void DeviceSearcher::startFindBoardLoop()
     udev_unref(udev);
     if (noDevice) {
         emit searcherMessage("No device found", true);
+    } else {
+        emit searcherMessage("Search finished successfully");
     }
+
     emit searchFinished();
+}
+
+void DeviceSearcher::prepareBoards()
+{
+    libusb_context *context = 0;
+    libusb_device **list = 0;
+    int ret = 0;
+    ssize_t count = 0;
+
+    ret = libusb_init(&context);
+    Q_ASSERT(ret == 0);
+
+    count = libusb_get_device_list(context, &list);
+    Q_ASSERT(count > 0);
+
+    bool boardPrepared = 0;
+    for (ssize_t idx = 0; idx < count; ++idx) {
+        libusb_device *device = list[idx];
+        struct libusb_device_descriptor desc;
+
+        ret = libusb_get_device_descriptor(device, &desc);
+        Q_ASSERT(ret == 0);
+
+        // FIXME: remove hardcode from conditions
+        if (desc.idVendor == 2652 && (desc.idProduct == 10083 || desc.idProduct == 10084)) {
+            QThread rpibootThread;
+            emit searcherMessage("rpiboot started");
+            startRpiBoot(&rpibootThread);
+
+            if (rpibootThread.wait(8000)) {
+                boardPrepared = 1;
+            }
+        }
+    }
+
+    //if rpiboot finished successully wait 3 seconds for device mounting before enumerate
+    if (boardPrepared){
+        QThread::sleep(3);
+    }
 }

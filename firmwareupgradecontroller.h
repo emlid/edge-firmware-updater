@@ -24,6 +24,7 @@ signals:
 
 public slots:
     void startFindBoardLoop();
+    void prepareBoards();
 };
 
 

@@ -135,7 +135,6 @@ void startRpiBoot(QThread *thread){
 
 void rpiboot(void)
 {
-
 	int result;
 	libusb_context *ctx;
 	libusb_device_handle *usb_device;
@@ -145,8 +144,8 @@ void rpiboot(void)
 	int last_serial = -1;
 	FILE *fp1, *fp2, *fp;
 
-    char def1_loc[] = "../usbboot_files/usbbootcode.bin";
-    char def2_loc[] = "../usbboot_files/msd.elf";
+    char def1_loc[] = "../edge-firmware-update-tool/usbboot_files/usbbootcode.bin";
+    char def2_loc[] = "../edge-firmware-update-tool/usbboot_files/msd.elf";
 
 	char *def1, *def2;
 
@@ -162,15 +161,6 @@ void rpiboot(void)
 		int length;
 		unsigned char signature[20];
 	} message;
-	
-#if defined Q_OS_LINUX
-	//exit if not run as sudo
-    if(getuid() != 0)
-	{
-		printf("Must be run with sudo...\n");
-		exit(-1);
-    }
-#endif
 
 	fp1 = fopen(stage1, "rb");
 	if (fp1 == NULL)
