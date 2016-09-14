@@ -3,7 +3,7 @@
 
 DeviceSearcher::DeviceSearcher(FirmwareUpgradeController *parent)
 {
-    connect(parent, &FirmwareUpgradeController::findBoard, this, &DeviceSearcher::startFindBoardLoop, Qt::ConnectionType::DirectConnection);
+    connect(parent, &FirmwareUpgradeController::findBoard, this, &DeviceSearcher::startFindBoardLoop);
 }
 
 FirmwareUpgradeController::FirmwareUpgradeController(QObject *parent) : QObject(parent)
