@@ -35,7 +35,7 @@ public:
     ~FirmwareUpgradeController();
 
     void startFindDevices();
-    void clearDeviceList() {_connectedDevices.clear();}
+    void clearDeviceList();
     QList<StorageDevice*> getDevices() {return _connectedDevices;}
     void flash(int selectedDeviceIndex, QString fileName);
     void cancel(int selectedDeviceIndex);

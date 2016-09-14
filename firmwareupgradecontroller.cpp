@@ -52,3 +52,9 @@ void FirmwareUpgradeController::cancel(int selectedDeviceIndex)
 {
     _connectedDevices[selectedDeviceIndex]->cancel();
 }
+
+void FirmwareUpgradeController::clearDeviceList()
+{
+    _connectedDevices.clear();
+    StorageDevice::deviceCount = 0;
+}
