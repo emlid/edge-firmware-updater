@@ -28,11 +28,11 @@ private:
 
     void alignToCenter();
     void updateList();
-    void setCancelStartButtonState();
     bool fileSelected();
     bool deviceSelected();
 
 private slots:
+    void setCancelStartButtonState();
     void appendStatusLog(const QString& text, bool critical = 0);
     void updateProgressBar(uint32_t curr, uint32_t total) {ui->progressBar->setValue(100 * (float)curr / (float)total);}
     void on_refreshButton_clicked();
