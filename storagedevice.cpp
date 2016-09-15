@@ -12,20 +12,21 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
 }
 
 
+
 void StorageDeviceThreadWorker::_flash(QString fileName)
 {
     _flasher = new StorageDeviceFlasher(this);
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
     connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::deviceWorkerLog);
 
-     struct FlashingParameters testParams;
+     struct FlashingParameters flashParams;
 
-     testParams.inputFile.append(fileName);
-     testParams.outputFile.append(QString("%1").arg(_deviceToFlash->getNode()));
+     flashParams.inputFile.append(fileName);
+     flashParams.outputFile.append(QString("%1").arg(_deviceToFlash->getNode()));
 
-     emit deviceWorkerLog(QString("Flashing %1 with %2").arg(testParams.outputFile).arg(testParams.inputFile));
+     emit deviceWorkerLog(QString("Flashing %1 with %2").arg(flashParams.outputFile).arg(flashParams.inputFile));
 
-     int ret = _flasher->flashDevice(testParams);
+     int ret = _flasher->flashDevice(flashParams);
      if (ret) {
          emit deviceWorkerLog(QString("Failed to Flash: %1").arg(ret), true);
      } else {
