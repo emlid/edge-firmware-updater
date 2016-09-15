@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lwDeviceList->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->teLog->setReadOnly(true);
     ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
+    ui->teLog->setVisible(false);
 }
 
 void MainWindow::alignToCenter()
@@ -131,4 +132,15 @@ void MainWindow::updateList()
     if (ui->lwDeviceList->count() == 1) {
         ui->lwDeviceList->setCurrentRow(0);
     }
+}
+
+void MainWindow::on_logButton_clicked()
+{
+    bool LogVisible = ui->teLog->isVisible();
+        ui->teLog->setVisible(!LogVisible);
+        if (!LogVisible) {
+            this->setFixedSize(this->geometry().width(),this->geometry().height() + ui->teLog->height() + 10);
+        } else {
+            this->setFixedSize(this->geometry().width(),this->geometry().height() - ui->teLog->height() - 10);
+        }
 }

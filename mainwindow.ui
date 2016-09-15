@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>371</width>
-    <height>449</height>
+    <height>325</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -129,9 +129,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>330</y>
+      <y>325</y>
       <width>351</width>
-      <height>91</height>
+      <height>110</height>
      </rect>
     </property>
     <property name="statusTip">
@@ -164,24 +164,60 @@
      <string>Refresh</string>
     </property>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>371</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="defaultUp">
-    <bool>false</bool>
-   </property>
-   <property name="nativeMenuBar">
-    <bool>false</bool>
-   </property>
+   <widget class="QPushButton" name="logButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>310</y>
+      <width>21</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>&gt;</string>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>310</y>
+      <width>320</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
   </widget>
  </widget>
+ <layoutdefault spacing="6" margin="9"/>
  <resources/>
  <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>true</bool>
+  </property>
+ </designerdata>
 </ui>

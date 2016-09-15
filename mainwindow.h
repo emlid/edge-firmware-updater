@@ -41,6 +41,7 @@ private slots:
     void on_cancelButton_clicked();
     void on_leFileName_textChanged();
     void on_lwDeviceList_itemSelectionChanged();
+    void on_logButton_clicked();
 };
 
 #endif // MAINWINDOW_H
