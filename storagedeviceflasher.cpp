@@ -80,6 +80,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
     ddflags = 0;
     interrupted = 0;
     progress = 1;
+
     int ret = jcl(params);
     if (ret){
         flasherLog("Failed to set flashing parameters", true);
@@ -89,25 +90,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
     ret = setup();
     if (ret){
         flasherLog("Failed to prepare data transfer", true);
-        return 2;
-    }
-    if (out.name == NULL || in.name == NULL){
-        flasherLog("null name", true);
-        return 3;
-    }
-
-    (void)sigemptyset(&infoset);
-    //(void)sigaddset(&infoset, SIGINFO);
-
-    //(void)atexit(summary);
-
-    if (out.name == NULL || in.name == NULL){
-        flasherLog("null name", true);
-        return 4;
-    }
-    if (strstr(out.name, "dev") == NULL /*|| strstr(in.name, ".img") == NULL*/){
-        flasherLog("broken name", true);
-        return 5;
+        return 1;
     }
 
     emit startFlashing();
@@ -117,6 +100,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
     dd_close();
 
     progress = 0;
+
     return 0;
 }
 
@@ -736,7 +720,7 @@ void StorageDeviceFlasher::summary(void) {
 
     (void)write(STDERR_FILENO, "\n", 1);
 
-   (void)gettimeofday(&tv, NULL); //linux
+   (void)gettimeofday(&tv, NULL);
 
     mS = tv2mS(tv) - tv2mS(st.start);
 
