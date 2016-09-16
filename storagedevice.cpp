@@ -25,7 +25,7 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
      flashParams.inputFile.append(fileName);
      flashParams.outputFile.append(QString("%1").arg(_deviceToFlash->getNode()));
 
-     emit deviceWorkerLog(QString("Flashing %1 with %2").arg(flashParams.outputFile).arg(flashParams.inputFile));
+     emit deviceWorkerLog(QString("Flashing %1 with %2").arg(flashParams.outputFile.section('=', -1)).arg(flashParams.inputFile.section('/', -1)));
 
      int ret = _flasher->flashDevice(flashParams);
      if (ret) {
