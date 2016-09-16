@@ -102,6 +102,8 @@ void MainWindow::on_browseButton_clicked()
 
 void MainWindow::on_startButton_clicked()
 {
+    ui->progressBar->setValue(0);
+    ui->progressBar->setEnabled(true);
     QString fileName = ui->leFileName->text();
     if (!QFileInfo(fileName).exists()) {
         appendStatusLog(QString("File does not exist"), true);
@@ -114,6 +116,7 @@ void MainWindow::on_startButton_clicked()
 
 void MainWindow::on_cancelButton_clicked()
 {
+    ui->progressBar->setEnabled(false);
     _upgradeController->cancel(ui->lwDeviceList->currentRow());
     ui->lwDeviceList->setCurrentRow(-1);
 }
