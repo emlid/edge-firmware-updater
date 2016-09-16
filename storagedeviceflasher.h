@@ -116,7 +116,7 @@ public:
     int flashDevice(FlashingParameters);
     uint64_t getImageSize(void) {return st.size;}
     uint64_t getBytesSent(void) {return st.bytes;}
-    void terminate(void);
+    void terminate(bool cancel = 0);
 
 signals:
     void updateProgress(uint32_t bytesSent, uint32_t fileSize);

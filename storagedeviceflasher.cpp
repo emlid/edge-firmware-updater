@@ -792,7 +792,10 @@ void StorageDeviceFlasher::current_summary(void) {
 }
 
 
-void StorageDeviceFlasher::terminate(void) {
+void StorageDeviceFlasher::terminate(bool cancel) {
+    if (!cancel) {
+        flasherLog("Flashing Failed due to error");
+    }
     interrupted = 1;
     files_cnt = 0;
 }

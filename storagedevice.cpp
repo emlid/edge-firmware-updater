@@ -41,7 +41,8 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
 void StorageDeviceThreadWorker::_cancel()
 {
     if (_flasher){
-    _flasher->terminate();
+        _flasher->terminate(true);
+        deviceWorkerLog("Flashing has been cancelled");
     }
 }
 
