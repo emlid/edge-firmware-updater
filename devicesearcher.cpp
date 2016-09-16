@@ -99,4 +99,6 @@ void DeviceSearcher::prepareBoards()
     if (boardPrepared){
         QThread::sleep(3);
     }
+
+    libusb_exit(context);
 }
