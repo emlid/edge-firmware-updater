@@ -57,6 +57,6 @@ void FirmwareUpgradeController::cancel(int selectedDeviceIndex)
 
 void FirmwareUpgradeController::clearDeviceList()
 {
+    qDeleteAll(_connectedDevices.begin(), _connectedDevices.end());
     _connectedDevices.clear();
-    StorageDevice::deviceCount = 0;
 }
