@@ -225,8 +225,8 @@ void StorageDeviceFlasher::getfdtype(IO *io) {
 
     if (fstat(io->fd, &sb)) {
         flasherLog(QString("%1: cannot fstat: %2").arg(io->name).arg(strerror(errno)), true);
-        exit(1);
-        // NOTREACHED
+        terminate();
+        return;
     }
     if (S_ISCHR(sb.st_mode))
         io->flags |= /*ioctl(io->fd, MTIOCGET, &mt) ? ISCHR : ISTAPE; */ ISCHR;
@@ -256,8 +256,7 @@ int StorageDeviceFlasher::redup_clean_fd(int fd) {
 
     if (newfd < 0) {
         flasherLog(QString("dupfd IO: %1").arg(strerror(errno)), true);
-        exit(1);
-        // NOTREACHED
+        terminate();
     }
 
     close(fd);
@@ -306,8 +305,8 @@ void StorageDeviceFlasher::dd_in(void) {
              */
             flasherLog(QString("%1: read error: %2").arg(in.name).arg(strerror(errno)), true);
             if (!(flags & C_NOERROR)) {
-                exit(1);
-                // NOTREACHED
+                terminate();
+                return;
             }
             summary();
 
@@ -406,13 +405,13 @@ void StorageDeviceFlasher::dd_close(void) {
     if (out.fd == STDOUT_FILENO && fsync(out.fd) == -1 && errno != EINVAL) { //linux
 
         flasherLog(QString("fsync stdout: %1").arg(strerror(errno)), true);
-        exit(1);
-        // NOTREACHED
+        terminate();
+        return;
     }
     if (close(out.fd) == -1) {
         flasherLog(QString("close: %1").arg(strerror(errno)), true);
-        exit(1);
-        // NOTREACHED
+        terminate();
+        return;
     }
 
     if (out. db != in.db){
@@ -465,20 +464,21 @@ void StorageDeviceFlasher::dd_out(int force) {
                 if (lseek(out.fd, pending, SEEK_CUR) ==
                         -1) {
                     flasherLog(QString("%1: seek error creating sparse file: %2").arg(out.name).arg(strerror(errno)), true);
-                    exit(1);
+                    terminate();
+                    return;
                 }
             }
             nw = bwrite(out.fd, outp, cnt);
             if (nw <= 0) {
                 if (nw == 0) {
                     flasherLog(QString("%1: end of device").arg(out.name), true);
-                    exit(1);
-                    // NOTREACHED
+                    terminate();
+                    return;
                 }
                 if (errno != EINTR) {
                     flasherLog(QString("%1: write error: %2").arg(out.name).arg(strerror(errno)), true);
-                    // NOTREACHED
-                    exit(1);
+                    terminate();
+                    return;
                 }
                 nw = 0;
             }
@@ -506,8 +506,8 @@ void StorageDeviceFlasher::dd_out(int force) {
             }
             if (out.flags & ISTAPE) {
                 flasherLog(QString("%1: short write on tape device").arg(out.name), true);
-                exit(1);
-                // NOTREACHED
+                terminate();
+                return;
             }
         }
         if ((out.dbcnt -= n) < out.dbsz)
@@ -554,8 +554,8 @@ void StorageDeviceFlasher::pos_in(void) {
         if (lseek(in.fd,
                   (off_t)in.offset * (off_t)in.dbsz, SEEK_CUR) == -1) {
             flasherLog(QString("%1: seek error: %2").arg(in.name).arg(strerror(errno)), true);
-            exit(1);
-            // NOTREACHED
+            terminate();
+            return;
         }
         return;
         // NOTREACHED
@@ -584,8 +584,8 @@ void StorageDeviceFlasher::pos_in(void) {
                 continue;
             }
             flasherLog("skip reached end of input", true);
-            exit(1);
-            // NOTREACHED
+            terminate();
+            return;
         }
 
         /*
@@ -603,8 +603,8 @@ void StorageDeviceFlasher::pos_in(void) {
             continue;
         }
         flasherLog(QString("%1: read error: %2").arg(in.name).arg(strerror(errno)), true);
-        exit(1);
-        // NOTREACHED
+        terminate();
+        return;
     }
 }
 
@@ -622,8 +622,8 @@ void StorageDeviceFlasher::pos_out(void) {
         if (lseek(out.fd,
                   (off_t)out.offset * (off_t)out.dbsz, SEEK_SET) == -1) {
             flasherLog(QString("%1: seek error: %2").arg(out.name).arg(strerror(errno)), true);
-            exit(1);
-            // NOTREACHED
+            terminate();
+            return;
         }
         return;
     }
@@ -635,8 +635,7 @@ void StorageDeviceFlasher::pos_out(void) {
 
                         if (ioctl(out.fd, MTIOCTOP, &t_op) < 0)*/
         flasherLog(QString("%1: cannot read").arg(out.name), true);
-        exit(1);
-        // NOTREACHED
+        terminate();
         return;
     }
 
@@ -647,8 +646,8 @@ void StorageDeviceFlasher::pos_out(void) {
 
         if (n < 0) {
             flasherLog(QString("%1: cannot position by reading: %2").arg(out.name).arg(strerror(errno)), true);
-            exit(1);
-            // NOTREACHED
+            terminate();
+            return;
         }
 
         /*
@@ -660,15 +659,15 @@ void StorageDeviceFlasher::pos_out(void) {
                t_op.mt_count = 1;
                        if (ioctl(out.fd, MTIOCTOP, &t_op) == -1) */ {
             flasherLog(QString("%1: cannot position").arg(out.name), true);
-            exit(1);
-            // NOTREACHED
+            terminate();
+            return;
         }
 
         while (cnt++ < out.offset)
             if ((n = bwrite(out.fd, out.db, out.dbsz)) != (long int)out.dbsz) {
                 flasherLog(QString("%1: cannot position by writing: %2").arg(out.name).arg(strerror(errno)), true);
-                exit(1);
-                // NOTREACHED
+                terminate();
+                return;
             }
         break;
     }
@@ -793,9 +792,9 @@ void StorageDeviceFlasher::current_summary(void) {
 }
 
 
-
 void StorageDeviceFlasher::terminate(void) {
     interrupted = 1;
+    files_cnt = 0;
 }
 
 
