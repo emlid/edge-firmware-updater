@@ -18,6 +18,7 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
     _flasher = new StorageDeviceFlasher(this);
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
     connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::deviceWorkerLog);
+    connect(_flasher, &StorageDeviceFlasher::startFlashing, this, &StorageDeviceThreadWorker::startFlashing);
 
      struct FlashingParameters flashParams;
 
@@ -60,6 +61,7 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
     connect(_worker, &StorageDeviceThreadWorker::updateProgress, this, &StorageDevice::_updateProgress);
     connect(_worker, &StorageDeviceThreadWorker::flashComplete, this, &StorageDevice::_flashComplete);
     connect(_worker, &StorageDeviceThreadWorker::deviceWorkerMessage, this, &StorageDevice::deviceLog);
+    connect(_worker, &StorageDeviceThreadWorker::flashingStarted, this, &StorageDevice::_flashingStarted);
 
     _workerThread->start();
 }

@@ -17,11 +17,13 @@ public:
 
 
 signals:
+     void flashingStarted();
      void updateProgress(uint32_t curr, uint32_t total);
      void flashComplete(void);
      void deviceWorkerMessage(const QString& text, bool critical = 0);
 
 private slots:
+     void startFlashing() {emit flashingStarted();}
      void _flash(QString fileName);
      void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
      void _cancel(void);
@@ -54,6 +56,7 @@ public:
 
     //internal signals to communicate with thread
 signals:
+    void flashingStarted();
     void _flashOnThread(QString fileName);
     void _cancel(void);
     void flashComplete(void);
@@ -63,6 +66,7 @@ signals:
 
 public slots:
     //void _error(const QString& errorString) { emit error(errorString); }
+    void _flashingStarted() {emit flashingStarted();}
     void _flashComplete(void) { emit flashComplete(); }
     void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
     void flash(QString fileName) {emit _flashOnThread(fileName);}

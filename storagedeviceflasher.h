@@ -121,6 +121,7 @@ public:
 signals:
     void updateProgress(uint32_t bytesSent, uint32_t fileSize);
     void flasherMessage(const QString& text, bool critical);
+    void startFlashing();
 
 private slots:
     void flasherLog(const QString& text, bool critical = 0) {emit flasherMessage(text, critical);}

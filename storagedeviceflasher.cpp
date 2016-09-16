@@ -110,6 +110,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
         return 5;
     }
 
+    emit startFlashing();
     while (files_cnt--){
         dd_in();
     }

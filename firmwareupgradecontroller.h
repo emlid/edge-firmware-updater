@@ -40,12 +40,14 @@ public:
     QList<StorageDevice*> getDevices() {return _connectedDevices;}
     void flash(int selectedDeviceIndex, QString fileName);
     void cancel(int selectedDeviceIndex);
+    bool flashingInProgress = 0;
 
 signals:
     void findBoard();
     void logMessage(const QString& text, bool critical = 0);
     void updateDeviceList();
     void _updateProgress(uint32_t bytesSent, uint32_t fileSize);
+    void changeControlButtonsState();
 
 public slots:
     void startFindBoardLoop() {emit findBoard();}
@@ -53,6 +55,8 @@ public slots:
     void appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
     void searchFinished() {emit updateDeviceList();}
     void updateProgress(uint32_t bytesSent, uint32_t fileSize) {emit _updateProgress(bytesSent, fileSize);}
+    void flashingStoped() {flashingInProgress = 0; emit changeControlButtonsState();}
+    void flashingStarted() {flashingInProgress = 1; emit changeControlButtonsState();}
 
 private:
     QList<StorageDevice*> _connectedDevices;

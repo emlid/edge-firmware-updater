@@ -40,6 +40,8 @@ void FirmwareUpgradeController::addDevice(uint32_t vid, uint32_t pid, QString no
 
     connect(_connectedDevices.last(), &StorageDevice::updateProgress, this, &FirmwareUpgradeController::updateProgress);
     connect(_connectedDevices.last(), &StorageDevice::deviceMessage, this, &FirmwareUpgradeController::appendStatus);
+    connect(_connectedDevices.last(), &StorageDevice::flashComplete, this, &FirmwareUpgradeController::flashingStoped);
+    connect(_connectedDevices.last(), &StorageDevice::flashingStarted, this, &FirmwareUpgradeController::flashingStarted);
 }
 
 
