@@ -414,6 +414,11 @@ void StorageDeviceFlasher::dd_close(void) {
         exit(1);
         // NOTREACHED
     }
+
+    if (out. db != in.db){
+        free(out.db);
+    }
+    free(in.db);
 }
 
 void StorageDeviceFlasher::dd_out(int force) {
