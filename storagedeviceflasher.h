@@ -127,7 +127,7 @@ private slots:
     void flasherLog(const QString& text, bool critical = 0) {emit flasherMessage(text, critical);}
 
 private:
-    STAT st;         /* statistics */
+    STAT st{};         /* statistics */
     void dd_out(int);
     void def(void);
     void def_close(void);
@@ -154,16 +154,17 @@ private:
 
     arg      args[];
 
-    IO       in, out;        /* input/output state */
+    IO              in{};           /* input state */
+    IO              out{};          /* output state */
     uint64_t        cpy_cnt;        /* # of blocks to copy */
-    off_t    pending;        /* pending seek if sparse */
+    off_t           pending;        /* pending seek if sparse */
     uint            ddflags;        /* conversion options */
     uint64_t        cbsz;           /* conversion block size */
     uint            files_cnt = 1;  /* # of files to copy */
-    int      progress;       /* display sign of life */
+    int             progress;       /* display sign of life */
     const uchar*    ctab;           /* conversion table */
     sigset_t        infoset;        /* a set blocking SIGINFO */
-    bool     interrupted;
+    bool            interrupted;
 
 
 };
