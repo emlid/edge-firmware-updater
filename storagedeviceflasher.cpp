@@ -293,6 +293,7 @@ void StorageDeviceFlasher::dd_in(void) {
         n = read(in.fd, in.dbp, in.dbsz);
         if (n == 0) {
             in.dbrcnt = 0;
+            flasherLog("Flashing Complete");
             return;
         }
 
@@ -378,39 +379,38 @@ void StorageDeviceFlasher::dd_close(void) {
 
     //if (cfunc == def)
         def_close();
-
-    if (ddflags & C_OSYNC && out.dbcnt < out.dbsz) {
-        (void)memset(out.dbp, 0, out.dbsz - out.dbcnt);
-        out.dbcnt = out.dbsz;
-    }
-    /* If there are pending sparse blocks, make sure
+        if (!interrupted){
+            if (ddflags & C_OSYNC && out.dbcnt < out.dbsz) {
+                (void)memset(out.dbp, 0, out.dbsz - out.dbcnt);
+                out.dbcnt = out.dbsz;
+            }
+            /* If there are pending sparse blocks, make sure
      * to write out the final block un-sparse
      */
-    if ((out.dbcnt == 0) && pending) {
-        memset(out.db, 0, out.dbsz);
-        out.dbcnt = out.dbsz;
-        out.dbp = out.db + out.dbcnt;
-        pending -= out.dbsz;
-    }
-    if (out.dbcnt)
-        dd_out(1);
+            if ((out.dbcnt == 0) && pending) {
+                memset(out.db, 0, out.dbsz);
+                out.dbcnt = out.dbsz;
+                out.dbp = out.db + out.dbcnt;
+                pending -= out.dbsz;
+            }
+            if (out.dbcnt)
+                dd_out(1);
 
-    /*
+            /*
      * Reporting nfs write error may be defered until next
      * write(2) or close(2) system call.  So, we need to do an
      * extra check.  If an output is stdout, the file structure
      * may be shared among with other processes and close(2) just
      * decreases the reference count.
      */
-    if (out.fd == STDOUT_FILENO && fsync(out.fd) == -1 && errno != EINVAL) { //linux
+            if (out.fd == STDOUT_FILENO && fsync(out.fd) == -1 && errno != EINVAL) {
 
-        flasherLog(QString("fsync stdout: %1").arg(strerror(errno)), true);
-        terminate();
-        return;
-    }
+                flasherLog(QString("fsync stdout: %1").arg(strerror(errno)), true);
+                return;
+            }
+        }
     if (close(out.fd) == -1) {
         flasherLog(QString("close: %1").arg(strerror(errno)), true);
-        terminate();
         return;
     }
 

@@ -29,9 +29,7 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
 
      int ret = _flasher->flashDevice(flashParams);
      if (ret) {
-         emit deviceWorkerLog(QString("Failed to Flash: %1").arg(ret), true);
-     } else {
-         emit deviceWorkerLog("Flashing complete");
+         emit deviceWorkerLog(QString("Failed to Flash"), true);
      }
 
     emit flashComplete();
