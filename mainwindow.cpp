@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::logMessage, this, &MainWindow::appendStatusLog);
     connect(_upgradeController, &FirmwareUpgradeController::updateDeviceList, this, &MainWindow::updateList);
     connect(_upgradeController, &FirmwareUpgradeController::_updateProgress, this, &MainWindow::updateProgressBar);
+    connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setCancelStartButtonState);
 
     ui->setupUi(this);
     setCancelStartButtonState();
@@ -51,7 +52,8 @@ void MainWindow::setCancelStartButtonState()
     ui->startButton->setEnabled(false);
     ui->cancelButton->setEnabled(false);
 
-    ui->startButton->setEnabled(deviceSelected() && fileSelected());
+    ui->startButton->setEnabled(deviceSelected() && fileSelected() && !flashingInProgress());
+    ui->cancelButton->setEnabled(flashingInProgress());
 }
 
 bool MainWindow::fileSelected()
@@ -62,6 +64,11 @@ bool MainWindow::fileSelected()
 bool MainWindow::deviceSelected()
 {
     return !(ui->lwDeviceList->selectedItems().isEmpty());
+}
+
+bool MainWindow::flashingInProgress()
+{
+    return _upgradeController->flashingInProgress;
 }
 
 void MainWindow::on_leFileName_textChanged()
@@ -108,6 +115,7 @@ void MainWindow::on_startButton_clicked()
 void MainWindow::on_cancelButton_clicked()
 {
     _upgradeController->cancel(ui->lwDeviceList->currentRow());
+    ui->lwDeviceList->setCurrentRow(-1);
 }
 
 void MainWindow::appendStatusLog(const QString &text, bool critical) {

@@ -30,6 +30,7 @@ private:
     void updateList();
     bool fileSelected();
     bool deviceSelected();
+    bool flashingInProgress();
 
 private slots:
     void setCancelStartButtonState();
