@@ -44,6 +44,7 @@ public:
 
 signals:
     void findBoard();
+    void deviceSearchFinished();
     void logMessage(const QString& text, bool critical = 0);
     void updateDeviceList();
     void _updateProgress(uint32_t bytesSent, uint32_t fileSize);
@@ -53,7 +54,7 @@ public slots:
     void startFindBoardLoop() {emit findBoard();}
     void addDevice(uint32_t vid, uint32_t pid, QString node);
     void appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
-    void searchFinished() {emit updateDeviceList();}
+    void searchFinished() {emit updateDeviceList(); emit deviceSearchFinished();}
     void updateProgress(uint32_t bytesSent, uint32_t fileSize) {emit _updateProgress(bytesSent, fileSize);}
     void flashingStoped() {flashingInProgress = 0; emit changeControlButtonsState();}
     void flashingStarted() {flashingInProgress = 1; emit changeControlButtonsState();}

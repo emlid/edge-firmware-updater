@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::_updateProgress, this, &MainWindow::updateProgressBar);
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setCancelStartButtonState);
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setRefreshButtonState);
+    connect(_upgradeController, &FirmwareUpgradeController::deviceSearchFinished, this, &MainWindow::setRefreshButtonState);
 
     ui->setupUi(this);
     setCancelStartButtonState();
@@ -26,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->teLog->setReadOnly(true);
     ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
     ui->teLog->setVisible(false);
+
+    ui->refreshButton->setEnabled(false);
 }
 
 void MainWindow::alignToCenter()
@@ -89,6 +92,7 @@ void MainWindow::on_lwDeviceList_itemSelectionChanged()
 
 void MainWindow::on_refreshButton_clicked()
 {
+    ui->refreshButton->setEnabled(false);
     ui->lwDeviceList->clear();
     _upgradeController->clearDeviceList();
 
