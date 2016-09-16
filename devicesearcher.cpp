@@ -25,6 +25,7 @@ void DeviceSearcher::startFindBoardLoop()
 
     enumerateDevices();
 
+    emit searcherMessage("Search finished");
     emit searchFinished();
 }
 
@@ -112,7 +113,7 @@ void DeviceSearcher::enumerateDevices()
     struct udev_list_entry *entry;
     const char* path;
     struct udev_device* block;
-    bool noDevice = true;
+    int deviceCount = 0;
 
     enumerate = udev_enumerate_new(udev);
 
@@ -137,7 +138,7 @@ void DeviceSearcher::enumerateDevices()
                 QString n = QString(devnode);
                 emit foundDevice(v, p, n);
 
-                noDevice = false;
+                deviceCount++;
                 udev_device_unref(block);
                 break;
             }
@@ -147,9 +148,9 @@ void DeviceSearcher::enumerateDevices()
 
     udev_enumerate_unref(enumerate);
     udev_unref(udev);
-    if (noDevice) {
+    if (!deviceCount) {
         emit searcherMessage("No device found", true);
     } else {
-        emit searcherMessage("Search finished successfully");
+        emit searcherMessage(QString("Found %1 storage device%2").arg(deviceCount).arg(deviceCount > 1 ? "s":""));
     }
 }
