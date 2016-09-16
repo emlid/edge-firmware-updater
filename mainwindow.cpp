@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::updateDeviceList, this, &MainWindow::updateList);
     connect(_upgradeController, &FirmwareUpgradeController::_updateProgress, this, &MainWindow::updateProgressBar);
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setCancelStartButtonState);
+    connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setRefreshButtonState);
 
     ui->setupUi(this);
     setCancelStartButtonState();
@@ -54,6 +55,11 @@ void MainWindow::setCancelStartButtonState()
 
     ui->startButton->setEnabled(deviceSelected() && fileSelected() && !flashingInProgress());
     ui->cancelButton->setEnabled(flashingInProgress());
+}
+
+void MainWindow::setRefreshButtonState()
+{
+    ui->refreshButton->setEnabled(!flashingInProgress());
 }
 
 bool MainWindow::fileSelected()
