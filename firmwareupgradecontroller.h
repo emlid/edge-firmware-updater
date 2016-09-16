@@ -24,7 +24,9 @@ signals:
 
 public slots:
     void startFindBoardLoop();
-    void prepareBoards();
+    int findBootableDevices();
+    void startUdevMonitor(int count);
+    void enumerateDevices();
 };
 
 
