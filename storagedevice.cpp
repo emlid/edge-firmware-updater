@@ -82,6 +82,9 @@ StorageDevice& StorageDevice::operator=(const StorageDevice& other){
         this->_vid = other._vid;
         this->_pid = other._pid;
         this->_deviceNode = other._deviceNode;
+
+        this->_worker = other._worker;
+        this->_workerThread = other._workerThread;
     }
     return *this;
 }
