@@ -24,11 +24,10 @@ signals:
 
 private slots:
      void startFlashing() {emit flashingStarted();}
+     void deviceWorkerLog(const QString& text, bool critical = 0) {emit deviceWorkerMessage(text, critical);}
      void _flash(QString fileName);
      void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
      void _cancel(void);
-     void deviceWorkerLog(const QString& text, bool critical = 0) {emit deviceWorkerMessage(text, critical);}
-
 
 private:
     StorageDeviceFlasher*   _flasher = 0;
@@ -50,33 +49,29 @@ public:
 
     static int deviceCount;
 
-    void setParams(uint32_t v, uint32_t p, QString d){_vid=v, _pid=p; _deviceNode=d;}
-    QString getNode(){ return _deviceNode;}
+    void setParams(uint32_t v, uint32_t p, QString d) {_vid=v, _pid=p; _deviceNode=d;}
+    QString getNode() { return _deviceNode;}
 
-
-    //internal signals to communicate with thread
 signals:
     void flashingStarted();
-    void _flashOnThread(QString fileName);
-    void _cancel(void);
-    void flashComplete(void);
+    void flashComplete();
     void updateProgress(uint32_t curr, uint32_t total);
-    void status(const QString& statusText);
     void deviceMessage(const QString& text, bool critical = 0);
+    void _flashOnThread(QString fileName);
+    void _cancel();
 
 public slots:
-    //void _error(const QString& errorString) { emit error(errorString); }
-    void _flashingStarted() {emit flashingStarted();}
-    void _flashComplete(void) { emit flashComplete(); }
-    void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
     void flash(QString fileName) {emit _flashOnThread(fileName);}
     void deviceLog(const QString& text, bool critical = 0) {emit deviceMessage(text, critical);}
     void cancel() {emit _cancel();}
+    void _flashingStarted() {emit flashingStarted();}
+    void _flashComplete() {emit flashComplete();}
+    void _updateProgress(uint32_t curr, uint32_t total) {emit updateProgress(curr, total);}
 
 private:
     uint32_t _vid;
     uint32_t _pid;
-    QString _deviceNode;
+    QString  _deviceNode;
 
     StorageDeviceThreadWorker*  _worker;
     QThread*                    _workerThread;

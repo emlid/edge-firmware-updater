@@ -12,7 +12,6 @@ StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
 }
 
 
-
 void StorageDeviceThreadWorker::_flash(QString fileName)
 {
     _flasher = new StorageDeviceFlasher(this);
