@@ -124,9 +124,8 @@ void MainWindow::on_startButton_clicked()
 
 void MainWindow::on_cancelButton_clicked()
 {
-    ui->progressBar->setEnabled(false);
     _upgradeController->cancel(ui->lwDeviceList->currentRow());
-    ui->lwDeviceList->setCurrentRow(-1);
+    clearListAndBarFocus();
 }
 
 void MainWindow::appendStatusLog(const QString &text, bool critical) {
@@ -162,4 +161,10 @@ void MainWindow::on_logButton_clicked()
         } else {
             this->setFixedSize(this->geometry().width(),this->geometry().height() - ui->teLog->height() - 10);
         }
+}
+
+void MainWindow::clearListAndBarFocus()
+{
+    ui->progressBar->setEnabled(false);
+    ui->lwDeviceList->setCurrentRow(-1);
 }
