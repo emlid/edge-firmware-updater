@@ -96,9 +96,7 @@ void MainWindow::on_refreshButton_clicked()
     ui->lwDeviceList->clear();
     _upgradeController->clearDeviceList();
 
-    emit _upgradeController->findBoard();
-
-
+    _upgradeController->startFindBoardLoop();
 }
 
 void MainWindow::on_browseButton_clicked()
