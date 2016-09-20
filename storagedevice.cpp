@@ -16,19 +16,19 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
 {
     _flasher = new StorageDeviceFlasher(this);
     connect(_flasher, &StorageDeviceFlasher::updateProgress, this, &StorageDeviceThreadWorker::_updateProgress);
-    connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::deviceWorkerLog);
-    connect(_flasher, &StorageDeviceFlasher::startFlashing, this, &StorageDeviceThreadWorker::startFlashing);
+    connect(_flasher, &StorageDeviceFlasher::flasherMessage, this, &StorageDeviceThreadWorker::_deviceWorkerLog);
+    connect(_flasher, &StorageDeviceFlasher::startFlashing, this, &StorageDeviceThreadWorker::_startFlashing);
 
      struct FlashingParameters flashParams;
 
      flashParams.inputFile.append(fileName);
      flashParams.outputFile.append(QString("%1").arg(_deviceToFlash->getNode()));
 
-     emit deviceWorkerLog(QString("Flashing %1 with %2").arg(flashParams.outputFile.section('=', -1)).arg(flashParams.inputFile.section('/', -1)));
+     emit _deviceWorkerLog(QString("Flashing %1 with %2").arg(flashParams.outputFile.section('=', -1)).arg(flashParams.inputFile.section('/', -1)));
 
      int ret = _flasher->flashDevice(flashParams);
      if (ret) {
-         emit deviceWorkerLog(QString("Failed to Flash"), true);
+         emit _deviceWorkerLog(QString("Failed to Flash"), true);
      }
 
     emit flashComplete();
@@ -39,7 +39,7 @@ void StorageDeviceThreadWorker::_cancel()
 {
     if (_flasher){
         _flasher->terminate(true);
-        deviceWorkerLog("Flashing has been cancelled");
+        _deviceWorkerLog("Flashing has been cancelled");
     }
 }
 

@@ -23,8 +23,8 @@ signals:
      void deviceWorkerMessage(const QString& text, bool critical = 0);
 
 private slots:
-     void startFlashing() {emit flashingStarted();}
-     void deviceWorkerLog(const QString& text, bool critical = 0) {emit deviceWorkerMessage(text, critical);}
+     void _startFlashing() {emit flashingStarted();}
+     void _deviceWorkerLog(const QString& text, bool critical = 0) {emit deviceWorkerMessage(text, critical);}
      void _flash(QString fileName);
      void _updateProgress(uint32_t curr, uint32_t total) { emit updateProgress(curr, total); }
      void _cancel(void);
