@@ -37,7 +37,6 @@ public:
     explicit FirmwareUpgradeController(QObject *parent = 0);
     ~FirmwareUpgradeController();
 
-    void startFindDevices();
     void clearDeviceList();
     QList<StorageDevice*> getDevices() {return _connectedDevices;}
     void flash(int selectedDeviceIndex, QString fileName);
@@ -45,26 +44,26 @@ public:
     bool flashingInProgress = 0;
 
 signals:
-    void findBoard();
     void deviceSearchFinished();
     void logMessage(const QString& text, bool critical = 0);
     void updateDeviceList();
-    void _updateProgress(uint32_t bytesSent, uint32_t fileSize);
+    void updateProgressBar(uint32_t bytesSent, uint32_t fileSize);
     void changeControlButtonsState();
+    void _findBoard();
 
 public slots:
-    void startFindBoardLoop() {emit findBoard();}
-    void addDevice(uint32_t vid, uint32_t pid, QString node);
-    void appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
-    void searchFinished() {emit updateDeviceList(); emit deviceSearchFinished();}
-    void updateProgress(uint32_t bytesSent, uint32_t fileSize) {emit _updateProgress(bytesSent, fileSize);}
-    void flashingStoped() {flashingInProgress = 0; emit changeControlButtonsState();}
-    void flashingStarted() {flashingInProgress = 1; emit changeControlButtonsState();}
+    void startFindBoardLoop() {emit _findBoard();}
+    void updateProgress(uint32_t bytesSent, uint32_t fileSize) {emit updateProgressBar(bytesSent, fileSize);}
+    void flashingStoped();
+    void flashingStarted();
+    void _addDevice(uint32_t vid, uint32_t pid, QString node);
+    void _appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}
+    void _searchFinished();
 
 private:
-    QList<StorageDevice*> _connectedDevices;
-    DeviceSearcher* searchWorker;
-    QThread* searchWorkerThread;
+    QList<StorageDevice*>   _connectedDevices;
+    DeviceSearcher*         _searchWorker;
+    QThread*                _searchWorkerThread;
 
 
 

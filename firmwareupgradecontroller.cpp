@@ -3,47 +3,64 @@
 
 DeviceSearcher::DeviceSearcher(FirmwareUpgradeController *parent)
 {
-    connect(parent, &FirmwareUpgradeController::findBoard, this, &DeviceSearcher::startFindBoardLoop);
+    connect(parent, &FirmwareUpgradeController::_findBoard, this, &DeviceSearcher::startFindBoardLoop);
 }
 
 FirmwareUpgradeController::FirmwareUpgradeController(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<uint32_t>("uint32_t");
-    searchWorker = new DeviceSearcher(this);
-    Q_CHECK_PTR(searchWorker);
+    _searchWorker = new DeviceSearcher(this);
+    Q_CHECK_PTR(_searchWorker);
 
-    searchWorkerThread = new QThread(this);
-    Q_CHECK_PTR(searchWorkerThread);
-    searchWorker->moveToThread(searchWorkerThread);
+    _searchWorkerThread = new QThread(this);
+    Q_CHECK_PTR(_searchWorkerThread);
+    _searchWorker->moveToThread(_searchWorkerThread);
 
-    connect(searchWorker, &DeviceSearcher::foundDevice, this, &FirmwareUpgradeController::addDevice);
-    connect(searchWorker, &DeviceSearcher::searchFinished, this, &FirmwareUpgradeController::searchFinished);
-    connect(searchWorker, &DeviceSearcher::searcherMessage, this, &FirmwareUpgradeController::appendStatus);
+    connect(_searchWorker, &DeviceSearcher::foundDevice, this, &FirmwareUpgradeController::_addDevice);
+    connect(_searchWorker, &DeviceSearcher::searchFinished, this, &FirmwareUpgradeController::_searchFinished);
+    connect(_searchWorker, &DeviceSearcher::searcherMessage, this, &FirmwareUpgradeController::_appendStatus);
 
-    searchWorkerThread->start();
+    _searchWorkerThread->start();
 }
 
 FirmwareUpgradeController::~FirmwareUpgradeController(){
-    searchWorkerThread->quit();
-    searchWorkerThread->wait();
+    _searchWorkerThread->quit();
+    _searchWorkerThread->wait();
 
-    delete searchWorkerThread;
-    delete searchWorker;
+    delete _searchWorkerThread;
+    delete _searchWorker;
 }
 
 
-void FirmwareUpgradeController::addDevice(uint32_t vid, uint32_t pid, QString node)
+void FirmwareUpgradeController::_addDevice(uint32_t vid, uint32_t pid, QString node)
 {
     StorageDevice* dev = new StorageDevice(this);
     dev->setParams(vid, pid, node);
     _connectedDevices.append(dev);
 
     connect(_connectedDevices.last(), &StorageDevice::updateProgress, this, &FirmwareUpgradeController::updateProgress);
-    connect(_connectedDevices.last(), &StorageDevice::deviceMessage, this, &FirmwareUpgradeController::appendStatus);
+    connect(_connectedDevices.last(), &StorageDevice::deviceMessage, this, &FirmwareUpgradeController::_appendStatus);
     connect(_connectedDevices.last(), &StorageDevice::flashComplete, this, &FirmwareUpgradeController::flashingStoped);
     connect(_connectedDevices.last(), &StorageDevice::flashingStarted, this, &FirmwareUpgradeController::flashingStarted);
 }
 
+void FirmwareUpgradeController::_searchFinished()
+{
+    emit updateDeviceList();
+    emit deviceSearchFinished();
+}
+
+void FirmwareUpgradeController::flashingStoped()
+{
+    flashingInProgress = 0;
+    emit changeControlButtonsState();
+}
+
+void FirmwareUpgradeController::flashingStarted()
+{
+    flashingInProgress = 1;
+    emit changeControlButtonsState();
+}
 
 void FirmwareUpgradeController::flash(int selectedDeviceIndex, QString fileName)
 {
