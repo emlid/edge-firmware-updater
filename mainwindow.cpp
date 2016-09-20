@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setCancelStartButtonState);
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setRefreshButtonState);
     connect(_upgradeController, &FirmwareUpgradeController::deviceSearchFinished, this, &MainWindow::setRefreshButtonState);
+    connect(_upgradeController, &FirmwareUpgradeController::changeListAndBarFocus, this, &MainWindow::clearListAndBarFocus);
 
     ui->setupUi(this);
     setCancelStartButtonState();

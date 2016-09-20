@@ -54,6 +54,7 @@ void FirmwareUpgradeController::flashingStoped()
 {
     flashingInProgress = 0;
     emit changeControlButtonsState();
+    emit changeListAndBarFocus();
 }
 
 void FirmwareUpgradeController::flashingStarted()

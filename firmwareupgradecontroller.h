@@ -49,6 +49,7 @@ signals:
     void updateDeviceList();
     void updateProgressBar(uint32_t bytesSent, uint32_t fileSize);
     void changeControlButtonsState();
+    void changeListAndBarFocus();
     void _findBoard();
 
 public slots:
