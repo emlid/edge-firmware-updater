@@ -2,9 +2,7 @@ QT += core
 QT -= gui
 QT += serialport
 
-TARGET = edge_fw_update
-#CONFIG += console
-#CONFIG -= app_bundle
+TARGET = edge_fw_updt
 QT += widgets
 
 FORMS += \
