@@ -2,7 +2,8 @@
 #include "rpiboot.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "libusb.h"
+#include "libusb-1.0/libusb.h"
+#include <handledevice_win.h>
 #include <QDebug>
 
 
@@ -19,9 +20,7 @@ void DeviceSearcher::startFindBoardLoop()
          */
     }
 
-    /*
-     *  enumerateDevices();
-     */
+    enumerateDevices();
 
     emit searcherMessage("Search finished");
     emit searchFinished();
@@ -66,10 +65,36 @@ void DeviceSearcher::startUdevMonitor(int count)
      */
 }
 
-
 void DeviceSearcher::enumerateDevices()
 {
-    /*
-     *  functionality is not implemented yet
-     */
+        // GetLogicalDrives returns 0 on failure, or a bitmask representing
+        // the drives available on the system (bit 0 = A:, bit 1 = B:, etc)
+        unsigned long driveMask = GetLogicalDrives();
+        int i = 0;
+
+        int removableDisks = 0;
+
+        while (driveMask != 0)
+        {
+            if (driveMask & 1)
+            {
+                wchar_t drivename[] = L"\\\\.\\A:\\";
+                drivename[4] += i;
+
+                if (checkDriveType(drivename))
+                {
+                    qDebug() << (QString::fromWCharArray(&drivename[4]));
+                    emit foundDevice(0, 0, QString::fromWCharArray(&drivename[4]));
+                    removableDisks++;
+                }
+            }
+            driveMask >>= 1;
+            ++i;
+        }
+        if (removableDisks == 0) {
+            emit searcherMessage("No removable device found", true);
+        } else {
+            emit searcherMessage(QString("Found %1 storage device%2").arg(removableDisks).arg(removableDisks > 1 ? "s":""));
+        }
+
 }

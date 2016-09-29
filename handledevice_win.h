@@ -11,9 +11,9 @@ typedef struct _DEVICE_NUMBER
     ULONG  PartitionNumber;
 } DEVICE_NUMBER, *PDEVICE_NUMBER;
 
-int getRemovableDrives();
-int getDeviceNodePath(QString *);
+
 bool slashify(wchar_t *, wchar_t **, wchar_t **);
+bool checkDriveType(wchar_t *name);
 BOOL GetDisksProperty(HANDLE , PSTORAGE_DEVICE_DESCRIPTOR , DEVICE_NUMBER *);
 
 #endif // HANDLEDEVICE_WIN_H
