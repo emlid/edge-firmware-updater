@@ -3,7 +3,12 @@
 
 #include <QObject>
 #include <QThread>
+
+#ifdef Q_OS_LINUX
 #include <storagedeviceflasher.h>
+#elif  defined Q_OS_WIN32
+#include <storagedeviceflasher_win.h>
+#endif
 
 class StorageDevice;
 

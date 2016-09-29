@@ -18,9 +18,7 @@ SOURCES += main.cpp \
     rpiboot.cpp \
     mainwindow.cpp \
     firmwareupgradecontroller.cpp \
-    devicesearcher.cpp \
-    storagedevice.cpp \
-    storagedeviceflasher.cpp
+    storagedevice.cpp
 
 
 HEADERS += \
@@ -28,22 +26,27 @@ HEADERS += \
     flashing_parameters.h \
     mainwindow.h \
     firmwareupgradecontroller.h \
-    storagedevice.h \
-    storagedeviceflasher.h
+    storagedevice.h
 
 
 
-win32{
+win32 {
     SOURCES += dd_win.cpp \
+        devicesearcher_win.cpp \
+        storagedeviceflasher_win.cpp \
         handledevice_win.cpp
     HEADERS += dd_win.h \
+        storagedeviceflasher_win.h \
         handledevice_win.h
 }
 
-unix{
+unix {
     SOURCES += dd.cpp \
+        devicesearcher.cpp \
+        storagedeviceflasher.cpp \
         handledevice_linux.cpp
     HEADERS += dd.h \
+        storagedeviceflasher.h \
         handledevice_linux.h
 
     LIBS += -L/usr/lib/ -ludev
