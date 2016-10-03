@@ -21,6 +21,8 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
         if (fileinfo.exists() && fileinfo.isFile() &&
                 fileinfo.isReadable() && (fileinfo.size() > 0) )
         {
+            st.bytesSent = 0;
+            st.fileSize = fileinfo.size();
 
             if (fileName.at(0) == drive.at(0))
             {

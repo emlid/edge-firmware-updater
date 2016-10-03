@@ -13,6 +13,11 @@ enum Status {
     STATUS_CANCELED
 };
 
+typedef struct {
+    uint32_t fileSize;
+    uint32_t bytesSent;
+} STAT;
+
 struct FlashingParameters{
     QString blockSize;
     QString inputFile;
@@ -28,8 +33,8 @@ class StorageDeviceFlasher : public QObject
 public:
     explicit StorageDeviceFlasher(QObject *parent = 0);
     int flashDevice(FlashingParameters);
-    uint64_t getImageSize(void) {return st_size;}
-    uint64_t getBytesSent(void) {return st_bytes;}
+    uint64_t getImageSize(void) {return st.fileSize;}
+    uint64_t getBytesSent(void) {return st.bytesSent;}
     void terminate(bool cancel = 0);
 
 signals:
@@ -55,9 +60,7 @@ private:
     void current_summary(unsigned long long numsectors, int i, int *lastValue);
     bool getPhysicalDriveNumber(QString drivename, int *pid);
 
-
-    uint64_t st_size;
-    uint64_t st_bytes;
+    STAT st;
     unsigned long long sectorsize;
 };
 
