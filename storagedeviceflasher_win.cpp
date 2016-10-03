@@ -149,8 +149,8 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
                 }
                 delete sectorData;
                 sectorData = NULL;
+                emit updateProgress(st.bytesSent, st.fileSize);
                 current_summary(numsectors, i, &percent);
-
             }
             qDebug() << "\n\n";
 
@@ -419,6 +419,7 @@ bool StorageDeviceFlasher::writeSectorDataToHandle(HANDLE handle, char *data, un
 
         LocalFree(errormessage);
     }
+    st.bytesSent += sectorsize * numsectors;
     return (bResult);
 }
 
