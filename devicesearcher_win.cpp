@@ -6,7 +6,6 @@
 #include <handledevice_win.h>
 #include <QDebug>
 
-
 void DeviceSearcher::startFindBoardLoop()
 {
     emit searcherMessage("Scan for devices...");
@@ -15,9 +14,14 @@ void DeviceSearcher::startFindBoardLoop()
     qDebug() << "bootable:" << bootable;
 
     if (bootable > 0) {
-        /*
-         *  run rpiboot (not implemented yet)
-         */
+
+        QThread rpibootThread;
+        emit searcherMessage(QString("Found %1 bootable device%2").arg(bootable).arg(bootable > 1 ? "s":""));
+
+        emit searcherMessage("Rpiboot started");
+        startRpiBoot(&rpibootThread);
+        rpibootThread.wait();
+        emit searcherMessage("Rpiboot finished");
     }
 
     enumerateDevices();
