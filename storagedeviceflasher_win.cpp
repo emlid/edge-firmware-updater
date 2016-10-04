@@ -153,10 +153,8 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
             }
             qDebug() << "\n\n";
 
-            LARGE_INTEGER filesize;
-            GetFileSizeEx(hFile, &filesize);
-            qDebug() <<  filesize.QuadPart <<  " bytes (" << filesize.QuadPart/1000000 << " MB) transferred ";
-            qDebug() <<  "in " << timer.elapsed()/1000 << " s (" << (double)(filesize.QuadPart/1000000)/(timer.elapsed()/1000) << " MB/s)\n";
+            qDebug() <<  st.bytesSent <<  " bytes (" << st.bytesSent/1000000 << " MB) transferred ";
+            qDebug() <<  "in " << timer.elapsed()/1000 << " s (" << (double)(st.bytesSent/1000000)/(timer.elapsed()/1000) << " MB/s)\n";
 
             removeLockOnVolume(hVolume);
             CloseHandle(hRawDisk);
