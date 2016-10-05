@@ -111,6 +111,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
             int percent = 0;
             char *sectorData;
 
+            emit startFlashing();
 
             for (i = 0ul; i < numsectors && st.flashingStatus == STATUS_WRITING; i += 1024ul)
             {
