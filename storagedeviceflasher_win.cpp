@@ -203,6 +203,7 @@ void StorageDeviceFlasher::terminate(bool cancel) {
          *  functionality is not implemented yet
          */
     }
+    st.flashingStatus = STATUS_CANCELED;
 }
 
 
