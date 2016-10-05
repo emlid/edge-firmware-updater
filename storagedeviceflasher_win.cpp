@@ -16,7 +16,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
     QString fileName = params.inputFile;
     QString drive = params.outputFile;
 
-        QFileInfo fileinfo(fileName); //path to the img file
+        QFileInfo fileinfo(fileName);
         if (fileinfo.exists() && fileinfo.isFile() &&
                 fileinfo.isReadable() && (fileinfo.size() > 0) )
         {
@@ -25,7 +25,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
 
             if (fileName.at(0) == drive.at(0))
             {
-                qWarning("Image file cannot be located on the target device.\n");
+                flasherLog("Image file cannot be located on the target device.", true);
                 return 1;
             }
 
@@ -93,7 +93,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
 
             if (numsectors > availablesectors)
             {
-                qWarning("Not enough space on disk: Size: %llu sectors  Available: %llu sectors  Sector size: %llu\n", numsectors, availablesectors, sectorsize);
+                flasherLog(QString("Not enough space on disk: Size: %1 sectors  Available: %2 sectors  Sector size: %3").arg(numsectors).arg(availablesectors).arg(sectorsize), true);
 
                 removeLockOnVolume(hVolume);
                 CloseHandle(hRawDisk);
@@ -111,7 +111,6 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
             int percent = 0;
             char *sectorData;
 
-            qDebug() << "Flashing " << drive << " with " << fileName.mid(fileName.lastIndexOf('\\') + 1);
 
             for (i = 0ul; i < numsectors && st.flashingStatus == STATUS_WRITING; i += 1024ul)
             {
@@ -151,10 +150,8 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
                 emit updateProgress(st.bytesSent, st.fileSize);
                 current_summary(numsectors, i, &percent);
             }
-            qDebug() << "\n\n";
 
-            qDebug() <<  st.bytesSent <<  " bytes (" << st.bytesSent/1000000 << " MB) transferred ";
-            qDebug() <<  "in " << timer.elapsed()/1000 << " s (" << (double)(st.bytesSent/1000000)/(timer.elapsed()/1000) << " MB/s)\n";
+            flasherLog(QString("%1 bytes (%2 MB) transferred in %3 s (%4  MB/s)").arg(st.bytesSent).arg(st.bytesSent / 1000000).arg(timer.elapsed()/1000).arg((double)(st.bytesSent / 1000000) / (timer.elapsed() / 1000)));
 
             removeLockOnVolume(hVolume);
             CloseHandle(hRawDisk);
@@ -171,22 +168,22 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
         }
         else if (!fileinfo.exists() || !fileinfo.isFile())
         {
-            qWarning("File error. The selected file does not exist.");
+            flasherLog("File error. The selected file does not exist.", true);
             passfail = false;
         }
         else if (!fileinfo.isReadable())
         {
-            qWarning("File error. You do not have permision to read the selected file.");
+            flasherLog("File error. You do not have permision to read the selected file.", true);
             passfail = false;
         }
         else if (fileinfo.size() == 0)
         {
-            qWarning("File Error. The specified file contains no data.");
+            flasherLog("File Error. The specified file contains no data.", true);
             passfail = false;
         }
 
         if (passfail){
-            qWarning("Write Successful.");
+            flasherLog("Write Successful.");
         }
 
 
@@ -216,7 +213,7 @@ HANDLE StorageDeviceFlasher::getHandleOnFile(LPCWSTR filelocation, DWORD access)
                          (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
 
-        qWarning()<<   QObject::tr("An error occurred when attempting to get a handle on the file.\n" "Error %1: %2").arg(GetLastError()).arg(errText);
+        flasherLog(QString("An error occurred when attempting to get a handle on the file. Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
     }
@@ -235,7 +232,7 @@ HANDLE StorageDeviceFlasher::getHandleOnDevice(int device, DWORD access)
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning() << QObject::tr("An error occurred when attempting to get a handle on the device.\n" "Error %1: %2").arg(GetLastError()).arg(errText);
+        flasherLog(QString("An error occurred when attempting to get a handle on the device. Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
     }
@@ -256,8 +253,7 @@ HANDLE StorageDeviceFlasher::getHandleOnVolume(int volume, DWORD access)
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), LANG_SYSTEM_DEFAULT, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
 
-        qWarning()<< QObject::tr("An error occurred when attempting to get a handle on the volume.\n"
-                                                  "Error %1: %2").arg(GetLastError()).arg(errText);
+        flasherLog(QString("An error occurred when attempting to get a handle on the volume. Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
     }
@@ -274,7 +270,7 @@ bool StorageDeviceFlasher::getLockOnVolume(HANDLE handle)
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred when attempting to lock the volume.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred when attempting to lock the volume. Error %1: %2").arg(GetLastError()).arg(errText), true);
 
        LocalFree(errormessage);
     }
@@ -291,7 +287,7 @@ bool StorageDeviceFlasher::removeLockOnVolume(HANDLE handle)
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred when attempting to unlock the volume.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred when attempting to unlock the volume.Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
     }
@@ -308,7 +304,7 @@ bool StorageDeviceFlasher::unmountVolume(HANDLE handle)
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred when attempting to dismount the volume.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred when attempting to dismount the volume. Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
     }
@@ -326,7 +322,7 @@ unsigned long long StorageDeviceFlasher::getNumberOfSectors(HANDLE handle, unsig
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred when attempting to get the device's geometry.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred when attempting to get the device's geometry.Error %1: %2").arg(GetLastError()).arg(errText));
 
         LocalFree(errormessage);
         return 0;
@@ -347,7 +343,7 @@ unsigned long long StorageDeviceFlasher::getFileSizeInSectors(HANDLE handle, uns
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred while getting the file size.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred while getting the file size.Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
         retVal = 0;
@@ -369,7 +365,7 @@ bool StorageDeviceFlasher::spaceAvailable(char *location, unsigned long long spa
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("Failed to get the free space on drive %s.\nError %lu: %s\n", location, GetLastError(), qPrintable(errText));
+        flasherLog(QString("Failed to get the free space on drive %1.Error %2: %3").arg(location).arg(GetLastError()).arg(errText), true);
         return true;
     }
     return (spaceneeded <= freespace.QuadPart);
@@ -387,7 +383,7 @@ char* StorageDeviceFlasher::readSectorDataFromHandle(HANDLE handle, unsigned lon
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred when attempting to read data from handle.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred when attempting to read data from handle.Error %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
         delete data;
@@ -413,7 +409,7 @@ bool StorageDeviceFlasher::writeSectorDataToHandle(HANDLE handle, char *data, un
         wchar_t *errormessage = NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
         QString errText = QString::fromUtf16((const ushort *)errormessage);
-        qWarning("An error occurred when attempting to write data to handle.\nError %lu: %s\n", GetLastError(), qPrintable(errText));
+        flasherLog(QString("An error occurred when attempting to write data to handle.\nError %1: %2").arg(GetLastError()).arg(errText), true);
 
         LocalFree(errormessage);
     }
@@ -455,7 +451,7 @@ bool StorageDeviceFlasher::getPhysicalDriveNumber(QString drivename, int *pid)
             wchar_t *errormessage = NULL;
             FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
             QString errText = QString::fromUtf16((const ushort *)errormessage);
-            qWarning()<<QObject::tr("An error occurred when attempting to get a handle.\n" "Error %1: %2").arg(GetLastError()).arg(errText);
+            flasherLog(QString("An error occurred when attempting to get a handle." "Error %1: %2").arg(GetLastError()).arg(errText), true);
             LocalFree(errormessage);
 
             return 0;
