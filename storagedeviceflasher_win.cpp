@@ -10,9 +10,8 @@ StorageDeviceFlasher::StorageDeviceFlasher(QObject *parent):
 
 }
 
-int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
-    int status;
-
+int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
+{
     bool passfail = true;
     QString fileName = params.inputFile;
     QString drive = params.outputFile;
@@ -30,7 +29,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
                 return 1;
             }
 
-            status = STATUS_WRITING;
+            st.flashingStatus = STATUS_WRITING;
 
             unsigned long long i, availablesectors, numsectors;
 
@@ -42,14 +41,14 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
             hVolume = getHandleOnVolume(volumeID, GENERIC_WRITE);
             if (hVolume == INVALID_HANDLE_VALUE)
             {
-                status = STATUS_IDLE;
+                st.flashingStatus = STATUS_IDLE;
                 return 1;
             }
 
             if (!getLockOnVolume(hVolume))
             {
                 CloseHandle(hVolume);
-                status = STATUS_IDLE;
+                st.flashingStatus = STATUS_IDLE;
                 hVolume = INVALID_HANDLE_VALUE;
                 return 1;
             }
@@ -57,7 +56,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
             {
                 removeLockOnVolume(hVolume);
                 CloseHandle(hVolume);
-                status = STATUS_IDLE;
+                st.flashingStatus = STATUS_IDLE;
                 hVolume = INVALID_HANDLE_VALUE;
                 return 1;
             }
@@ -71,7 +70,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
             {
                 removeLockOnVolume(hVolume);
                 CloseHandle(hVolume);
-                status = STATUS_IDLE;
+                st.flashingStatus = STATUS_IDLE;
                 hVolume = INVALID_HANDLE_VALUE;
                 return 1;
             }
@@ -84,7 +83,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
                 removeLockOnVolume(hVolume);
                 CloseHandle(hFile);
                 CloseHandle(hVolume);
-                status = STATUS_IDLE;
+                st.flashingStatus = STATUS_IDLE;
                 hVolume = INVALID_HANDLE_VALUE;
                 hFile = INVALID_HANDLE_VALUE;
                 return 1;
@@ -100,7 +99,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
                 CloseHandle(hRawDisk);
                 CloseHandle(hFile);
                 CloseHandle(hVolume);
-                status = STATUS_IDLE;
+                st.flashingStatus = STATUS_IDLE;
                 hVolume = INVALID_HANDLE_VALUE;
                 hFile = INVALID_HANDLE_VALUE;
                 hRawDisk = INVALID_HANDLE_VALUE;
@@ -114,7 +113,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
 
             qDebug() << "Flashing " << drive << " with " << fileName.mid(fileName.lastIndexOf('\\') + 1);
 
-            for (i = 0ul; i < numsectors && status == STATUS_WRITING; i += 1024ul)
+            for (i = 0ul; i < numsectors && st.flashingStatus == STATUS_WRITING; i += 1024ul)
             {
                 sectorData = readSectorDataFromHandle(hFile, i, (numsectors - i >= 1024ul) ? 1024ul:(numsectors - i), sectorsize);
                 if (sectorData == NULL)
@@ -124,7 +123,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
                     CloseHandle(hRawDisk);
                     CloseHandle(hFile);
                     CloseHandle(hVolume);
-                    status = STATUS_IDLE;
+                    st.flashingStatus = STATUS_IDLE;
                     sectorData = NULL;
                     hRawDisk = INVALID_HANDLE_VALUE;
                     hFile = INVALID_HANDLE_VALUE;
@@ -139,7 +138,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
                     CloseHandle(hRawDisk);
                     CloseHandle(hFile);
                     CloseHandle(hVolume);
-                    status = STATUS_IDLE;
+                    st.flashingStatus = STATUS_IDLE;
                     sectorData = NULL;
                     hRawDisk = INVALID_HANDLE_VALUE;
                     hFile = INVALID_HANDLE_VALUE;
@@ -168,7 +167,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
             hFile = INVALID_HANDLE_VALUE;
             hVolume = INVALID_HANDLE_VALUE;
 
-            if (status == STATUS_CANCELED){
+            if (st.flashingStatus == STATUS_CANCELED){
                 passfail = false;
             }
         }
@@ -193,7 +192,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params) {
         }
 
 
-    status = STATUS_IDLE;
+    st.flashingStatus = STATUS_IDLE;
     return 0;
 }
 

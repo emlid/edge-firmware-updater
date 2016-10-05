@@ -16,6 +16,7 @@ enum Status {
 typedef struct {
     uint32_t fileSize;
     uint32_t bytesSent;
+    Status flashingStatus;
 } STAT;
 
 struct FlashingParameters{
