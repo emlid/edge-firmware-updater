@@ -55,7 +55,7 @@ signals:
 public slots:
     void startFindBoardLoop() {emit _findBoard();}
     void updateProgress(uint32_t bytesSent, uint32_t fileSize) {emit updateProgressBar(bytesSent, fileSize);}
-    void flashingStoped();
+    void flashingStopped();
     void flashingStarted();
     void _addDevice(uint32_t vid, uint32_t pid, QString node);
     void _appendStatus(const QString& text, bool critical = 0) {emit logMessage(text, critical);}

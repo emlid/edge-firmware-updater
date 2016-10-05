@@ -40,7 +40,7 @@ void FirmwareUpgradeController::_addDevice(uint32_t vid, uint32_t pid, QString n
 
     connect(_connectedDevices.last(), &StorageDevice::updateProgress, this, &FirmwareUpgradeController::updateProgress);
     connect(_connectedDevices.last(), &StorageDevice::deviceMessage, this, &FirmwareUpgradeController::_appendStatus);
-    connect(_connectedDevices.last(), &StorageDevice::flashComplete, this, &FirmwareUpgradeController::flashingStoped);
+    connect(_connectedDevices.last(), &StorageDevice::flashComplete, this, &FirmwareUpgradeController::flashingStopped);
     connect(_connectedDevices.last(), &StorageDevice::flashingStarted, this, &FirmwareUpgradeController::flashingStarted);
 }
 
@@ -50,7 +50,7 @@ void FirmwareUpgradeController::_searchFinished()
     emit deviceSearchFinished();
 }
 
-void FirmwareUpgradeController::flashingStoped()
+void FirmwareUpgradeController::flashingStopped()
 {
     flashingInProgress = 0;
     emit changeControlButtonsState();
