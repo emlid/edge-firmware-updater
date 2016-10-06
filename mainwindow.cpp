@@ -111,6 +111,7 @@ void MainWindow::on_browseButton_clicked()
 
 void MainWindow::on_startButton_clicked()
 {
+    ui->lwDeviceList->setEnabled(false);
     ui->progressBar->setValue(0);
     ui->progressBar->setEnabled(true);
     QString fileName = ui->leFileName->text();
@@ -167,5 +168,8 @@ void MainWindow::on_logButton_clicked()
 void MainWindow::clearListAndBarFocus()
 {
     ui->progressBar->setEnabled(false);
-    ui->lwDeviceList->setCurrentRow(-1);
+
+    if (_upgradeController->flashingInProgress == 0) {
+        ui->lwDeviceList->setEnabled(true);
+    }
 }
