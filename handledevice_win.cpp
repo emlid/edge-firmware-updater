@@ -101,6 +101,7 @@ bool checkDriveType(wchar_t *name)
     PSTORAGE_DEVICE_DESCRIPTOR pDevDesc;
     bool retVal = false;
     int driveType;
+    DEVICE_NUMBER deviceInfo;
     DWORD cbBytesReturned;
     wchar_t *nameWithSlash;
     wchar_t *nameNoSlash;
@@ -136,7 +137,7 @@ bool checkDriveType(wchar_t *name)
             // check if the drive is
             // removable or (fixed AND on the usb bus, SD, or MMC (undefined in XP/mingw))
 
-            if(( ((driveType == DRIVE_REMOVABLE))
+            if(GetDisksProperty(hDevice, pDevDesc, &deviceInfo) && ( ((driveType == DRIVE_REMOVABLE))
                       || ( (driveType == DRIVE_FIXED) && ((pDevDesc->BusType == BusTypeUsb) || (pDevDesc->BusType == 0xC) || (pDevDesc->BusType == 0xD)) ) ) )
             {
                 // ensure that the drive is actually accessible
