@@ -33,6 +33,7 @@ void StorageDeviceThreadWorker::_flash(QString fileName)
 
     emit flashComplete();
     delete _flasher;
+    _flasher = 0;
 }
 
 void StorageDeviceThreadWorker::_cancel()
