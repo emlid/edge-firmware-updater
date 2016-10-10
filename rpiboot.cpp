@@ -7,6 +7,7 @@
 #include <QThread>
 #include <QtDebug>
 #include <iostream>
+#include <QDir>
 #include <flashing_parameters.h>
 
 using namespace std;
@@ -144,8 +145,17 @@ void rpiboot(void)
 	int last_serial = -1;
 	FILE *fp1, *fp2, *fp;
 
-    char def1_loc[] = "../edge-firmware-update-tool/usbboot_files/usbbootcode.bin";
-    char def2_loc[] = "../edge-firmware-update-tool/usbboot_files/msd.elf";
+    /*
+     * usbboot contains relative path to usbbootcode.bin and msd.elf.
+     * In case of usbboot_files folder is in program's working directory, usbboot's
+     * initial value is "./usbboot_files".
+     */
+    QDir usbboot("./usbboot_files");
+    QByteArray bootcodePath = QString(usbboot.absolutePath() + "/usbbootcode.bin").toLatin1();
+    QByteArray msdPath = QString(usbboot.absolutePath() + "/msd.elf").toLatin1();
+
+    char * def1_loc = bootcodePath.data();
+    char * def2_loc = msdPath.data();
 
 	char *def1, *def2;
 
