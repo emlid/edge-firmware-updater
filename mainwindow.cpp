@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
 
-    ui->lwDeviceList->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
     ui->teLog->setReadOnly(true);
     ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
     ui->teLog->setVisible(false);
@@ -120,13 +120,16 @@ void MainWindow::on_startButton_clicked()
         return;
     }
 
-    int selectedDeviceIndex = ui->lwDeviceList->currentRow();
-    _upgradeController->flash(selectedDeviceIndex, fileName);
+    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedIndexes()){
+        _upgradeController->flash(selectedItem.row(), fileName);
+    }
 }
 
 void MainWindow::on_cancelButton_clicked()
 {
-    _upgradeController->cancel(ui->lwDeviceList->currentRow());
+    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedIndexes()){
+         _upgradeController->cancel(selectedItem.row());
+    }
     clearListAndBarFocus();
 }
 

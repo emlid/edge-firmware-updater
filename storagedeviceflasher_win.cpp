@@ -206,7 +206,7 @@ void StorageDeviceFlasher::terminate(bool cancel) {
 HANDLE StorageDeviceFlasher::getHandleOnFile(LPCWSTR filelocation, DWORD access)
 {
     HANDLE hFile;
-    hFile = CreateFileW((wchar_t *)filelocation, access, 0, NULL, (access == GENERIC_READ) ? OPEN_EXISTING:CREATE_ALWAYS, 0, NULL);
+    hFile = CreateFileW((wchar_t *)filelocation, access, FILE_SHARE_READ, NULL, (access == GENERIC_READ) ? OPEN_EXISTING:CREATE_ALWAYS, 0, NULL);
     if (hFile == INVALID_HANDLE_VALUE)
     {
         wchar_t *errormessage=NULL;
