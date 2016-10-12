@@ -17,7 +17,7 @@ void DeviceSearcher::startFindBoardLoop()
         QThread rpibootThread;
         emit searcherMessage(QString("Found %1 bootable device%2").arg(bootable).arg(bootable > 1 ? "s":""));
         emit searcherMessage("Rpiboot started");
-        startRpiBoot(&rpibootThread);
+        startRpiBoot(&rpibootThread, bootable);
 
         startUdevMonitor(bootable);
         rpibootThread.quit();

@@ -15,6 +15,7 @@ using namespace std;
 int verbose = 0;
 int out_ep = 1;
 int in_ep = 2;
+int NumberOfDevices = 0;
 
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
 	libusb_context *ctx, uint16_t vendor_id)
@@ -127,12 +128,13 @@ int ep_read(unsigned char *buf, int len, libusb_device_handle * usb_device)
     return len;
 }
 
-void startRpiBoot(QThread *thread){
+void startRpiBoot(QThread *thread, int bootableDevces){
+    NumberOfDevices = bootableDevces;
+
     thread->setObjectName("rpiboot Thread");
     QObject::connect(thread, &QThread::started, rpiboot);
     thread->start();
 }
-
 
 void rpiboot(void)
 {
@@ -200,6 +202,7 @@ void rpiboot(void)
 	}
 
 	libusb_set_debug(ctx, verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
+    int filesTransferred = 0;
 
 	do
 	{
@@ -285,8 +288,9 @@ void rpiboot(void)
 		libusb_close(usb_device);
 		sleep(1);
         free(txbuf);
+        filesTransferred++;
 	}
-	while(fp == fp1);
+    while(filesTransferred < (NumberOfDevices * 2));
 
     libusb_exit(ctx);
     QThread::currentThread()->exit(0);
