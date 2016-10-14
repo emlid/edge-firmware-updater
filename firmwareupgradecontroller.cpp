@@ -36,9 +36,10 @@ void FirmwareUpgradeController::_addDevice(uint32_t vid, uint32_t pid, QString n
 {
     StorageDevice* dev = new StorageDevice(this);
     dev->setParams(vid, pid, node);
+    int currentDeviceIndex = _connectedDevices.count();
     _connectedDevices.append(dev);
 
-    connect(_connectedDevices.last(), &StorageDevice::updateProgress, this, &FirmwareUpgradeController::updateProgress);
+    connect(_connectedDevices.last(), &StorageDevice::updateProgress, [this, currentDeviceIndex](uint32_t curr, uint32_t total) { updateProgress(curr, total, currentDeviceIndex);});
     connect(_connectedDevices.last(), &StorageDevice::deviceMessage, this, &FirmwareUpgradeController::_appendStatus);
     connect(_connectedDevices.last(), &StorageDevice::flashComplete, this, &FirmwareUpgradeController::flashingStopped);
     connect(_connectedDevices.last(), &StorageDevice::flashingStarted, this, &FirmwareUpgradeController::flashingStarted);
@@ -73,9 +74,10 @@ void FirmwareUpgradeController::cancel(int selectedDeviceIndex)
     _connectedDevices[selectedDeviceIndex]->cancel();
 }
 
-void FirmwareUpgradeController::updateProgress(uint32_t bytesSent, uint32_t fileSize)
+void FirmwareUpgradeController::updateProgress(uint32_t bytesSent, uint32_t fileSize, int deviceIndex)
 {
-    emit updateProgressBar(bytesSent, fileSize);
+    int newProgressValue = 100 * (float)bytesSent / (float)fileSize;
+    emit updateProgressBar(newProgressValue, deviceIndex);
 }
 
 void FirmwareUpgradeController::clearDeviceList()

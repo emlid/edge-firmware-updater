@@ -67,6 +67,12 @@ void MainWindow::setupDeviceListWiget()
     ui->lwDeviceList->verticalHeader()->setDefaultSectionSize(18);
 }
 
+void MainWindow::updateProgressBar(int newValue, int progressBarIndex)
+{
+     QProgressBar * activeBar = (QProgressBar*)ui->lwDeviceList->cellWidget(progressBarIndex, 0);
+     activeBar->setValue(newValue);
+}
+
 void MainWindow::setCancelStartButtonState()
 {
     ui->startButton->setEnabled(false);

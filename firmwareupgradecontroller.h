@@ -47,14 +47,14 @@ signals:
     void deviceSearchFinished();
     void logMessage(const QString& text, bool critical = 0);
     void updateDeviceList();
-    void updateProgressBar(uint32_t bytesSent, uint32_t fileSize);
+    void updateProgressBar(int newValue, int progressBarIndex);
     void changeControlButtonsState();
     void changeListAndBarFocus();
     void _findBoard();
 
 public slots:
     void startFindBoardLoop() {emit _findBoard();}
-    void updateProgress(uint32_t bytesSent, uint32_t fileSize);
+    void updateProgress(uint32_t bytesSent, uint32_t fileSize, int deviceIndex);
     void flashingStopped();
     void flashingStarted();
     void _addDevice(uint32_t vid, uint32_t pid, QString node);

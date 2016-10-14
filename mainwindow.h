@@ -37,7 +37,7 @@ private slots:
     void setCancelStartButtonState();
     void setRefreshButtonState();
     void appendStatusLog(const QString& text, bool critical = 0);
-    void updateProgressBar(uint32_t curr, uint32_t total) {ui->progressBar->setValue(100 * (float)curr / (float)total);}
+    void updateProgressBar(int newValue, int progressBarIndex);
     void on_refreshButton_clicked();
     void on_browseButton_clicked();
     void on_startButton_clicked();
