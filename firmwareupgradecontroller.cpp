@@ -73,6 +73,11 @@ void FirmwareUpgradeController::cancel(int selectedDeviceIndex)
     _connectedDevices[selectedDeviceIndex]->cancel();
 }
 
+void FirmwareUpgradeController::updateProgress(uint32_t bytesSent, uint32_t fileSize)
+{
+    emit updateProgressBar(bytesSent, fileSize);
+}
+
 void FirmwareUpgradeController::clearDeviceList()
 {
     qDeleteAll(_connectedDevices.begin(), _connectedDevices.end());
