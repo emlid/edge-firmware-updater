@@ -33,6 +33,7 @@ private:
     bool flashingInProgress();
 
 private slots:
+    void setupDeviceListWiget();
     void setCancelStartButtonState();
     void setRefreshButtonState();
     void appendStatusLog(const QString& text, bool critical = 0);

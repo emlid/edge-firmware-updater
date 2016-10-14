@@ -24,7 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
 
-    ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
+    setupDeviceListWiget();
+
     ui->teLog->setReadOnly(true);
     ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
     ui->teLog->setVisible(false);
@@ -52,6 +53,20 @@ void MainWindow::show()
    emit windowShown();
 }
 
+void MainWindow::setupDeviceListWiget()
+{
+    ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui->lwDeviceList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->lwDeviceList->setColumnCount(2);
+    ui->lwDeviceList->horizontalHeader()->setVisible(false);
+    ui->lwDeviceList->verticalHeader()->setVisible(false);
+    ui->lwDeviceList->horizontalHeader()->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    ui->lwDeviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->lwDeviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->lwDeviceList->horizontalHeader()->setDefaultSectionSize(60);
+    ui->lwDeviceList->verticalHeader()->setDefaultSectionSize(18);
+}
+
 void MainWindow::setCancelStartButtonState()
 {
     ui->startButton->setEnabled(false);
@@ -73,7 +88,7 @@ bool MainWindow::fileSelected()
 
 bool MainWindow::deviceSelected()
 {
-    return !(ui->lwDeviceList->selectedItems().isEmpty());
+    return !(ui->lwDeviceList->selectionModel()->selectedRows().isEmpty());
 }
 
 bool MainWindow::flashingInProgress()
@@ -91,10 +106,11 @@ void MainWindow::on_lwDeviceList_itemSelectionChanged()
     setCancelStartButtonState();
 }
 
+
 void MainWindow::on_refreshButton_clicked()
 {
     ui->refreshButton->setEnabled(false);
-    ui->lwDeviceList->clear();
+    ui->lwDeviceList->setRowCount(0);
     _upgradeController->clearDeviceList();
 
     _upgradeController->startFindBoardLoop();
@@ -120,14 +136,14 @@ void MainWindow::on_startButton_clicked()
         return;
     }
 
-    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedIndexes()){
+    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
         _upgradeController->flash(selectedItem.row(), fileName);
     }
 }
 
 void MainWindow::on_cancelButton_clicked()
 {
-    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedIndexes()){
+    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
          _upgradeController->cancel(selectedItem.row());
     }
     clearListAndBarFocus();
@@ -145,15 +161,23 @@ void MainWindow::appendStatusLog(const QString &text, bool critical) {
 void MainWindow::updateList()
 {
     QList<StorageDevice*> availableDevices = _upgradeController->getDevices();
-
     QList<StorageDevice*>::iterator i;
 
     for (i = availableDevices.begin(); i != availableDevices.end(); i++) {
-        ui->lwDeviceList->addItem((*i)->getNode());
+        QProgressBar *bar = new QProgressBar();
+        bar->setStyleSheet("QProgressBar {text-align: center;}");
+
+        QString text = QString("%1 (%p%)").arg((*i)->getNode());
+        bar->setFormat(text);
+        bar->setTextVisible(true);
+        bar->setValue(0);
+
+        ui->lwDeviceList->insertRow(ui->lwDeviceList->rowCount());
+        ui->lwDeviceList->setCellWidget(ui->lwDeviceList->rowCount() - 1, 0, bar);
     }
 
-    if (ui->lwDeviceList->count() == 1) {
-        ui->lwDeviceList->setCurrentRow(0);
+    if (ui->lwDeviceList->rowCount() == 1) {
+        ui->lwDeviceList->selectRow(0);
     }
 }
 
