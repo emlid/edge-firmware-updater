@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
 
-    setupDeviceListWiget();
+    setupDeviceListWidget();
 
     ui->teLog->setReadOnly(true);
     ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
@@ -52,7 +52,7 @@ void MainWindow::show()
    emit windowShown();
 }
 
-void MainWindow::setupDeviceListWiget()
+void MainWindow::setupDeviceListWidget()
 {
     ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
     ui->lwDeviceList->setSelectionBehavior(QAbstractItemView::SelectRows);
