@@ -125,7 +125,7 @@ void MainWindow::on_refreshButton_clicked()
 void MainWindow::on_browseButton_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-          tr("Open Image"),QDir::homePath(), tr("Image Files (*.img);;All files (*.*)"));
+          "Open Image", QDir::homePath(), "Image Files (*.img);;All files (*.*)");
     if (!fileName.isEmpty()) {
         ui->leFileName->setText(fileName);
     }
