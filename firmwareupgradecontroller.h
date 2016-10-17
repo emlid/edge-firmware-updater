@@ -41,7 +41,7 @@ public:
     QList<StorageDevice*> getDevices() {return _connectedDevices;}
     void flash(int selectedDeviceIndex, QString fileName);
     void cancel(int selectedDeviceIndex);
-    bool flashingInProgress = 0;
+    bool flashingInProgress = false;
 
 signals:
     void deviceSearchFinished();

@@ -58,13 +58,13 @@ void FirmwareUpgradeController::_searchFinished()
 
 void FirmwareUpgradeController::flashingStopped()
 {
-    flashingInProgress = 0;
+    flashingInProgress = false;
     emit changeControlButtonsState();
 }
 
 void FirmwareUpgradeController::flashingStarted()
 {
-    flashingInProgress = 1;
+    flashingInProgress = true;
     emit changeControlButtonsState();
 }
 
