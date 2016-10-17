@@ -8,7 +8,12 @@ DeviceSearcher::DeviceSearcher(FirmwareUpgradeController *parent)
 
 FirmwareUpgradeController::FirmwareUpgradeController(QObject *parent) : QObject(parent)
 {
+    /*
+     * Call qRegisterMetaType() makes uint32_t available
+     * to the queued signal and slot connections
+     */
     qRegisterMetaType<uint32_t>("uint32_t");
+
     _searchWorker = new DeviceSearcher(this);
     Q_CHECK_PTR(_searchWorker);
 
