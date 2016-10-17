@@ -179,6 +179,12 @@ void MainWindow::updateList()
         bar->setValue(0);
 
         ui->lwDeviceList->insertRow(ui->lwDeviceList->rowCount());
+
+        /*
+         * Enumerating of non empty list starts from 0
+         * while rowCount starts from 1. Decrement of rowCount is needed
+         * to get index of last row in the list.
+         */
         ui->lwDeviceList->setCellWidget(ui->lwDeviceList->rowCount() - 1, 0, bar);
     }
 
