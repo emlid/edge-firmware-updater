@@ -27,6 +27,7 @@ private:
     Ui::MainWindow *ui;
     FirmwareUpgradeController* _upgradeController;
 
+    void connectGuiSignalsToSlots();
     void alignToCenter();
     void updateList();
     QProgressBar* createProgressBarForDevice(StorageDevice * device);
@@ -40,13 +41,13 @@ private slots:
     void setRefreshButtonState();
     void appendStatusLog(const QString& text, bool critical = 0);
     void updateProgressBar(int newValue, int progressBarIndex);
-    void on_refreshButton_clicked();
-    void on_browseButton_clicked();
-    void on_startButton_clicked();
-    void on_cancelButton_clicked();
-    void on_leFileName_textChanged();
-    void on_lwDeviceList_itemSelectionChanged();
-    void on_logButton_clicked();
+    void onRefreshButtonClicked();
+    void onBrowseButtonClicked();
+    void onStartButtonClicked();
+    void onCancelButtonClicked();
+    void onFileNameTextChanged();
+    void onDeviceListItemSelectionChanged();
+    void onLogButtonClicked();
 };
 
 #endif // MAINWINDOW_H

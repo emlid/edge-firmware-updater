@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    ui->setupUi(this);
+
     _upgradeController = new FirmwareUpgradeController(this);
     connect(this, &MainWindow::windowShown, _upgradeController, &FirmwareUpgradeController::startFindBoardLoop);
     connect(_upgradeController, &FirmwareUpgradeController::logMessage, this, &MainWindow::appendStatusLog);
@@ -18,7 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setRefreshButtonState);
     connect(_upgradeController, &FirmwareUpgradeController::deviceSearchFinished, this, &MainWindow::setRefreshButtonState);
 
-    ui->setupUi(this);
+    connectGuiSignalsToSlots();
+
     setCancelStartButtonState();
     this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
@@ -50,6 +53,17 @@ void MainWindow::show()
    QMainWindow::show();
    QApplication::processEvents();
    emit windowShown();
+}
+
+void MainWindow::connectGuiSignalsToSlots()
+{
+    connect(ui->refreshButton, &QPushButton::clicked, this, &MainWindow::onRefreshButtonClicked);
+    connect(ui->browseButton, &QPushButton::clicked, this, &MainWindow::onBrowseButtonClicked);
+    connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::onStartButtonClicked);
+    connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::onCancelButtonClicked);
+    connect(ui->logButton, &QPushButton::clicked, this, &MainWindow::onLogButtonClicked);
+    connect(ui->leFileName, &QLineEdit::textChanged, this, &MainWindow::onFileNameTextChanged);
+    connect(ui->lwDeviceList, &QTableWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
 }
 
 void MainWindow::setupDeviceListWidget()
@@ -101,18 +115,18 @@ bool MainWindow::flashingInProgress()
     return _upgradeController->flashingInProgress;
 }
 
-void MainWindow::on_leFileName_textChanged()
+void MainWindow::onFileNameTextChanged()
 {
     setCancelStartButtonState();
 }
 
-void MainWindow::on_lwDeviceList_itemSelectionChanged()
+void MainWindow::onDeviceListItemSelectionChanged()
 {
     setCancelStartButtonState();
 }
 
 
-void MainWindow::on_refreshButton_clicked()
+void MainWindow::onRefreshButtonClicked()
 {
     ui->refreshButton->setEnabled(false);
     ui->lwDeviceList->setRowCount(0);
@@ -121,7 +135,7 @@ void MainWindow::on_refreshButton_clicked()
     _upgradeController->startFindBoardLoop();
 }
 
-void MainWindow::on_browseButton_clicked()
+void MainWindow::onBrowseButtonClicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
           "Open Image", QDir::homePath(), "Image Files (*.img);;All files (*.*)");
@@ -130,7 +144,7 @@ void MainWindow::on_browseButton_clicked()
     }
 }
 
-void MainWindow::on_startButton_clicked()
+void MainWindow::onStartButtonClicked()
 {
     QString fileName = ui->leFileName->text();
     if (!QFileInfo(fileName).exists()) {
@@ -144,7 +158,7 @@ void MainWindow::on_startButton_clicked()
     }
 }
 
-void MainWindow::on_cancelButton_clicked()
+void MainWindow::onCancelButtonClicked()
 {
     foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
          _upgradeController->cancel(selectedItem.row());
@@ -198,7 +212,7 @@ QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
     return bar;
 }
 
-void MainWindow::on_logButton_clicked()
+void MainWindow::onLogButtonClicked()
 {
     bool LogVisible = ui->teLog->isVisible();
         ui->teLog->setVisible(!LogVisible);
