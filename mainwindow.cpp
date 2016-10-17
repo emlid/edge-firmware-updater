@@ -134,8 +134,6 @@ void MainWindow::on_browseButton_clicked()
 void MainWindow::on_startButton_clicked()
 {
     ui->lwDeviceList->setEnabled(false);
-    ui->progressBar->setValue(0);
-    ui->progressBar->setEnabled(true);
     QString fileName = ui->leFileName->text();
     if (!QFileInfo(fileName).exists()) {
         appendStatusLog(QString("File does not exist"), true);
@@ -214,7 +212,6 @@ void MainWindow::on_logButton_clicked()
 
 void MainWindow::clearListAndBarFocus()
 {
-    ui->progressBar->setEnabled(false);
 
     if (_upgradeController->flashingInProgress == 0) {
         ui->lwDeviceList->setEnabled(true);

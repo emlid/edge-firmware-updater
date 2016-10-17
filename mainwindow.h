@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "ui_mainwindow.h"
+#include <QProgressBar>
 #include <firmwareupgradecontroller.h>
 
 namespace Ui {
