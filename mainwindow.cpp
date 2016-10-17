@@ -170,13 +170,8 @@ void MainWindow::updateList()
     QList<StorageDevice*>::iterator i;
 
     for (i = availableDevices.begin(); i != availableDevices.end(); i++) {
-        QProgressBar *bar = new QProgressBar();
-        bar->setStyleSheet("QProgressBar {text-align: center;}");
 
-        QString text = QString("%1 (%p%)").arg((*i)->getNode());
-        bar->setFormat(text);
-        bar->setTextVisible(true);
-        bar->setValue(0);
+        QProgressBar *bar = createProgressBarForDevice(*i);
 
         ui->lwDeviceList->insertRow(ui->lwDeviceList->rowCount());
 
@@ -191,6 +186,19 @@ void MainWindow::updateList()
     if (ui->lwDeviceList->rowCount() == 1) {
         ui->lwDeviceList->selectRow(0);
     }
+}
+
+QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
+{
+    QProgressBar *bar = new QProgressBar();
+    bar->setStyleSheet("QProgressBar {text-align: center;} QProgressBar::chunk:disabled {background-color: gray;}");
+
+    QString text = QString("%1 (%p%)").arg(device->getNode());
+    bar->setFormat(text);
+    bar->setTextVisible(true);
+    bar->setValue(0);
+
+    return bar;
 }
 
 void MainWindow::on_logButton_clicked()

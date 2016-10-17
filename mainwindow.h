@@ -28,6 +28,7 @@ private:
 
     void alignToCenter();
     void updateList();
+    QProgressBar* createProgressBarForDevice(StorageDevice * device);
     bool fileSelected();
     bool deviceSelected();
     bool flashingInProgress();
