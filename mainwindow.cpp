@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setCancelStartButtonState);
     connect(_upgradeController, &FirmwareUpgradeController::changeControlButtonsState, this, &MainWindow::setRefreshButtonState);
     connect(_upgradeController, &FirmwareUpgradeController::deviceSearchFinished, this, &MainWindow::setRefreshButtonState);
-    connect(_upgradeController, &FirmwareUpgradeController::changeListAndBarFocus, this, &MainWindow::clearListAndBarFocus);
 
     ui->setupUi(this);
     setCancelStartButtonState();
@@ -133,7 +132,6 @@ void MainWindow::on_browseButton_clicked()
 
 void MainWindow::on_startButton_clicked()
 {
-    ui->lwDeviceList->setEnabled(false);
     QString fileName = ui->leFileName->text();
     if (!QFileInfo(fileName).exists()) {
         appendStatusLog(QString("File does not exist"), true);
@@ -142,6 +140,7 @@ void MainWindow::on_startButton_clicked()
 
     foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
         _upgradeController->flash(selectedItem.row(), fileName);
+        ui->lwDeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(true);
     }
 }
 
@@ -149,8 +148,8 @@ void MainWindow::on_cancelButton_clicked()
 {
     foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
          _upgradeController->cancel(selectedItem.row());
+         ui->lwDeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(false);
     }
-    clearListAndBarFocus();
 }
 
 void MainWindow::appendStatusLog(const QString &text, bool critical) {
@@ -210,10 +209,3 @@ void MainWindow::on_logButton_clicked()
         }
 }
 
-void MainWindow::clearListAndBarFocus()
-{
-
-    if (_upgradeController->flashingInProgress == 0) {
-        ui->lwDeviceList->setEnabled(true);
-    }
-}
