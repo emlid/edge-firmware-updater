@@ -31,22 +31,18 @@ HEADERS += \
 
 
 win32 {
-    SOURCES += dd_win.cpp \
-        devicesearcher_win.cpp \
+    SOURCES += devicesearcher_win.cpp \
         storagedeviceflasher_win.cpp \
         handledevice_win.cpp
-    HEADERS += dd_win.h \
-        storagedeviceflasher_win.h \
+    HEADERS += storagedeviceflasher_win.h \
         handledevice_win.h
 }
 
 unix {
-    SOURCES += dd.cpp \
-        devicesearcher.cpp \
+    SOURCES += devicesearcher.cpp \
         storagedeviceflasher.cpp \
         handledevice_linux.cpp
-    HEADERS += dd.h \
-        storagedeviceflasher.h \
+    HEADERS += storagedeviceflasher.h \
         handledevice_linux.h
 
     LIBS += -L/usr/lib/ -ludev
