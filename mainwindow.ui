@@ -41,7 +41,7 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLineEdit" name="leFileName">
+      <widget class="QLineEdit" name="FileName">
        <property name="statusTip">
         <string/>
        </property>
@@ -96,7 +96,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QTextEdit" name="teLog">
+   <widget class="QTextEdit" name="Log">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -109,7 +109,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QTableWidget" name="lwDeviceList">
+   <widget class="QTableWidget" name="DeviceList">
     <property name="geometry">
      <rect>
       <x>10</x>

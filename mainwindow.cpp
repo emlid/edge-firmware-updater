@@ -28,9 +28,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setupDeviceListWidget();
 
-    ui->teLog->setReadOnly(true);
-    ui->teLog->setTextInteractionFlags(ui->teLog->textInteractionFlags() | Qt::TextSelectableByKeyboard);
-    ui->teLog->setVisible(false);
+    ui->Log->setReadOnly(true);
+    ui->Log->setTextInteractionFlags(ui->Log->textInteractionFlags() | Qt::TextSelectableByKeyboard);
+    ui->Log->setVisible(false);
 
     ui->refreshButton->setEnabled(false);
 }
@@ -62,27 +62,27 @@ void MainWindow::connectGuiSignalsToSlots()
     connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::onStartButtonClicked);
     connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::onCancelButtonClicked);
     connect(ui->logButton, &QPushButton::clicked, this, &MainWindow::onLogButtonClicked);
-    connect(ui->leFileName, &QLineEdit::textChanged, this, &MainWindow::onFileNameTextChanged);
-    connect(ui->lwDeviceList, &QTableWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
+    connect(ui->FileName, &QLineEdit::textChanged, this, &MainWindow::onFileNameTextChanged);
+    connect(ui->DeviceList, &QTableWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
 }
 
 void MainWindow::setupDeviceListWidget()
 {
-    ui->lwDeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
-    ui->lwDeviceList->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->lwDeviceList->setColumnCount(2);
-    ui->lwDeviceList->horizontalHeader()->setVisible(false);
-    ui->lwDeviceList->verticalHeader()->setVisible(false);
-    ui->lwDeviceList->horizontalHeader()->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    ui->lwDeviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    ui->lwDeviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->lwDeviceList->horizontalHeader()->setDefaultSectionSize(60);
-    ui->lwDeviceList->verticalHeader()->setDefaultSectionSize(18);
+    ui->DeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui->DeviceList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->DeviceList->setColumnCount(2);
+    ui->DeviceList->horizontalHeader()->setVisible(false);
+    ui->DeviceList->verticalHeader()->setVisible(false);
+    ui->DeviceList->horizontalHeader()->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    ui->DeviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->DeviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->DeviceList->horizontalHeader()->setDefaultSectionSize(60);
+    ui->DeviceList->verticalHeader()->setDefaultSectionSize(18);
 }
 
 void MainWindow::updateProgressBar(int newValue, int progressBarIndex)
 {
-     QProgressBar * activeBar = (QProgressBar*)ui->lwDeviceList->cellWidget(progressBarIndex, 0);
+     QProgressBar * activeBar = (QProgressBar*)ui->DeviceList->cellWidget(progressBarIndex, 0);
      activeBar->setValue(newValue);
 }
 
@@ -102,12 +102,12 @@ void MainWindow::setRefreshButtonState()
 
 bool MainWindow::fileSelected()
 {
-    return !(ui->leFileName->text().isEmpty());
+    return !(ui->FileName->text().isEmpty());
 }
 
 bool MainWindow::deviceSelected()
 {
-    return !(ui->lwDeviceList->selectionModel()->selectedRows().isEmpty());
+    return !(ui->DeviceList->selectionModel()->selectedRows().isEmpty());
 }
 
 bool MainWindow::flashingInProgress()
@@ -129,7 +129,7 @@ void MainWindow::onDeviceListItemSelectionChanged()
 void MainWindow::onRefreshButtonClicked()
 {
     ui->refreshButton->setEnabled(false);
-    ui->lwDeviceList->setRowCount(0);
+    ui->DeviceList->setRowCount(0);
     _upgradeController->clearDeviceList();
 
     _upgradeController->startFindBoardLoop();
@@ -140,38 +140,38 @@ void MainWindow::onBrowseButtonClicked()
     QString fileName = QFileDialog::getOpenFileName(this,
           "Open Image", QDir::homePath(), "Image Files (*.img);;All files (*.*)");
     if (!fileName.isEmpty()) {
-        ui->leFileName->setText(fileName);
+        ui->FileName->setText(fileName);
     }
 }
 
 void MainWindow::onStartButtonClicked()
 {
-    QString fileName = ui->leFileName->text();
+    QString fileName = ui->FileName->text();
     if (!QFileInfo(fileName).exists()) {
         appendStatusLog(QString("File does not exist"), true);
         return;
     }
 
-    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
+    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedRows()){
         _upgradeController->flash(selectedItem.row(), fileName);
-        ui->lwDeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(true);
+        ui->DeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(true);
     }
 }
 
 void MainWindow::onCancelButtonClicked()
 {
-    foreach (QModelIndex selectedItem, ui->lwDeviceList->selectionModel()->selectedRows()){
+    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedRows()){
          _upgradeController->cancel(selectedItem.row());
-         ui->lwDeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(false);
+         ui->DeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(false);
     }
 }
 
 void MainWindow::appendStatusLog(const QString &text, bool critical) {
 
     if (critical) {
-            ui->teLog->append(QString("<font color=\"red\">%1</font>").arg(text));
+            ui->Log->append(QString("<font color=\"red\">%1</font>").arg(text));
         } else {
-            ui->teLog->append(text);
+            ui->Log->append(text);
         }
 }
 
@@ -184,18 +184,18 @@ void MainWindow::updateList()
 
         QProgressBar *bar = createProgressBarForDevice(*i);
 
-        ui->lwDeviceList->insertRow(ui->lwDeviceList->rowCount());
+        ui->DeviceList->insertRow(ui->DeviceList->rowCount());
 
         /*
          * Enumerating of non empty list starts from 0
          * while rowCount starts from 1. Decrement of rowCount is needed
          * to get index of last row in the list.
          */
-        ui->lwDeviceList->setCellWidget(ui->lwDeviceList->rowCount() - 1, 0, bar);
+        ui->DeviceList->setCellWidget(ui->DeviceList->rowCount() - 1, 0, bar);
     }
 
-    if (ui->lwDeviceList->rowCount() == 1) {
-        ui->lwDeviceList->selectRow(0);
+    if (ui->DeviceList->rowCount() == 1) {
+        ui->DeviceList->selectRow(0);
     }
 }
 
@@ -214,12 +214,12 @@ QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
 
 void MainWindow::onLogButtonClicked()
 {
-    bool LogVisible = ui->teLog->isVisible();
-        ui->teLog->setVisible(!LogVisible);
+    bool LogVisible = ui->Log->isVisible();
+        ui->Log->setVisible(!LogVisible);
         if (!LogVisible) {
-            this->setFixedSize(this->geometry().width(),this->geometry().height() + ui->teLog->height() + 10);
+            this->setFixedSize(this->geometry().width(),this->geometry().height() + ui->Log->height() + 10);
         } else {
-            this->setFixedSize(this->geometry().width(),this->geometry().height() - ui->teLog->height() - 10);
+            this->setFixedSize(this->geometry().width(),this->geometry().height() - ui->Log->height() - 10);
         }
 }
 
