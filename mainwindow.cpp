@@ -193,9 +193,7 @@ void MainWindow::updateList()
         ui->DeviceList->setCellWidget(ui->DeviceList->rowCount() - 1, 0, bar);
     }
 
-    if (ui->DeviceList->rowCount() == 1) {
-        ui->DeviceList->selectRow(0);
-    }
+    selectFirstDeviceIfNothingElseConnected();
 }
 
 QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
@@ -209,6 +207,13 @@ QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
     bar->setValue(0);
 
     return bar;
+}
+
+void MainWindow::selectFirstDeviceIfNothingElseConnected()
+{
+    if (ui->DeviceList->rowCount() == 1) {
+        ui->DeviceList->selectRow(0);
+    }
 }
 
 void MainWindow::onLogButtonClicked()
