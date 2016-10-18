@@ -178,11 +178,10 @@ void MainWindow::appendStatusLog(const QString &text, bool critical) {
 void MainWindow::updateList()
 {
     QList<StorageDevice*> availableDevices = _upgradeController->getDevices();
-    QList<StorageDevice*>::iterator i;
 
-    for (i = availableDevices.begin(); i != availableDevices.end(); i++) {
+    foreach (StorageDevice *storageDevice, availableDevices) {
 
-        QProgressBar *bar = createProgressBarForDevice(*i);
+        QProgressBar *bar = createProgressBarForDevice(storageDevice);
 
         ui->DeviceList->insertRow(ui->DeviceList->rowCount());
 
