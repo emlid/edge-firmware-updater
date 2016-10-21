@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     rpiboot.cpp \
     mainwindow.cpp \
     firmwareupgradecontroller.cpp \
-    storagedevice.cpp
+    storagedevice.cpp \
+    flashcontroller.cpp
 
 
 HEADERS += \
@@ -26,7 +27,8 @@ HEADERS += \
     flashing_parameters.h \
     mainwindow.h \
     firmwareupgradecontroller.h \
-    storagedevice.h
+    storagedevice.h \
+    flashcontroller.h
 
 
 
