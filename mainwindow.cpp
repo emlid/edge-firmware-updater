@@ -186,19 +186,6 @@ void MainWindow::updateList()
     selectFirstDeviceIfNothingElseConnected();
 }
 
-QProgressBar* MainWindow::createProgressBarForDevice(StorageDevice * device)
-{
-    QProgressBar *bar = new QProgressBar();
-    bar->setStyleSheet("QProgressBar {text-align: center;} QProgressBar::chunk:disabled {background-color: gray;}");
-
-    QString text = QString("%1 (%p%)").arg(device->getNode());
-    bar->setFormat(text);
-    bar->setTextVisible(true);
-    bar->setValue(0);
-
-    return bar;
-}
-
 void MainWindow::selectFirstDeviceIfNothingElseConnected()
 {
     if (ui->DeviceList->count() == 1) {

@@ -30,7 +30,6 @@ private:
     void connectGuiSignalsToSlots();
     void alignToCenter();
     void updateList();
-    QProgressBar* createProgressBarForDevice(StorageDevice * device);
     void selectFirstDeviceIfNothingElseConnected();
     bool fileSelected();
     bool deviceSelected();
