@@ -4,6 +4,8 @@
 #include <QDesktopWidget>
 #include <QFileDialog>
 #include <QDir>
+#include <QDebug>
+#include "flashcontroller.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -26,7 +28,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
 
-    setupDeviceListWidget();
+    ui->DeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui->DeviceList->setSpacing(1);
 
     ui->Log->setReadOnly(true);
     ui->Log->setTextInteractionFlags(ui->Log->textInteractionFlags() | Qt::TextSelectableByKeyboard);
@@ -63,27 +66,14 @@ void MainWindow::connectGuiSignalsToSlots()
     connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::onCancelButtonClicked);
     connect(ui->logButton, &QPushButton::clicked, this, &MainWindow::onLogButtonClicked);
     connect(ui->FileName, &QLineEdit::textChanged, this, &MainWindow::onFileNameTextChanged);
-    connect(ui->DeviceList, &QTableWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
-}
-
-void MainWindow::setupDeviceListWidget()
-{
-    ui->DeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
-    ui->DeviceList->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->DeviceList->setColumnCount(2);
-    ui->DeviceList->horizontalHeader()->setVisible(false);
-    ui->DeviceList->verticalHeader()->setVisible(false);
-    ui->DeviceList->horizontalHeader()->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    ui->DeviceList->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    ui->DeviceList->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->DeviceList->horizontalHeader()->setDefaultSectionSize(60);
-    ui->DeviceList->verticalHeader()->setDefaultSectionSize(18);
+    connect(ui->DeviceList, &QListWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
 }
 
 void MainWindow::updateProgressBar(int newValue, int progressBarIndex)
 {
-     QProgressBar * activeBar = (QProgressBar*)ui->DeviceList->cellWidget(progressBarIndex, 0);
-     activeBar->setValue(newValue);
+    QListWidgetItem *activeItem = ui->DeviceList->item(progressBarIndex);
+    FlashController *activeBar = (FlashController*)ui->DeviceList->itemWidget(activeItem);
+    activeBar->setBarValue(newValue);
 }
 
 void MainWindow::setCancelStartButtonState()
@@ -107,7 +97,7 @@ bool MainWindow::fileSelected()
 
 bool MainWindow::deviceSelected()
 {
-    return !(ui->DeviceList->selectionModel()->selectedRows().isEmpty());
+    return !(ui->DeviceList->selectedItems().isEmpty());
 }
 
 bool MainWindow::flashingInProgress()
@@ -129,7 +119,7 @@ void MainWindow::onDeviceListItemSelectionChanged()
 void MainWindow::onRefreshButtonClicked()
 {
     ui->refreshButton->setEnabled(false);
-    ui->DeviceList->setRowCount(0);
+    ui->DeviceList->clear();
     _upgradeController->clearDeviceList();
 
     _upgradeController->startFindBoardLoop();
@@ -152,17 +142,21 @@ void MainWindow::onStartButtonClicked()
         return;
     }
 
-    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedRows()){
+    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedIndexes()){
         _upgradeController->flash(selectedItem.row(), fileName);
-        ui->DeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(true);
+
+        FlashController *selected = (FlashController *)ui->DeviceList->indexWidget(selectedItem);
+        selected->setBarEnabled(true);
     }
 }
 
 void MainWindow::onCancelButtonClicked()
 {
-    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedRows()){
+    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedIndexes()){
          _upgradeController->cancel(selectedItem.row());
-         ui->DeviceList->cellWidget(selectedItem.row() ,0)->setEnabled(false);
+
+         FlashController *selected = (FlashController *)ui->DeviceList->indexWidget(selectedItem);
+         selected->setBarEnabled(false);
     }
 }
 
@@ -181,22 +175,18 @@ void MainWindow::updateList()
 
     foreach (StorageDevice *storageDevice, availableDevices) {
 
-        QProgressBar *bar = createProgressBarForDevice(storageDevice);
+        FlashController *controllerForSingleDevice = new FlashController(storageDevice);
+        controllerForSingleDevice->setBarText(storageDevice->getNode());
+        QListWidgetItem *item = new QListWidgetItem();
 
-        ui->DeviceList->insertRow(ui->DeviceList->rowCount());
-
-        /*
-         * Enumerating of non empty list starts from 0
-         * while rowCount starts from 1. Decrement of rowCount is needed
-         * to get index of last row in the list.
-         */
-        ui->DeviceList->setCellWidget(ui->DeviceList->rowCount() - 1, 0, bar);
+        ui->DeviceList->addItem(item);
+        ui->DeviceList->setItemWidget(item, controllerForSingleDevice);
     }
 
     selectFirstDeviceIfNothingElseConnected();
 }
 
-QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
+QProgressBar* MainWindow::createProgressBarForDevice(StorageDevice * device)
 {
     QProgressBar *bar = new QProgressBar();
     bar->setStyleSheet("QProgressBar {text-align: center;} QProgressBar::chunk:disabled {background-color: gray;}");
@@ -211,8 +201,8 @@ QProgressBar*  MainWindow::createProgressBarForDevice(StorageDevice * device)
 
 void MainWindow::selectFirstDeviceIfNothingElseConnected()
 {
-    if (ui->DeviceList->rowCount() == 1) {
-        ui->DeviceList->selectRow(0);
+    if (ui->DeviceList->count() == 1) {
+        ui->DeviceList->setCurrentRow(0);
     }
 }
 

@@ -109,7 +109,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QTableWidget" name="DeviceList">
+   <widget class="QListWidget" name="DeviceList">
     <property name="geometry">
      <rect>
       <x>10</x>

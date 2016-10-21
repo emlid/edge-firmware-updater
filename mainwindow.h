@@ -37,7 +37,6 @@ private:
     bool flashingInProgress();
 
 private slots:
-    void setupDeviceListWidget();
     void setCancelStartButtonState();
     void setRefreshButtonState();
     void appendStatusLog(const QString& text, bool critical = 0);
