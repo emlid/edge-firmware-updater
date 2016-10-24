@@ -20,6 +20,7 @@ public:
     void setBarEnabled(bool state) {bar->setEnabled(state);}
     void setupStyleSheets();
     void mapImageFileName(QString fileName);
+    void setButtonEnabled(bool arg);
 
 signals:
 

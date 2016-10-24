@@ -117,6 +117,12 @@ void MainWindow::mapFileNameForEachDevice(QString fileName)
         QListWidgetItem *currentItem = ui->DeviceList->item(i);
         FlashController *currentController = (FlashController*)ui->DeviceList->itemWidget(currentItem);
         currentController->mapImageFileName(fileName);
+
+        if (!fileName.isEmpty()) {
+            currentController->setButtonEnabled(true);
+        } else {
+            currentController->setButtonEnabled(false);
+        }
     }
 }
 

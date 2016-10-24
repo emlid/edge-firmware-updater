@@ -8,6 +8,7 @@ FlashController::FlashController(StorageDevice *device) : deviceForFlash(device)
 
     bar->setValue(0);
     button->setText("start");
+    button->setEnabled(false);
 
     setupStyleSheets();
 
@@ -60,4 +61,9 @@ void FlashController::onFlasingStarted()
 void FlashController::mapImageFileName(QString fileName)
 {
     mapperForImageName->setMapping(button, fileName);
+}
+
+void FlashController::setButtonEnabled(bool arg)
+{
+    button->setEnabled(arg);
 }
