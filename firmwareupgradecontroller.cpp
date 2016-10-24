@@ -58,13 +58,11 @@ void FirmwareUpgradeController::_searchFinished()
 
 void FirmwareUpgradeController::flashingStopped()
 {
-    flashingInProgress = false;
     emit changeControlButtonsState();
 }
 
 void FirmwareUpgradeController::flashingStarted()
 {
-    flashingInProgress = true;
     emit changeControlButtonsState();
 }
 
@@ -88,4 +86,13 @@ void FirmwareUpgradeController::clearDeviceList()
 {
     qDeleteAll(_connectedDevices.begin(), _connectedDevices.end());
     _connectedDevices.clear();
+}
+
+bool FirmwareUpgradeController::flashingInProgress()
+{
+    bool retVal = false;
+    foreach (StorageDevice *device, _connectedDevices){
+        retVal |= device->inUse;
+    }
+    return retVal;
 }

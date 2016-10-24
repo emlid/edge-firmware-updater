@@ -102,7 +102,7 @@ bool MainWindow::deviceSelected()
 
 bool MainWindow::flashingInProgress()
 {
-    return _upgradeController->flashingInProgress;
+    return _upgradeController->flashingInProgress();
 }
 
 void MainWindow::onFileNameTextChanged()
