@@ -108,6 +108,16 @@ bool MainWindow::flashingInProgress()
 void MainWindow::onFileNameTextChanged()
 {
     setCancelStartButtonState();
+    mapFileNameForEachDevice(ui->FileName->text());
+}
+
+void MainWindow::mapFileNameForEachDevice(QString fileName)
+{
+    for(int i = 0; i < ui->DeviceList->count(); i++) {
+        QListWidgetItem *currentItem = ui->DeviceList->item(i);
+        FlashController *currentController = (FlashController*)ui->DeviceList->itemWidget(currentItem);
+        currentController->mapImageFileName(fileName);
+    }
 }
 
 void MainWindow::onDeviceListItemSelectionChanged()
@@ -176,6 +186,8 @@ void MainWindow::updateList()
     foreach (StorageDevice *storageDevice, availableDevices) {
 
         FlashController *controllerForSingleDevice = new FlashController(storageDevice);
+        controllerForSingleDevice->mapImageFileName(ui->FileName->text());
+
         controllerForSingleDevice->setBarText(storageDevice->getNode());
         QListWidgetItem *item = new QListWidgetItem();
 

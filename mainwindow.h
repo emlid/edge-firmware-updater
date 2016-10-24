@@ -31,6 +31,7 @@ private:
     void alignToCenter();
     void updateList();
     void selectFirstDeviceIfNothingElseConnected();
+    void mapFileNameForEachDevice(QString fileName);
     bool fileSelected();
     bool deviceSelected();
     bool flashingInProgress();
