@@ -52,9 +52,7 @@ public:
 
     StorageDevice &operator=(const StorageDevice &other);
 
-    static int deviceCount;
-
-    void setParams(uint32_t v, uint32_t p, QString d) {_vid=v, _pid=p; _deviceNode=d;}
+    void setParams(uint32_t v, uint32_t p, QString d) {_vid = v, _pid = p; _deviceNode = d;}
     QString getNode() { return _deviceNode;}
 
 signals:

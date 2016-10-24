@@ -1,8 +1,6 @@
 #include "storagedevice.h"
 #include <QDebug>
 
-int StorageDevice::deviceCount = 0;
-
 StorageDeviceThreadWorker::StorageDeviceThreadWorker(StorageDevice* device):
     _deviceToFlash(device)
 {
@@ -48,7 +46,6 @@ void StorageDeviceThreadWorker::_cancel()
 
 StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 {
-    deviceCount++;
     _worker = new StorageDeviceThreadWorker(this);
     Q_CHECK_PTR(_worker);
 
