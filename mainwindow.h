@@ -35,6 +35,8 @@ private:
     bool fileSelected();
     bool deviceSelected();
     bool flashingInProgress();
+    bool inactiveDeviceSelected();
+    bool activeDeviceSelected();
 
 private slots:
     void setCancelStartButtonState();

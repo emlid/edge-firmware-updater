@@ -81,8 +81,8 @@ void MainWindow::setCancelStartButtonState()
     ui->startButton->setEnabled(false);
     ui->cancelButton->setEnabled(false);
 
-    ui->startButton->setEnabled(deviceSelected() && fileSelected() && !flashingInProgress());
-    ui->cancelButton->setEnabled(flashingInProgress() && deviceSelected());
+    ui->startButton->setEnabled(inactiveDeviceSelected() && fileSelected());
+    ui->cancelButton->setEnabled(activeDeviceSelected());
 }
 
 void MainWindow::setRefreshButtonState()
@@ -95,14 +95,31 @@ bool MainWindow::fileSelected()
     return !(ui->FileName->text().isEmpty());
 }
 
-bool MainWindow::deviceSelected()
-{
-    return !(ui->DeviceList->selectedItems().isEmpty());
-}
-
 bool MainWindow::flashingInProgress()
 {
     return _upgradeController->flashingInProgress();
+}
+
+bool MainWindow::inactiveDeviceSelected()
+{
+    QList<StorageDevice*> connectedDevices = _upgradeController->getDevices();
+    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedIndexes()){
+        if (!connectedDevices.at(selectedItem.row())->inUse) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MainWindow::activeDeviceSelected()
+{
+    QList<StorageDevice*> connectedDevices = _upgradeController->getDevices();
+    foreach (QModelIndex selectedItem, ui->DeviceList->selectionModel()->selectedIndexes()){
+        if (connectedDevices.at(selectedItem.row())->inUse) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void MainWindow::onFileNameTextChanged()
