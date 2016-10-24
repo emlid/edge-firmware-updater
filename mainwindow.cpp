@@ -82,7 +82,7 @@ void MainWindow::setCancelStartButtonState()
     ui->cancelButton->setEnabled(false);
 
     ui->startButton->setEnabled(deviceSelected() && fileSelected() && !flashingInProgress());
-    ui->cancelButton->setEnabled(flashingInProgress());
+    ui->cancelButton->setEnabled(flashingInProgress() && deviceSelected());
 }
 
 void MainWindow::setRefreshButtonState()
