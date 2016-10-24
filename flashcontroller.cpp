@@ -7,7 +7,7 @@ FlashController::FlashController(StorageDevice *device) : deviceForFlash(device)
     button = new QPushButton(this);
 
     bar->setValue(0);
-    button->setText("cancel");
+    button->setText("start");
 
     setupStyleSheets();
 
