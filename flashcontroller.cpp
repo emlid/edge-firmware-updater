@@ -1,6 +1,6 @@
 #include "flashcontroller.h"
 
-FlashController::FlashController(StorageDevice *device)
+FlashController::FlashController(StorageDevice *device) : deviceForFlash(device)
 {
 
     bar = new QProgressBar(this);

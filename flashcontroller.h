@@ -26,6 +26,8 @@ public slots:
 private:
     QProgressBar *bar;
     QPushButton *button;
+
+    StorageDevice *deviceForFlash;
 };
 
 #endif // FLASHCONTROLLER_H
