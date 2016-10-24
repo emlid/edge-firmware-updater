@@ -68,7 +68,9 @@ void FirmwareUpgradeController::flashingStarted()
 
 void FirmwareUpgradeController::flash(int selectedDeviceIndex, QString fileName)
 {
-     _connectedDevices[selectedDeviceIndex]->flash(fileName);
+    if (!_connectedDevices[selectedDeviceIndex]->inUse){
+        _connectedDevices[selectedDeviceIndex]->flash(fileName);
+    }
 }
 
 void FirmwareUpgradeController::cancel(int selectedDeviceIndex)
