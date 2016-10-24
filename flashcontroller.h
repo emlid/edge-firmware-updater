@@ -5,6 +5,7 @@
 #include <QProgressBar>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QSignalMapper>
 #include <storagedevice.h>
 
 class FlashController : public QWidget
@@ -18,16 +19,20 @@ public:
     void setBarValue(int value) {bar->setValue(value);}
     void setBarEnabled(bool state) {bar->setEnabled(state);}
     void setupStyleSheets();
+    void mapImageFileName(QString fileName);
 
 signals:
 
 public slots:
+    void onFlasingStopped();
+    void onFlasingStarted();
 
 private:
     QProgressBar *bar;
     QPushButton *button;
 
     StorageDevice *deviceForFlash;
+    QSignalMapper *mapperForImageName;
 };
 
 #endif // FLASHCONTROLLER_H
