@@ -54,6 +54,7 @@ public:
 
     void setParams(uint32_t v, uint32_t p, QString d) {_vid = v, _pid = p; _deviceNode = d;}
     QString getNode() { return _deviceNode;}
+    bool inUse;
 
 signals:
     void flashingStarted();
@@ -67,8 +68,8 @@ public slots:
     void flash(QString fileName) {emit _flashOnThread(fileName);}
     void deviceLog(const QString& text, bool critical = 0) {emit deviceMessage(text, critical);}
     void cancel() {emit _cancel();}
-    void _flashingStarted() {emit flashingStarted();}
-    void _flashComplete() {emit flashComplete();}
+    void _flashingStarted();
+    void _flashComplete();
     void _updateProgress(uint32_t curr, uint32_t total) {emit updateProgress(curr, total);}
 
 private:

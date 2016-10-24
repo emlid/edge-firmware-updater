@@ -46,6 +46,8 @@ void StorageDeviceThreadWorker::_cancel()
 
 StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 {
+    inUse = false;
+
     _worker = new StorageDeviceThreadWorker(this);
     Q_CHECK_PTR(_worker);
 
@@ -83,4 +85,16 @@ StorageDevice& StorageDevice::operator=(const StorageDevice& other){
         this->_workerThread = other._workerThread;
     }
     return *this;
+}
+
+void StorageDevice::_flashingStarted()
+{
+    inUse = true;
+    emit flashingStarted();
+}
+
+void  StorageDevice::_flashComplete()
+{
+    inUse = false;
+    emit flashComplete();
 }
