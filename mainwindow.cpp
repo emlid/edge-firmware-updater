@@ -192,7 +192,10 @@ void MainWindow::updateList()
     foreach (StorageDevice *storageDevice, availableDevices) {
 
         FlashController *controllerForSingleDevice = new FlashController(storageDevice);
-        controllerForSingleDevice->mapImageFileName(ui->FileName->text());
+        if (!ui->FileName->text().isEmpty()){
+            controllerForSingleDevice->mapImageFileName(ui->FileName->text());
+            controllerForSingleDevice->setButtonEnabled(true);
+        }
 
         controllerForSingleDevice->setBarText(storageDevice->getNode());
         QListWidgetItem *item = new QListWidgetItem();
