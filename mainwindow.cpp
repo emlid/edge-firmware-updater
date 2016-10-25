@@ -233,6 +233,9 @@ void MainWindow::updateList()
 
         ui->DeviceList->addItem(item);
         ui->DeviceList->setItemWidget(item, controllerForSingleDevice);
+
+        connect(controllerForSingleDevice, &FlashController::boxStateChanged, [item](bool state){item->setSelected(state);});
+
     }
 
     selectFirstDeviceIfNothingElseConnected();

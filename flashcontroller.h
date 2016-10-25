@@ -25,10 +25,12 @@ public:
     void setBoxChecked(bool arg);
 
 signals:
+    void boxStateChanged(bool state);
 
 public slots:
     void onFlasingStopped();
     void onFlasingStarted();
+    void convertBoxStateToBool(int state);
 
 private:
     QProgressBar *bar;

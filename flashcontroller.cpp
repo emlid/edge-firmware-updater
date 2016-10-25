@@ -20,6 +20,7 @@ FlashController::FlashController(StorageDevice *device) : deviceForFlash(device)
     connect(deviceForFlash, &StorageDevice::flashingStarted, this, FlashController::onFlasingStarted);
     connect(deviceForFlash, &StorageDevice::flashComplete, this, FlashController::onFlasingStopped);
 
+    connect(box, &QCheckBox::stateChanged, this, &FlashController::convertBoxStateToBool);
 
     QHBoxLayout * layout = new QHBoxLayout(this);
     layout->setMargin(0);
@@ -59,6 +60,14 @@ void FlashController::onFlasingStarted()
     connect(button, &QPushButton::clicked, deviceForFlash, &StorageDevice::cancel);
 }
 
+void FlashController::convertBoxStateToBool(int state)
+{
+    if (state > 0) {
+        emit boxStateChanged(true);
+    } else {
+        emit boxStateChanged(false);
+    }
+}
 
 void FlashController::mapImageFileName(QString fileName)
 {
