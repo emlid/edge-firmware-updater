@@ -37,6 +37,7 @@ private:
     bool flashingInProgress();
     bool inactiveDeviceSelected();
     bool activeDeviceSelected();
+    void updateCheckBoxes();
 
 private slots:
     void setCancelStartButtonState();

@@ -146,8 +146,22 @@ void MainWindow::mapFileNameForEachDevice(QString fileName)
 void MainWindow::onDeviceListItemSelectionChanged()
 {
     setCancelStartButtonState();
+    updateCheckBoxes();
 }
 
+void MainWindow::updateCheckBoxes()
+{
+    for(int i = 0; i < ui->DeviceList->count(); i++) {
+        QListWidgetItem *item = ui->DeviceList->item(i);
+        FlashController *widget = (FlashController*)ui->DeviceList->itemWidget(item);
+
+        if (item->isSelected()){
+            widget->setBoxChecked(true);
+        } else {
+            widget->setBoxChecked(false);
+        }
+    }
+}
 
 void MainWindow::onRefreshButtonClicked()
 {
