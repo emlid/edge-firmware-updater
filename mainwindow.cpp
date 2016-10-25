@@ -223,7 +223,24 @@ void MainWindow::updateList()
 
     enableSelectAllForDeviceList(availableDevices);
 
-    foreach (StorageDevice *storageDevice, availableDevices) {
+    createWidgetForEachDevice(availableDevices);
+
+    selectFirstDeviceIfNothingElseConnected();
+}
+
+void MainWindow::enableSelectAllForDeviceList(QList<StorageDevice*> deviceList)
+{
+    if (deviceList.isEmpty()) {
+        ui->selectAllDevices->setEnabled(false);
+    } else {
+        ui->selectAllDevices->setChecked(false);
+        ui->selectAllDevices->setEnabled(true);
+    }
+}
+
+void MainWindow::createWidgetForEachDevice(QList<StorageDevice*> deviceList)
+{
+    foreach (StorageDevice *storageDevice, deviceList) {
 
         FlashController *controllerForSingleDevice = new FlashController(storageDevice);
         if (!ui->FileName->text().isEmpty()){
@@ -238,18 +255,6 @@ void MainWindow::updateList()
         ui->DeviceList->setItemWidget(item, controllerForSingleDevice);
 
         connect(controllerForSingleDevice, &FlashController::boxStateChanged, [item](bool state){item->setSelected(state);});
-    }
-
-    selectFirstDeviceIfNothingElseConnected();
-}
-
-void MainWindow::enableSelectAllForDeviceList(QList<StorageDevice*> deviceList)
-{
-    if (deviceList.isEmpty()) {
-        ui->selectAllDevices->setEnabled(false);
-    } else {
-        ui->selectAllDevices->setChecked(false);
-        ui->selectAllDevices->setEnabled(true);
     }
 }
 

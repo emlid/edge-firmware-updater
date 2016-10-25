@@ -31,6 +31,7 @@ private:
     void alignToCenter();
     void updateList();
     void enableSelectAllForDeviceList(QList<StorageDevice*> deviceList);
+    void createWidgetForEachDevice(QList<StorageDevice*> deviceList);
     void selectFirstDeviceIfNothingElseConnected();
     void mapFileNameForEachDevice(QString fileName);
     bool fileSelected();
