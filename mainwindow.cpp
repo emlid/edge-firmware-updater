@@ -221,6 +221,8 @@ void MainWindow::updateList()
 {
     QList<StorageDevice*> availableDevices = _upgradeController->getDevices();
 
+    enableSelectAllForDeviceList(availableDevices);
+
     foreach (StorageDevice *storageDevice, availableDevices) {
 
         FlashController *controllerForSingleDevice = new FlashController(storageDevice);
@@ -239,6 +241,16 @@ void MainWindow::updateList()
     }
 
     selectFirstDeviceIfNothingElseConnected();
+}
+
+void MainWindow::enableSelectAllForDeviceList(QList<StorageDevice*> deviceList)
+{
+    if (deviceList.isEmpty()) {
+        ui->selectAllDevices->setEnabled(false);
+    } else {
+        ui->selectAllDevices->setChecked(false);
+        ui->selectAllDevices->setEnabled(true);
+    }
 }
 
 void MainWindow::selectFirstDeviceIfNothingElseConnected()
