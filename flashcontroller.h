@@ -5,6 +5,7 @@
 #include <QProgressBar>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QSignalMapper>
 #include <storagedevice.h>
 
@@ -31,6 +32,7 @@ public slots:
 private:
     QProgressBar *bar;
     QPushButton *button;
+    QCheckBox *box;
 
     StorageDevice *deviceForFlash;
     QSignalMapper *mapperForImageName;

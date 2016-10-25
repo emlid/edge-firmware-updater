@@ -5,6 +5,7 @@ FlashController::FlashController(StorageDevice *device) : deviceForFlash(device)
 
     bar = new QProgressBar(this);
     button = new QPushButton(this);
+    box = new QCheckBox(this);
 
     bar->setValue(0);
     button->setText("start");
@@ -22,8 +23,9 @@ FlashController::FlashController(StorageDevice *device) : deviceForFlash(device)
 
     QHBoxLayout * layout = new QHBoxLayout(this);
     layout->setMargin(0);
-    layout->setSpacing(1);
+    layout->setSpacing(3);
 
+    layout->addWidget(box);
     layout->addWidget(bar);
     layout->addWidget(button);
 
