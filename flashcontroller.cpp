@@ -69,3 +69,8 @@ void FlashController::setButtonEnabled(bool arg)
 {
     button->setEnabled(arg);
 }
+
+void FlashController::setBoxChecked(bool arg)
+{
+    box->setChecked(arg);
+}

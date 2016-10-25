@@ -22,6 +22,7 @@ public:
     void setupStyleSheets();
     void mapImageFileName(QString fileName);
     void setButtonEnabled(bool arg);
+    void setBoxChecked(bool arg);
 
 signals:
 
