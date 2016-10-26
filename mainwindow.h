@@ -51,6 +51,7 @@ private slots:
     void onFileNameTextChanged();
     void onDeviceListItemSelectionChanged();
     void onLogButtonClicked();
+    void onCheckBoxStateChanged(int state);
 };
 
 #endif // MAINWINDOW_H

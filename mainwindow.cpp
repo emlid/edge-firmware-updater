@@ -67,6 +67,7 @@ void MainWindow::connectGuiSignalsToSlots()
     connect(ui->logButton, &QPushButton::clicked, this, &MainWindow::onLogButtonClicked);
     connect(ui->FileName, &QLineEdit::textChanged, this, &MainWindow::onFileNameTextChanged);
     connect(ui->DeviceList, &QListWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
+    connect(ui->selectAllDevices ,&QCheckBox::stateChanged, this, &MainWindow::onCheckBoxStateChanged);
 }
 
 void MainWindow::updateProgressBar(int newValue, int progressBarIndex)
@@ -235,7 +236,6 @@ void MainWindow::updateList()
         ui->DeviceList->setItemWidget(item, controllerForSingleDevice);
 
         connect(controllerForSingleDevice, &FlashController::boxStateChanged, [item](bool state){item->setSelected(state);});
-
     }
 
     selectFirstDeviceIfNothingElseConnected();
@@ -259,3 +259,11 @@ void MainWindow::onLogButtonClicked()
         }
 }
 
+void MainWindow::onCheckBoxStateChanged(int state)
+{
+    if (state > 0) {
+        ui->DeviceList->selectAll();
+    } else {
+        ui->DeviceList->clearSelection();
+    }
+}

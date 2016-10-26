@@ -172,7 +172,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>33</x>
       <y>80</y>
       <width>101</width>
       <height>16</height>
@@ -180,6 +180,22 @@
     </property>
     <property name="text">
      <string>Connected Devices:</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="selectAllDevices">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>81</y>
+      <width>16</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>
