@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>371</width>
-    <height>283</height>
+    <height>304</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -199,6 +199,40 @@
     </property>
    </widget>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>371</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="advanced">
+    <property name="toolTip">
+     <string>for flashing raw devices on WIndows</string>
+    </property>
+    <property name="toolTipDuration">
+     <number>-1</number>
+    </property>
+    <property name="title">
+     <string>Advanced</string>
+    </property>
+    <addaction name="recoveryMode"/>
+   </widget>
+   <addaction name="advanced"/>
+  </widget>
+  <action name="recoveryMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Recovery Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>Flashing raw devices on Windows</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="9"/>
  <resources/>

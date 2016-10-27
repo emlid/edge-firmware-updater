@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setFixedSize(this->geometry().width(),this->geometry().height());
     this->alignToCenter();
 
+    _upgradeController->recoveryModeEnabled = false;
+
     ui->DeviceList->setSelectionMode(QAbstractItemView::MultiSelection);
     ui->DeviceList->setSpacing(1);
 
@@ -68,6 +70,7 @@ void MainWindow::connectGuiSignalsToSlots()
     connect(ui->FileName, &QLineEdit::textChanged, this, &MainWindow::onFileNameTextChanged);
     connect(ui->DeviceList, &QListWidget::itemSelectionChanged, this, &MainWindow::onDeviceListItemSelectionChanged);
     connect(ui->selectAllDevices ,&QCheckBox::stateChanged, this, &MainWindow::onCheckBoxStateChanged);
+    connect(ui->recoveryMode, &QAction::toggled, this, &MainWindow::onRecoveryModeToggled);
 }
 
 void MainWindow::updateProgressBar(int newValue, int progressBarIndex)
@@ -283,4 +286,18 @@ void MainWindow::onCheckBoxStateChanged(int state)
     } else {
         ui->DeviceList->clearSelection();
     }
+}
+void MainWindow::onRecoveryModeToggled(bool enabled)
+{
+    if (enabled){
+        _upgradeController->recoveryModeEnabled = true;
+    } else {
+        _upgradeController->recoveryModeEnabled = false;
+    }
+
+    ui->refreshButton->setEnabled(false);
+    ui->DeviceList->clear();
+    _upgradeController->clearDeviceList();
+
+    _upgradeController->startFindBoardLoop();
 }

@@ -54,6 +54,7 @@ private slots:
     void onDeviceListItemSelectionChanged();
     void onLogButtonClicked();
     void onCheckBoxStateChanged(int state);
+    void onRecoveryModeToggled(bool enabled);
 };
 
 #endif // MAINWINDOW_H
