@@ -38,6 +38,8 @@ win32 {
         handledevice_win.cpp
     HEADERS += storagedeviceflasher_win.h \
         handledevice_win.h
+
+    LIBS += -lsetupAPI
 }
 
 unix {

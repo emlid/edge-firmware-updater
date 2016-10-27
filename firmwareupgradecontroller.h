@@ -25,8 +25,13 @@ signals:
 public slots:
     void startFindBoardLoop();
     int findBootableDevices();
-    void startUdevMonitor(int count);
     void enumerateDevices();
+
+#ifdef Q_OS_LINUX
+    void startUdevMonitor(int count);
+#elif  defined Q_OS_WIN
+    int enumerateRawDevices();
+#endif
 };
 
 
