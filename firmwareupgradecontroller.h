@@ -42,6 +42,7 @@ public:
     void flash(int selectedDeviceIndex, QString fileName);
     void cancel(int selectedDeviceIndex);
     bool flashingInProgress();
+    bool recoveryModeEnabled;
 
 signals:
     void deviceSearchFinished();
