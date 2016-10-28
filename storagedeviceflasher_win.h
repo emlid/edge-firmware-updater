@@ -60,6 +60,7 @@ private:
     bool writeSectorDataToHandle(HANDLE handle, char *data, unsigned long long startsector, unsigned long long numsectors, unsigned long long sectorsize);
     void current_summary(unsigned long long numsectors, int i, int *lastValue);
     bool getPhysicalDriveNumber(QString drivename, int *pid);
+    void freeVolumeHandle(HANDLE hVolume);
 
     STAT st;
     unsigned long long sectorsize;

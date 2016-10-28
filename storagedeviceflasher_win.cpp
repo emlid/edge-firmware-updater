@@ -37,7 +37,7 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
             int deviceID;
             getPhysicalDriveNumber(drive, &deviceID);
 
-            HANDLE hVolume;
+            HANDLE hVolume = INVALID_HANDLE_VALUE;
             hVolume = getHandleOnVolume(volumeID, GENERIC_WRITE);
             if (hVolume == INVALID_HANDLE_VALUE)
             {
@@ -54,10 +54,8 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
             }
             if (!unmountVolume(hVolume))
             {
-                removeLockOnVolume(hVolume);
-                CloseHandle(hVolume);
+                freeVolumeHandle(hVolume);
                 st.flashingStatus = STATUS_IDLE;
-                hVolume = INVALID_HANDLE_VALUE;
                 return 1;
             }
 
@@ -68,10 +66,8 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
 
             if (hFile == INVALID_HANDLE_VALUE)
             {
-                removeLockOnVolume(hVolume);
-                CloseHandle(hVolume);
+                freeVolumeHandle(hVolume);;
                 st.flashingStatus = STATUS_IDLE;
-                hVolume = INVALID_HANDLE_VALUE;
                 return 1;
             }
 
@@ -80,11 +76,9 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
 
             if (hRawDisk == INVALID_HANDLE_VALUE)
             {
-                removeLockOnVolume(hVolume);
+                freeVolumeHandle(hVolume);
                 CloseHandle(hFile);
-                CloseHandle(hVolume);
                 st.flashingStatus = STATUS_IDLE;
-                hVolume = INVALID_HANDLE_VALUE;
                 hFile = INVALID_HANDLE_VALUE;
                 return 1;
             }
@@ -94,13 +88,10 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
             if (numsectors > availablesectors)
             {
                 flasherLog(QString("Not enough space on disk: Size: %1 sectors  Available: %2 sectors  Sector size: %3").arg(numsectors).arg(availablesectors).arg(sectorsize), true);
-
-                removeLockOnVolume(hVolume);
+                freeVolumeHandle(hVolume);
                 CloseHandle(hRawDisk);
                 CloseHandle(hFile);
-                CloseHandle(hVolume);
                 st.flashingStatus = STATUS_IDLE;
-                hVolume = INVALID_HANDLE_VALUE;
                 hFile = INVALID_HANDLE_VALUE;
                 hRawDisk = INVALID_HANDLE_VALUE;
                 return 1;
@@ -119,30 +110,26 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
                 if (sectorData == NULL)
                 {
                     delete sectorData;
-                    removeLockOnVolume(hVolume);
+                    freeVolumeHandle(hVolume);
                     CloseHandle(hRawDisk);
                     CloseHandle(hFile);
-                    CloseHandle(hVolume);
                     st.flashingStatus = STATUS_IDLE;
                     sectorData = NULL;
                     hRawDisk = INVALID_HANDLE_VALUE;
                     hFile = INVALID_HANDLE_VALUE;
-                    hVolume = INVALID_HANDLE_VALUE;
 
                     return 1;
                 }
                 if (!writeSectorDataToHandle(hRawDisk, sectorData, i, (numsectors - i >= 1024ul) ? 1024ul:(numsectors - i), sectorsize))
                 {
                     delete sectorData;
-                    removeLockOnVolume(hVolume);
+                    freeVolumeHandle(hVolume);
                     CloseHandle(hRawDisk);
                     CloseHandle(hFile);
-                    CloseHandle(hVolume);
                     st.flashingStatus = STATUS_IDLE;
                     sectorData = NULL;
                     hRawDisk = INVALID_HANDLE_VALUE;
                     hFile = INVALID_HANDLE_VALUE;
-                    hVolume = INVALID_HANDLE_VALUE;
 
                     return 1;
                 }
@@ -154,14 +141,12 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
 
             flasherLog(QString("%1 bytes (%2 MB) transferred in %3 s (%4  MB/s)").arg(st.bytesSent).arg(st.bytesSent / 1000000).arg(timer.elapsed()/1000).arg((double)(st.bytesSent / 1000000) / (timer.elapsed() / 1000)));
 
-            removeLockOnVolume(hVolume);
+            freeVolumeHandle(hVolume);
             CloseHandle(hRawDisk);
             CloseHandle(hFile);
-            CloseHandle(hVolume);
             sectorData = NULL;
             hRawDisk = INVALID_HANDLE_VALUE;
             hFile = INVALID_HANDLE_VALUE;
-            hVolume = INVALID_HANDLE_VALUE;
 
             if (st.flashingStatus == STATUS_CANCELED){
                 passfail = false;
@@ -476,4 +461,13 @@ bool StorageDeviceFlasher::getPhysicalDriveNumber(QString drivename, int *pid)
     free(nameNoSlash);
 
     return 1;
+}
+
+void StorageDeviceFlasher::freeVolumeHandle(HANDLE hVolume)
+{
+    if (hVolume != INVALID_HANDLE_VALUE){
+        removeLockOnVolume(hVolume);
+        CloseHandle(hVolume);
+        hVolume = INVALID_HANDLE_VALUE;
+    }
 }
