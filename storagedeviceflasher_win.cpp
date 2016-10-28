@@ -33,30 +33,40 @@ int StorageDeviceFlasher::flashDevice(struct FlashingParameters params)
 
             unsigned long long i, availablesectors, numsectors;
 
-            int volumeID = drive.at(0).toLatin1() - 'A';
             int deviceID;
-            getPhysicalDriveNumber(drive, &deviceID);
-
             HANDLE hVolume = INVALID_HANDLE_VALUE;
-            hVolume = getHandleOnVolume(volumeID, GENERIC_WRITE);
-            if (hVolume == INVALID_HANDLE_VALUE)
-            {
-                st.flashingStatus = STATUS_IDLE;
-                return 1;
-            }
 
-            if (!getLockOnVolume(hVolume))
-            {
-                CloseHandle(hVolume);
-                st.flashingStatus = STATUS_IDLE;
-                hVolume = INVALID_HANDLE_VALUE;
-                return 1;
-            }
-            if (!unmountVolume(hVolume))
-            {
-                freeVolumeHandle(hVolume);
-                st.flashingStatus = STATUS_IDLE;
-                return 1;
+            QRegExp rx("\\\\\\\\[\?]\\\\PhysicalDrive[0-9]{1,3}");
+            bool recoveryModeEnabled = rx.exactMatch(drive);
+
+            if (!recoveryModeEnabled){
+                int volumeID = drive.at(0).toLatin1() - 'A';
+                getPhysicalDriveNumber(drive, &deviceID);
+
+                HANDLE hVolume = INVALID_HANDLE_VALUE;
+                hVolume = getHandleOnVolume(volumeID, GENERIC_WRITE);
+                if (hVolume == INVALID_HANDLE_VALUE)
+                {
+                    st.flashingStatus = STATUS_IDLE;
+                    return 1;
+                }
+
+                if (!getLockOnVolume(hVolume))
+                {
+                    CloseHandle(hVolume);
+                    st.flashingStatus = STATUS_IDLE;
+                    hVolume = INVALID_HANDLE_VALUE;
+                    return 1;
+                }
+                if (!unmountVolume(hVolume))
+                {
+                    freeVolumeHandle(hVolume);
+                    st.flashingStatus = STATUS_IDLE;
+                    return 1;
+                }
+            } else {
+                QString physicalDriveId = drive.section("PhysicalDrive", -1);
+                deviceID = physicalDriveId.toInt(&recoveryModeEnabled, 10);
             }
 
             const wchar_t * encodedName = reinterpret_cast<const wchar_t *>(fileName.utf16());
