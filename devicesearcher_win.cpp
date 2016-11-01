@@ -135,6 +135,7 @@ int DeviceSearcher::enumerateRawDevices()
     ZeroMemory( &deviceInterfaceData, sizeof( SP_DEVICE_INTERFACE_DATA ) );
     deviceInterfaceData.cbSize = sizeof( SP_DEVICE_INTERFACE_DATA );
     deviceIndex = 0;
+    int removableDisks = 0;
 
     while (SetupDiEnumDeviceInterfaces( diskClassDevices, NULL, &diskClassDeviceInterfaceGuid, deviceIndex, &deviceInterfaceData)) {
 
@@ -183,7 +184,12 @@ int DeviceSearcher::enumerateRawDevices()
         CloseHandle(disk);
         disk = INVALID_HANDLE_VALUE;
 
-        emit foundDevice(0, 0, QString("\\\\?\\PhysicalDrive%1").arg(diskNumber.DeviceNumber));
+        QString volumes = mapDeviceWithRemovableVolumes(diskNumber.DeviceNumber);
+
+        if (!volumes.isEmpty()){
+            emit foundDevice(0, 0, QString("\\\\?\\PhysicalDrive%1 [%2] ").arg(diskNumber.DeviceNumber).arg(volumes));
+            removableDisks++;
+        }
 
         free(deviceInterfaceDetailData);
     }
@@ -196,11 +202,73 @@ int DeviceSearcher::enumerateRawDevices()
         CloseHandle(disk);
     }
 
-    if (deviceIndex == 0) {
-        emit searcherMessage("No physical drives found", true);
+    if (removableDisks == 0) {
+        emit searcherMessage("No removable physical drives found", true);
     } else {
-        emit searcherMessage(QString("Found %1 physical drive%2").arg(deviceIndex).arg(deviceIndex > 1 ? "s":""));
+        emit searcherMessage(QString("Found %1 removable physical drive%2").arg(removableDisks).arg(removableDisks > 1 ? "s":""));
     }
 
     return 0;
+}
+
+QString DeviceSearcher::mapDeviceWithRemovableVolumes(uint deviceNumber)
+{
+    unsigned long driveMask = GetLogicalDrives();
+    int i = 0;
+    QString volumesOnRemovableDevice = "";
+
+    while (driveMask != 0)
+    {
+        if (driveMask & 1)
+        {
+            char drivename = 'A';
+            drivename += i;
+            uint pid = 0;
+
+            QString expandName = QString("\\\\.\\%1:").arg(drivename);
+            wchar_t name[expandName.size()];
+            expandName.toWCharArray(name);
+
+            HANDLE hDevice;
+            PSTORAGE_DEVICE_DESCRIPTOR pDevDesc;
+            DEVICE_NUMBER deviceInfo;
+
+            hDevice = CreateFile(name, FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+            if (hDevice == INVALID_HANDLE_VALUE)
+            {
+                wchar_t *errormessage = NULL;
+                FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+                QString errText = QString::fromUtf16((const ushort *)errormessage);
+                searcherMessage(QString("An error occurred when attempting to get a handle." "Error %1: %2").arg(GetLastError()).arg(errText), true);
+                LocalFree(errormessage);
+
+                return "";
+            } else {
+                int arrSz = sizeof(STORAGE_DEVICE_DESCRIPTOR) + 512 - 1;
+                pDevDesc = (PSTORAGE_DEVICE_DESCRIPTOR)new BYTE[arrSz];
+                pDevDesc->Size = arrSz;
+
+                GetDisksProperty(hDevice, pDevDesc, &deviceInfo);
+                pid = deviceInfo.DeviceNumber;
+
+                delete pDevDesc;
+                CloseHandle(hDevice);
+            }
+
+            if (pid == deviceNumber) {
+                if (checkDriveType(name))
+                {
+                    if (volumesOnRemovableDevice.isEmpty()) {
+                        volumesOnRemovableDevice.append(QString("%1:\\").arg(drivename));
+                    } else {
+                        volumesOnRemovableDevice.append(QString(", %1:\\").arg(drivename));
+                    }
+                }
+            }
+        }
+        driveMask >>= 1;
+        ++i;
+    }
+
+    return volumesOnRemovableDevice;
 }

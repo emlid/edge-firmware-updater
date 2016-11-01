@@ -31,6 +31,7 @@ public slots:
     void startUdevMonitor(int count);
 #elif  defined Q_OS_WIN
     int enumerateRawDevices();
+    QString mapDeviceWithRemovableVolumes(uint deviceNumber);
 #endif
 };
 
