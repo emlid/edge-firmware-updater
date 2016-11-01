@@ -85,7 +85,9 @@ bool slashify(wchar_t *str, wchar_t **slash, wchar_t **noSlash)
                  ((*noSlash = (wchar_t *)calloc( (strLen + 1), sizeof(wchar_t))) != NULL) )
             {
                 wcsncpy(*noSlash, str, strLen);
-                wprintf(*slash, "%s\\", *noSlash);
+                wcsncpy(*slash, *noSlash, strLen);
+                wcscat(*slash, L"\\");
+
                 retVal = true;
             }
         }
