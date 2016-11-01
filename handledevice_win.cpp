@@ -114,7 +114,7 @@ bool checkDriveType(wchar_t *name)
         return(retVal);
     }
 
-    driveType = GetDriveType(name);
+    driveType = GetDriveType(nameWithSlash);
     switch( driveType )
     {
     case DRIVE_REMOVABLE: // The media can be removed from the drive.
