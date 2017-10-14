@@ -20,7 +20,7 @@ public:
 
     int pid(void) const override;
 
-    ulong recommendedBlockSize(void) const override;
+    long recommendedBlockSize(void) const override;
 
     ExecutionStatus open(int* const filedesc) override;
 
@@ -49,7 +49,7 @@ private:
     int _pid;
     int _driveNumber;
     HANDLE _handle;
-    ulong _blockSize;
+    long _blockSize;
     QVector<QString> _mountpoints;
     QMap<QString, HANDLE> _unmountedMountpoints;
     QString _devicePath;

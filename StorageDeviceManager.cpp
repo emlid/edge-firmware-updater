@@ -6,9 +6,8 @@
 
 
 StorageDeviceManager::StorageDeviceManager(QObject* parent)
-    : QObject(parent) {
-
-}
+    : QObject(parent)
+{ }
 
 
 std::unique_ptr<StorageDeviceManager> StorageDeviceManager::instance()

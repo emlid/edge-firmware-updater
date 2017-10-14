@@ -15,7 +15,7 @@ public:
     virtual int vid(void) const = 0;
     virtual int pid(void) const = 0;
     virtual QString diskPath(void) const = 0;
-    virtual ulong recommendedBlockSize(void) const = 0;
+    virtual long recommendedBlockSize(void) const = 0;
 
     virtual ExecutionStatus open(int* const filedesc) = 0;
     virtual ExecutionStatus close(void) = 0;
