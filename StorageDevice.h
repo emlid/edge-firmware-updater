@@ -10,15 +10,18 @@ class StorageDevice : public QObject
 {
     Q_OBJECT
 public:
+    virtual ~StorageDevice(void) {}
 
-    virtual int vid(void) = 0;
-    virtual int pid(void) = 0;
-    virtual QString diskPath(void) = 0;
-    virtual ulong recommendedBlockSize(void) = 0;
+    virtual int vid(void) const = 0;
+    virtual int pid(void) const = 0;
+    virtual QString diskPath(void) const = 0;
+    virtual ulong recommendedBlockSize(void) const = 0;
 
     virtual ExitStatus open(int* const filedesc) = 0;
-    virtual QString toString(void) = 0;
-    virtual QVector<QString> mountpoints(void) = 0;
+    virtual ExitStatus close(void) = 0;
+
+    virtual QString toString(void) const = 0;
+    virtual QVector<QString> mountpoints(void) const = 0;
 
     virtual ExitStatus unmountAllMountpoints(void) = 0;
     virtual ExitStatus unmount(QString const& mountpoint) = 0;

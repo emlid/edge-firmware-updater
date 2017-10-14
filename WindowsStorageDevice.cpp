@@ -10,7 +10,10 @@ WindowsStorageDevice::WindowsStorageDevice()
       _pid(-1),
       _blockSize(-1),
       _driveNumber(-1),
-      _devicePath("")
+      _devicePath(""),
+      _mountpoints(),
+      _unmountedMountpoints(),
+      _handle(INVALID_HANDLE_VALUE)
 { }
 
 
@@ -22,41 +25,51 @@ WindowsStorageDevice::WindowsStorageDevice(int vid, int pid, int blockSize,
       _blockSize(blockSize),
       _driveNumber(driveNumber),
       _devicePath(devicePath),
-      _mountpoints(mountpoints)
+      _mountpoints(mountpoints),
+      _unmountedMountpoints(),
+      _handle(INVALID_HANDLE_VALUE)
 { }
 
 
-int WindowsStorageDevice::vid(void)
+WindowsStorageDevice::~WindowsStorageDevice(void)
+{
+    qDebug() << "Windows storage device released";
+    close();
+    remountAllMountpoints();
+}
+
+
+int WindowsStorageDevice::vid(void) const
 {
     return _vid;
 }
 
 
-int WindowsStorageDevice::pid(void)
+int WindowsStorageDevice::pid(void) const
 {
     return _pid;
 }
 
 
-ulong WindowsStorageDevice::recommendedBlockSize(void)
+ulong WindowsStorageDevice::recommendedBlockSize(void) const
 {
     return _blockSize;
 }
 
 
-QString WindowsStorageDevice::diskPath(void)
+QString WindowsStorageDevice::diskPath(void) const
 {
     return QString("\\\\.\\PhysicalDrive%1").arg(_driveNumber);
 }
 
 
-QString WindowsStorageDevice::devicePath(void)
+QString WindowsStorageDevice::devicePath(void) const
 {
     return _devicePath;
 }
 
 
-QVector<QString> WindowsStorageDevice::mountpoints()
+QVector<QString> WindowsStorageDevice::mountpoints() const
 {
     return _mountpoints;
 }
@@ -64,14 +77,24 @@ QVector<QString> WindowsStorageDevice::mountpoints()
 
 ExitStatus WindowsStorageDevice::open(int* const filedesc)
 {
-    auto handle = ::CreateFile(diskPath().toStdWString().data(), GENERIC_WRITE,
+    _handle = ::CreateFile(diskPath().toStdWString().data(), GENERIC_WRITE,
                                FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 
-    if (handle == INVALID_HANDLE_VALUE) {
+    if (_handle == INVALID_HANDLE_VALUE) {
         return ExitStatus(::GetLastError(), _devicePath + ": open for writing failed.");
     }
 
-    *filedesc = _open_osfhandle((LONG)handle, _O_RAW | _O_WRONLY);
+    *filedesc = _open_osfhandle((LONG)_handle, _O_RAW | _O_WRONLY);
+
+    return ExitStatus::SUCCESS;
+}
+
+
+ExitStatus WindowsStorageDevice::close(void)
+{
+    if (!::CloseHandle(_handle)) {
+        return ExitStatus(::GetLastError());
+    }
 
     return ExitStatus::SUCCESS;
 }
@@ -119,13 +142,37 @@ ExitStatus WindowsStorageDevice::unmount(QString const& mountpoint)
     }
 
     _mountpoints.removeOne(mountpoint);
-    //::CloseHandle(hMountpoint);
+    _unmountedMountpoints.insert(mountpoint, hMountpoint);
 
     return ExitStatus::SUCCESS;
 }
 
 
-QString WindowsStorageDevice::toString()
+ExitStatus WindowsStorageDevice::remount(QString const& mountpoint)
+{
+    auto handle = _unmountedMountpoints.value(mountpoint);
+    if (::CloseHandle(handle)) {
+        _unmountedMountpoints.remove(mountpoint);
+        return ExitStatus::SUCCESS;
+    }
+    return ExitStatus(::GetLastError());
+}
+
+
+ExitStatus WindowsStorageDevice::remountAllMountpoints(void)
+{
+    for (QString mntpt : _unmountedMountpoints.keys()) {
+        auto result = remount(mntpt);
+        if (result.failed()) {
+            return result;
+        }
+    }
+
+    return ExitStatus::SUCCESS;
+}
+
+
+QString WindowsStorageDevice::toString() const
 {
     QString info("");
 
