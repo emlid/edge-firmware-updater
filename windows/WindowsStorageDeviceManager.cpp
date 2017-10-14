@@ -110,7 +110,7 @@ ExecutionStatus WindowsStorageDeviceManager::
 
     driveNumbers->reserve(diskExtents.NumberOfDiskExtents);
 
-    for (int i = 0; i < diskExtents.NumberOfDiskExtents; i++) {
+    for (auto i = 0u; i < diskExtents.NumberOfDiskExtents; i++) {
        driveNumbers->push_back(diskExtents.Extents[i].DiskNumber);
     }
 
@@ -205,6 +205,8 @@ ExecutionStatus WindowsStorageDeviceManager::
         return ExecutionStatus(::GetLastError(), "Getting device info set failed.", true);
     }
 
+    QVector<char> buffer;
+
     for (int i = 0; ::SetupDiEnumDeviceInterfaces(deviceInfoSet, NULL, &guid, i, /*out*/&deviceIntData); i++) {
         PSP_DEVICE_INTERFACE_DETAIL_DATA detailData;
         int detailDataSize = 0;
@@ -218,8 +220,11 @@ ExecutionStatus WindowsStorageDeviceManager::
             continue;
         }
 
-        //TODO: fix it
-        detailData = PSP_DEVICE_INTERFACE_DETAIL_DATA(new char[detailDataSize]);
+        if (buffer.capacity() < detailDataSize) {
+            buffer.reserve(detailDataSize);
+        }
+
+        detailData = reinterpret_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA>(buffer.data());
         ::ZeroMemory(detailData, detailDataSize);
         detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
