@@ -5,6 +5,7 @@
 
 #include "WindowsStorageDevice.h"
 
+
 WindowsStorageDevice::WindowsStorageDevice()
     : _vid(-1),
       _pid(-1),

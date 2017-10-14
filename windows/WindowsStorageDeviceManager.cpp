@@ -3,9 +3,9 @@
 #include <tchar.h>
 #include <usbiodef.h>
 
-/* System dependent classes */
 #include "WindowsStorageDeviceManager.h"
 #include "WindowsStorageDevice.h"
+
 
 WindowsStorageDeviceManager::WindowsStorageDeviceManager() {}
 

@@ -2,7 +2,9 @@
 #include <memory>
 #include <iostream>
 
+
 QIOFlasher::QIOFlasher(QObject *parent) : QObject(parent) {  }
+
 
 bool QIOFlasher::flash(QFile& src, QFile& dest, int blockSize) {
     auto srcSize  = src.size();

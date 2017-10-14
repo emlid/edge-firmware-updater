@@ -1,6 +1,8 @@
 #include "ExecutionStatus.h"
 
+
 const ExecutionStatus ExecutionStatus::SUCCESS = ExecutionStatus(0);
+
 
 ExecutionStatus::ExecutionStatus(int errorCode, bool isCritical)
     : _errorMessage(""), _failed(errorCode != 0), _isCritical(isCritical)
