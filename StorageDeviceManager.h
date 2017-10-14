@@ -2,7 +2,7 @@
 #define STORAGEDEVICESCANNER_H
 
 #include "StorageDevice.h"
-#include "ExitStatus.h"
+#include "ExecutionStatus.h"
 
 #include <QObject>
 #include <QtCore>

@@ -3,13 +3,13 @@
 
 #include <QtCore>
 
-class ExitStatus {
+class ExecutionStatus {
 public:
-    static const ExitStatus SUCCESS;
+    static const ExecutionStatus SUCCESS;
 
-    ExitStatus(int errorCode, bool isCritical = false);
+    ExecutionStatus(int errorCode, bool isCritical = false);
 
-    ExitStatus(int errorCode, QString const& additionalMessage, bool isCritical = false);
+    ExecutionStatus(int errorCode, QString const& additionalMessage, bool isCritical = false);
 
     bool failed();
 

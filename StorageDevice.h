@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtCore>
 
-#include "ExitStatus.h"
+#include "ExecutionStatus.h"
 
 class StorageDevice : public QObject
 {
@@ -17,14 +17,14 @@ public:
     virtual QString diskPath(void) const = 0;
     virtual ulong recommendedBlockSize(void) const = 0;
 
-    virtual ExitStatus open(int* const filedesc) = 0;
-    virtual ExitStatus close(void) = 0;
+    virtual ExecutionStatus open(int* const filedesc) = 0;
+    virtual ExecutionStatus close(void) = 0;
 
     virtual QString toString(void) const = 0;
     virtual QVector<QString> mountpoints(void) const = 0;
 
-    virtual ExitStatus unmountAllMountpoints(void) = 0;
-    virtual ExitStatus unmount(QString const& mountpoint) = 0;
+    virtual ExecutionStatus unmountAllMountpoints(void) = 0;
+    virtual ExecutionStatus unmount(QString const& mountpoint) = 0;
 
 protected:
     StorageDevice(QObject *parent = nullptr);

@@ -6,8 +6,6 @@
 #include "qioflasher.h"
 
 #include "StorageDeviceManager.h"
-#include "WindowsStorageDeviceManager.h"
-#include "WindowsStorageDevice.h"
 
 #include <windows.h>
 #include <io.h>
