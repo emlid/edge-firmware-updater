@@ -5,6 +5,10 @@ win32 {
     include(windows/windows.pri)
 }
 
+unix {
+    include(linux/linux.pri)
+}
+
 CONFIG += c++11
 
 TARGET = qioflasher
@@ -17,8 +21,8 @@ SOURCES += main.cpp \
     qioflasher.cpp \
     StorageDevice.cpp \
     StorageDeviceManager.cpp \
-    testnotifier.cpp \
-    ExecutionStatus.cpp
+    ExecutionStatus.cpp \
+    testnotifier.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -36,5 +40,5 @@ HEADERS += \
     qioflasher.h \
     StorageDevice.h \
     StorageDeviceManager.h \
-    testnotifier.h \
-    ExecutionStatus.h
+    ExecutionStatus.h \
+    testnotifier.h
