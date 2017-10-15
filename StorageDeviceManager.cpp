@@ -2,6 +2,8 @@
 
 #if defined(Q_OS_WIN)
 #include "windows/WindowsStorageDeviceManager.h"
+#elif defined(Q_OS_LINUX)
+#include "linux/LinuxStorageDeviceManager.h"
 #endif
 
 
@@ -15,6 +17,6 @@ std::unique_ptr<StorageDeviceManager> StorageDeviceManager::instance()
 #if defined(Q_OS_WIN)
     return std::unique_ptr<StorageDeviceManager>(new WindowsStorageDeviceManager());
 #else
-    return std::unique_ptr<StorageDeviceManager>(nullptr);
+    return std::unique_ptr<StorageDeviceManager>(new LinuxStorageDeviceManager());
 #endif
 }
