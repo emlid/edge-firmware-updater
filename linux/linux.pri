@@ -4,4 +4,5 @@ HEADERS += linux/LinuxStorageDevice.h \
 SOURCES += linux/LinuxStorageDevice.cpp \
            linux/LinuxStorageDeviceManager.cpp
 
-LIBS += -ludev -L/usr/lib
+LIBS += -ludev \   # For scanning devices
+        -L/usr/lib

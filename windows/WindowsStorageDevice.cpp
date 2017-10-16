@@ -52,7 +52,7 @@ int WindowsStorageDevice::pid(void) const
 }
 
 
-ulong WindowsStorageDevice::recommendedBlockSize(void) const
+long WindowsStorageDevice::recommendedBlockSize(void) const
 {
     return _blockSize;
 }

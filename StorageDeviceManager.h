@@ -1,12 +1,12 @@
 #ifndef STORAGEDEVICESCANNER_H
 #define STORAGEDEVICESCANNER_H
 
-#include "StorageDevice.h"
-#include "ExecutionStatus.h"
-
 #include <QObject>
 #include <QtCore>
 #include <memory>
+
+#include "StorageDevice.h"
+#include "ExecutionStatus.h"
 
 
 class StorageDeviceManager : public QObject

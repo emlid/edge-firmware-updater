@@ -20,11 +20,13 @@ public:
     virtual ExecutionStatus open(int* const filedesc) = 0;
     virtual ExecutionStatus close(void) = 0;
 
+    virtual ExecutionStatus unmountAllMountpoints(void) = 0;
+    virtual ExecutionStatus unmount(QString const& mountpoint) = 0;
+
     virtual QString toString(void) const = 0;
     virtual QVector<QString> mountpoints(void) const = 0;
 
-    virtual ExecutionStatus unmountAllMountpoints(void) = 0;
-    virtual ExecutionStatus unmount(QString const& mountpoint) = 0;
+    ExecutionStatus openAsQFile(QFile* const qfile);
 
 protected:
     StorageDevice(QObject *parent = nullptr);

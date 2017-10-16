@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 
@@ -9,22 +10,22 @@
 LinuxStorageDevice::LinuxStorageDevice(void)
     : _vid(-1),
       _pid(-1),
-      _fd(-1),
       _blockSize(-1),
       _diskPath(""),
-      _mountpoints()
+      _mountpoints(),
+      _fd(-1)
 { }
 
 
 LinuxStorageDevice::LinuxStorageDevice(int vid, int pid, int blockSize,
                                            QString const& diskPath,
-                                           QVector<QString> const& mountpoints)
+                                           QVector<Mountpoint> const& mountpoints)
     : _vid(vid),
       _pid(pid),
-      _fd(-1),
       _blockSize(blockSize),
       _diskPath(diskPath),
-      _mountpoints(mountpoints)
+      _mountpoints(mountpoints),
+      _fd(-1)
 { }
 
 
@@ -32,7 +33,6 @@ LinuxStorageDevice::~LinuxStorageDevice(void)
 {
     qDebug() << "Linux storage device released";
     close();
-    remountAllMountpoints();
 }
 
 
@@ -81,31 +81,32 @@ ExecutionStatus LinuxStorageDevice::open(int* const filedesc)
 
 ExecutionStatus LinuxStorageDevice::close(void)
 {
-    return ::close(fd) != -1 ?
+    return ::close(_fd) != -1 ?
         ExecutionStatus::SUCCESS : ExecutionStatus(errno);
 }
 
 
-ExecutionStatus LinuxStorageDevice::unmountAllMountpoints(void)
+ExecutionStatus LinuxStorageDevice::
+    unmountAllMountpoints(void)
 {
+    for (QString mntpt : _mountpoints) {
+        auto status = unmount(mntpt);
+        if (status.failed()) {
+            return status;
+        }
+    }
+
     return ExecutionStatus::SUCCESS;
 }
 
 
-ExecutionStatus LinuxStorageDevice::unmount(QString const& mountpoint)
+ExecutionStatus LinuxStorageDevice::
+    unmount(QString const& mountpoint)
 {
-    return ExecutionStatus::SUCCESS;
-}
+    if (::umount(mountpoint.toStdString().data())) {
+        return ExecutionStatus(errno, mountpoint.name() + ": unmounting failed");
+    }
 
-
-ExecutionStatus LinuxStorageDevice::remount(QString const& mountpoint)
-{
-    return ExecutionStatus::SUCCESS;
-}
-
-
-ExecutionStatus LinuxStorageDevice::remountAllMountpoints(void)
-{
     return ExecutionStatus::SUCCESS;
 }
 
@@ -117,12 +118,12 @@ QString LinuxStorageDevice::toString() const
     QTextStream(&info)
          << "Vid: "          << _vid << '\n'
          << "Pid: "          << _pid << '\n'
-         << "Device path: "  << _devicePath << '\n'
+         << "Device path: "  << _diskPath << '\n'
          << "Block Size: "   << _blockSize << '\n'
          << "Mountpoints:";
 
-    for (QString pt : _mountpoints) {
-       QTextStream(&info) << pt << ", ";
+    for (Mountpoint pt : _mountpoints) {
+       QTextStream(&info) << pt.name() << ", ";
     }
 
     QTextStream(&info) << '\n';

@@ -251,7 +251,6 @@ QString WindowsStorageDeviceManager::_diskPathRelatedWithDevice(QString devicePa
     QString usbDeviceSerialNumber = _extractSerialNumber(devicePath);
     QString diskPath("");
 
-
     forEachDevices(GUID_DEVINTERFACE_DISK,
         [&diskPath, &usbDeviceSerialNumber] (PSP_DEVICE_INTERFACE_DETAIL_DATA detailData) -> void {
             auto path = QString::fromWCharArray(detailData->DevicePath);

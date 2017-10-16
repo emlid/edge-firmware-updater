@@ -1,6 +1,7 @@
 #include <libudev.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <unistd.h>
 
 #include "LinuxStorageDeviceManager.h"
@@ -28,9 +29,9 @@ QVector<std::shared_ptr<StorageDevice>>
     ::udev_list_entry* deviceList = ::udev_enumerate_get_list_entry(enumerate.get());
     ::udev_list_entry* entry = nullptr;
 
-    int const radix = 16;
-    auto requiredVid = QString::number(vid, radix);
-    auto requiredPid = QString::number(pid, radix);
+    auto toLowHex = "%04x";
+    auto requiredVid = QString::asprintf(toLowHex, vid);
+    auto requiredPid = QString::asprintf(toLowHex, pid);
 
     udev_list_entry_foreach(entry, deviceList) {
         auto path = ::udev_list_entry_get_name(entry);
@@ -44,26 +45,39 @@ QVector<std::shared_ptr<StorageDevice>>
         auto deviceVid = QString(::udev_device_get_property_value(device.get(), "ID_VENDOR_ID"));
         auto devicePid = QString(::udev_device_get_property_value(device.get(), "ID_MODEL_ID"));
 
+        qDebug() << deviceVid << " " << requiredVid;
+
         if (deviceVid != requiredVid || devicePid != requiredPid) {
             continue;
         }
 
         auto diskPath = QString(::udev_device_get_devnode(device.get()));
+        auto relatedMountpoints = _relatedMountpoints(diskPath);
 
-        storageDeviceList.push_back(
-            std::shared_ptr<StorageDevice>(
-                new LinuxStorageDevice(vid, pid, 512, diskPath, QVector<QString>())
-            )
-        );
+        int blockSize = -1;
+        _getRecommendedBlockSize(diskPath, &blockSize);
+
+        auto removableDevice =
+                new LinuxStorageDevice(vid, pid, blockSize, diskPath, relatedMountpoints);
+
+        storageDeviceList.push_back(std::shared_ptr<StorageDevice>(removableDevice));
     }
 
     return storageDeviceList;
 }
 
 
-QVector<QString> LinuxStorageDeviceManager::mountpoints(void)
+QMap<QString, QString> LinuxStorageDeviceManager::mountpoints(void)
 {
-    return QVector<QString>();
+    auto mountedVolumes = QStorageInfo::mountedVolumes();
+    QMap<QString, QString> mntpoints;
+    mntpoints.reserve(mountedVolumes.size());
+
+    for (QStorageInfo volume : mountedVolumes) {
+        mntpoints.insert(volume.rootPath(), volume.device());
+    }
+
+    return mntpoints;
 }
 
 
@@ -71,11 +85,28 @@ ExecutionStatus LinuxStorageDeviceManager::
     _getRecommendedBlockSize(QString const& diskPath, int* const blockSize)
 {
     struct stat fileStat;
+
     if (::stat(diskPath.toStdString().data(), &fileStat)) {
         return ExecutionStatus(errno, diskPath + ": can not get stat structure.");
     }
 
-    (*blockSize) = stat.st_blksize;
+    (*blockSize) = fileStat.st_blksize;
 
     return ExecutionStatus::SUCCESS;
+}
+
+
+QVector<QString> LinuxStorageDeviceManager::
+    _relatedMountpoints(QString const& diskPath)
+{
+    QVector<QString> neededMountpoints;
+    auto mntpoints = mountpoints();
+
+    for (QString mntpt : mntpoints.keys()) {
+        if (mntpoints.value(mntpt).startsWith(diskPath)) {
+            neededMountpoints.push_back(mntpt);
+        }
+    }
+
+    return neededMountpoints;
 }

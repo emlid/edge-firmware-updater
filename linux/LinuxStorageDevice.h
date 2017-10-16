@@ -20,19 +20,15 @@ public:
 
     int pid(void) const override;
 
+    ExecutionStatus unmountAllMountpoints(void) override;
+
+    ExecutionStatus unmount(QString const& mountpoint) override;
+
     long recommendedBlockSize(void) const override;
 
     ExecutionStatus open(int* const filedesc) override;
 
     ExecutionStatus close(void) override;
-
-    ExecutionStatus unmountAllMountpoints(void) override;
-
-    ExecutionStatus unmount(QString const& mountpoint) override;
-
-    ExecutionStatus remountAllMountpoints(void);
-
-    ExecutionStatus remount(QString const& mountpoint);
 
     QVector<QString> mountpoints(void) const override;
 
@@ -44,9 +40,9 @@ private:
     int _vid;
     int _pid;
     long _blockSize;
-    int _fd;
-    QVector<QString> _mountpoints;
     QString _diskPath;
+    QVector<QString> _mountpoints;
+    int _fd;
 };
 
 #endif // LINUXSTORAGEDEVICE_H

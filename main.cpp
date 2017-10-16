@@ -7,10 +7,6 @@
 
 #include "StorageDeviceManager.h"
 
-#include <windows.h>
-#include <io.h>
-#include <fcntl.h>
-
 
 int main(int argc, char *argv[])
 {
@@ -22,30 +18,22 @@ int main(int argc, char *argv[])
 
     for (std::shared_ptr<StorageDevice> device : physicalDrives) {
         QTextStream(stdout) << device->toString();
-        if (device->unmountAllMountpoints().failed()) {
-           QTextStream(stdout) << "Unmount failed" << '\n';
-           break;
+
+        int fd = 0;
+        if (device->open(&fd).failed()) {
+            std::exit(0);
         }
 
-        int fd;
-        if (device->open(&fd).failed()) {
-           QTextStream(stdout) << "Open device failed";
-           break;
-        }
-        QFile src("C:\\Users\\vladimir.provalov\\Downloads\\emrasp.img");
+        QFile dest;
+        dest.open(fd, QIODevice::WriteOnly);
+
+        QFile src("/home/vladimir.provalov/Downloads/emlid-raspbian-20170323.img");
         src.open(QIODevice::ReadOnly);
 
-        QFile fl;
-        bool res = fl.open(fd, QIODevice::WriteOnly);
-        if (!res) {
-            qDebug() << "Can not open phys drive for write";
-            break;
-        }
-
         QIOFlasher flasher;
-        TestNotifier notifier(flasher);
+        TestNotifier notif(flasher);
 
-        flasher.flash(src, fl, device-> recommendedBlockSize());
+        flasher.flash(src, dest);
     }
 
     return a.exec();
