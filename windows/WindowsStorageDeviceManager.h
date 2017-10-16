@@ -28,7 +28,7 @@ public:
 private:
     ExecutionStatus _getDriveNumbersRelatedWith(QString const& mountpoint, QVector<int>* const driveNumbers);
 
-    ExecutionStatus _getRecommendedBlockSize(QString const& diskPath, ulong* const blockSize);
+    ExecutionStatus _getRecommendedBlockSize(QString const& diskPath, long* const blockSize);
 
     ExecutionStatus _getPhysicalDriveNumber(QString const& device, int * const driveNumber);
 

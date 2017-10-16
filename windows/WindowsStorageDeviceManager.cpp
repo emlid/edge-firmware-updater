@@ -19,7 +19,7 @@ std::shared_ptr<StorageDevice> WindowsStorageDeviceManager::
         return std::shared_ptr<StorageDevice>(nullptr);
     }
 
-    ulong blockSize = 0;
+    long blockSize = 0;
     if (_getRecommendedBlockSize(QString("\\\\.\\PhysicalDrive%1").arg(driveNumber), &blockSize).failed()) {
         blockSize = -1;
     }
@@ -121,7 +121,7 @@ ExecutionStatus WindowsStorageDeviceManager::
 
 
 ExecutionStatus WindowsStorageDeviceManager::
-    _getRecommendedBlockSize(QString const& diskPath, ulong* const blockSize)
+    _getRecommendedBlockSize(QString const& diskPath, long* const blockSize)
 {
     auto handle = ::CreateFile(diskPath.toStdWString().data(), 0,
                                FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);

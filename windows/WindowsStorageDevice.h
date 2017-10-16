@@ -41,7 +41,6 @@ public:
 private:
     int _driveNumber;
     HANDLE _handle;
-    long _blockSize;
     QVector<QString> _mountpoints;
     QMap<QString, HANDLE> _unmountedMountpoints;
     QString _devicePath;
