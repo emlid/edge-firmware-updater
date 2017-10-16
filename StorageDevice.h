@@ -12,10 +12,12 @@ class StorageDevice : public QObject
 public:
     virtual ~StorageDevice(void) {}
 
-    virtual int vid(void) const = 0;
-    virtual int pid(void) const = 0;
+    virtual int vid(void) const;
+    virtual int pid(void) const;
+    virtual long recommendedBlockSize(void) const;
+    virtual ExecutionStatus openAsQFile(QFile* const qfile);
+
     virtual QString diskPath(void) const = 0;
-    virtual long recommendedBlockSize(void) const = 0;
 
     virtual ExecutionStatus open(int* const filedesc) = 0;
     virtual ExecutionStatus close(void) = 0;
@@ -26,11 +28,14 @@ public:
     virtual QString toString(void) const = 0;
     virtual QVector<QString> mountpoints(void) const = 0;
 
-    ExecutionStatus openAsQFile(QFile* const qfile);
 
 protected:
     StorageDevice(QObject *parent = nullptr);
-    StorageDevice(int vid, int pid, QObject *parent = nullptr);
+    StorageDevice(int vid, int pid, long blockSize, QObject *parent = nullptr);
+
+    int _vid;
+    int _pid;
+    long _blockSize;
 };
 
 #endif // STORAGEDEVICE_H
