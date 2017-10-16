@@ -141,7 +141,7 @@ ExecutionStatus WindowsStorageDeviceManager::
         return ExecutionStatus(::GetLastError(), diskPath + ": cant get disk info");
     }
 
-    (*blockSize) = diskgeometry.Geometry.BytesPerSector * 4;
+    (*blockSize) = diskgeometry.Geometry.BytesPerSector;
 
     ::CloseHandle(handle);
 
