@@ -7,9 +7,7 @@
 
 
 WindowsStorageDevice::WindowsStorageDevice()
-    : _vid(-1),
-      _pid(-1),
-      _blockSize(-1),
+    : StorageDevice(-1, -1, -1),
       _driveNumber(-1),
       _devicePath(""),
       _mountpoints(),
@@ -18,12 +16,10 @@ WindowsStorageDevice::WindowsStorageDevice()
 { }
 
 
-WindowsStorageDevice::WindowsStorageDevice(int vid, int pid, int blockSize,
+WindowsStorageDevice::WindowsStorageDevice(int vid, int pid, long blockSize,
                                            int driveNumber, QString const& devicePath,
                                            QVector<QString> const& mountpoints)
-    : _vid(vid),
-      _pid(pid),
-      _blockSize(blockSize),
+    : StorageDevice(vid, pid, blockSize),
       _driveNumber(driveNumber),
       _devicePath(devicePath),
       _mountpoints(mountpoints),
@@ -37,24 +33,6 @@ WindowsStorageDevice::~WindowsStorageDevice(void)
     qDebug() << "Windows storage device released";
     close();
     remountAllMountpoints();
-}
-
-
-int WindowsStorageDevice::vid(void) const
-{
-    return _vid;
-}
-
-
-int WindowsStorageDevice::pid(void) const
-{
-    return _pid;
-}
-
-
-long WindowsStorageDevice::recommendedBlockSize(void) const
-{
-    return _blockSize;
 }
 
 

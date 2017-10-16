@@ -10,17 +10,11 @@ class WindowsStorageDevice: public StorageDevice
 public:
     WindowsStorageDevice(void);
 
-    WindowsStorageDevice(int vid, int pid, int blockSize,
+    WindowsStorageDevice(int vid, int pid, long blockSize,
                          int driveNumber, QString const& devicePath,
                          QVector<QString> const& mountpoints);
 
     ~WindowsStorageDevice(void) override;
-
-    int vid(void) const override;
-
-    int pid(void) const override;
-
-    long recommendedBlockSize(void) const override;
 
     ExecutionStatus open(int* const filedesc) override;
 
@@ -45,8 +39,6 @@ public:
     QString devicePath(void) const;
 
 private:
-    int _vid;
-    int _pid;
     int _driveNumber;
     HANDLE _handle;
     long _blockSize;
