@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include "qioflasher.h"
+#include "Flasher.h"
 
 class TestNotifier : public QObject
 {

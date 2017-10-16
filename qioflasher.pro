@@ -18,11 +18,11 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    qioflasher.cpp \
     StorageDevice.cpp \
     StorageDeviceManager.cpp \
     ExecutionStatus.cpp \
-    testnotifier.cpp
+    testnotifier.cpp \
+    Flasher.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -37,8 +37,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 HEADERS += \
-    qioflasher.h \
     StorageDevice.h \
     StorageDeviceManager.h \
     ExecutionStatus.h \
-    testnotifier.h
+    testnotifier.h \
+    Flasher.h

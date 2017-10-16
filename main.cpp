@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "testnotifier.h"
-#include "qioflasher.h"
+#include "Flasher.h"
 
 #include "StorageDeviceManager.h"
 
