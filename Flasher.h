@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtCore>
 
-class QIOFlasher : public QObject
+class Flasher : public QObject
 {
     Q_OBJECT
 public:
@@ -14,7 +14,7 @@ public:
        READ_FAILED, WRITE_FAILED
     };
 
-    QIOFlasher(QObject *parent = nullptr);
+    Flasher(QObject *parent = nullptr);
 
     bool flash(
         QFile& src,

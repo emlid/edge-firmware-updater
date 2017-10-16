@@ -9,7 +9,7 @@ class TestNotifier : public QObject
 {
     Q_OBJECT
 public:
-    TestNotifier(QIOFlasher const& flasher, QObject *parent = nullptr);
+    TestNotifier(Flasher const& flasher, QObject *parent = nullptr);
 
 public slots:
     void onFlashStarted() {
@@ -24,8 +24,8 @@ public slots:
         QTextStream(stdout) << "\rProgress: " << progress << "%";
     }
 
-    void onFlashAborted(QIOFlasher::FlashingStatus status) {
-        QString res = status == QIOFlasher::FlashingStatus::READ_FAILED ? "READ" : "WRITE";
+    void onFlashAborted(Flasher::FlashingStatus status) {
+        QString res = status == Flasher::FlashingStatus::READ_FAILED ? "READ" : "WRITE";
         QTextStream(stdout) << "Flash aborted" << res << '\n';
     }
 };

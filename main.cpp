@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         QFile src("/home/vladimir.provalov/Downloads/emlid-raspbian-20170323.img");
         src.open(QIODevice::ReadOnly);
 
-        QIOFlasher flasher;
+        Flasher flasher;
         TestNotifier notif(flasher);
 
         flasher.flash(src, dest);
