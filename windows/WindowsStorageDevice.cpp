@@ -56,14 +56,14 @@ QVector<QString> WindowsStorageDevice::mountpoints() const
 
 ExecutionStatus WindowsStorageDevice::open(int* const filedesc)
 {
-    _handle = ::CreateFile(diskPath().toStdWString().data(), GENERIC_WRITE,
+    _handle = ::CreateFile(diskPath().toStdWString().data(), GENERIC_WRITE | GENERIC_READ,
                                FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 
     if (_handle == INVALID_HANDLE_VALUE) {
         return ExecutionStatus(::GetLastError(), _devicePath + ": open for writing failed.");
     }
 
-    *filedesc = _open_osfhandle(reinterpret_cast<intptr_t>(_handle), _O_RAW | _O_WRONLY);
+    *filedesc = _open_osfhandle(reinterpret_cast<intptr_t>(_handle), _O_RAW | _O_WRONLY | _O_RDONLY);
 
     return ExecutionStatus::SUCCESS;
 }
