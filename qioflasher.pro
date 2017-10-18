@@ -1,6 +1,8 @@
 QT += core testlib
 QT -= gui
 
+include(rpiboot/rpiboot.pri)
+
 win32 {
     include(windows/windows.pri)
 }
