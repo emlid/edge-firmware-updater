@@ -19,21 +19,25 @@ int main(int argc, char *argv[])
     for (std::shared_ptr<StorageDevice> device : physicalDrives) {
         QTextStream(stdout) << device->toString();
 
-        int fd = 0;
-        if (device->open(&fd).failed()) {
-            std::exit(0);
+        device-> unmountAllMountpoints();
+
+        QFile src("C:\\Users\\vladimir.provalov\\Downloads\\emrasp.img");
+        QFile dest;
+
+        if (device->openAsQFile(&dest).failed()) {
+            std::exit(1);
         }
 
-        QFile dest;
-        dest.open(fd, QIODevice::WriteOnly);
-
-        QFile src("/home/vladimir.provalov/Downloads/emlid-raspbian-20170323.img");
-        src.open(QIODevice::ReadOnly);
+        if (!src.open(QIODevice::ReadOnly)) {
+            std::exit(1);
+        }
 
         Flasher flasher;
         TestNotifier notif(flasher);
 
-        flasher.flash(src, dest);
+        if (!flasher.flash(src, dest)) {
+            QTextStream("failed");
+        }
     }
 
     return a.exec();
