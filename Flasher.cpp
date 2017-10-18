@@ -3,10 +3,10 @@
 #include <iostream>
 
 
-Flasher::Flasher(QObject *parent) : QObject(parent) {  }
+Flasher::Flasher(QObject *parent) : QObject(parent) { }
 
 
-bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
+bool Flasher::flash(QFile& src, QFile& dest, int blockSize, QCryptographicHash::Algorithm hashAlgo) {
     auto srcSize  = src.size();
     auto buffer   = std::unique_ptr<char[]>(new char[blockSize]);
 
@@ -33,6 +33,29 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
         }
     }
 
+    emit checkingCorrectness();
+
+    auto result = _isEquals(src, dest, hashAlgo);
+
     emit flashCompleted();
-    return true;
+    return result;
+}
+
+
+bool Flasher::_isEquals(QFile& src, QFile& dest, QCryptographicHash::Algorithm hashAlgo)
+{
+    QCryptographicHash hashFunction(hashAlgo);
+
+    hashFunction.addData(&src);
+    auto srcHash = hashFunction.result();
+
+    qDebug() << "src hash: " << srcHash;
+
+    hashFunction.reset();
+    hashFunction.addData(&dest);
+    auto destHash = hashFunction.result();
+
+    qDebug() << "dest hash: " << destHash;
+
+    return srcHash.toStdString() == destHash.toStdString();
 }

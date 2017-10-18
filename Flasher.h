@@ -19,16 +19,21 @@ public:
     bool flash(
         QFile& src,
         QFile& dest,
-        int blockSize  = DEFAULT_BLOCK_SIZE
+        int blockSize  = DEFAULT_BLOCK_SIZE,
+        QCryptographicHash::Algorithm hashAlgo =
+            QCryptographicHash::Algorithm::Md5
     );
 
 signals:
-    void flashStarted();
-    void flashCompleted();
+    void flashStarted(void);
+    void flashCompleted(void);
     void progressChanged(uint progress);
     void flashAborted(FlashingStatus status);
 
-public slots:
+    void checkingCorrectness(void);
+
+private:
+    bool _isEquals(QFile& src, QFile& dest, QCryptographicHash::Algorithm hashAlgo);
 };
 
 #endif // QIOFLASHER_H
