@@ -238,7 +238,7 @@ void rpiboot(void)
 
 			if (result)
 			{
-				usleep(100);
+                QThread::usleep(100);
 			}
 		}
 		while (result);
@@ -279,7 +279,7 @@ void rpiboot(void)
 			exit(-1);
 		}
 
-		sleep(1);
+        QThread::sleep(1);
 
 		size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
@@ -292,7 +292,7 @@ void rpiboot(void)
 			printf("Failed : 0x%x", retcode);
 
 		libusb_close(usb_device);
-		sleep(1);
+        QThread::sleep(1);
         free(txbuf);
         filesTransferred++;
 	}
