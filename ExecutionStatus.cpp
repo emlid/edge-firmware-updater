@@ -13,7 +13,7 @@ ExecutionStatus::ExecutionStatus(int errorCode, bool isCritical)
 ExecutionStatus::ExecutionStatus(int errorCode, QString const& additionalMessage, bool isCritical)
     :_errorMessage(""), _failed(errorCode != 0), _isCritical(isCritical)
 {
-    qDebug() << "DEBUG_OUT: " << additionalMessage;
+    qDebug() << "DEBUG_OUT: " << (isCritical ? "!!CRITICAL!!" : "") << additionalMessage;
 }
 
 
