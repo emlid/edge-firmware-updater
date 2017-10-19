@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -19,7 +20,7 @@ LinuxStorageDevice::LinuxStorageDevice(void)
 
 LinuxStorageDevice::LinuxStorageDevice(int vid, int pid, int blockSize,
                                            QString const& diskPath,
-                                           QVector<Mountpoint> const& mountpoints)
+                                           QVector<QString> const& mountpoints)
     : _vid(vid),
       _pid(pid),
       _blockSize(blockSize),
@@ -104,7 +105,7 @@ ExecutionStatus LinuxStorageDevice::
     unmount(QString const& mountpoint)
 {
     if (::umount(mountpoint.toStdString().data())) {
-        return ExecutionStatus(errno, mountpoint.name() + ": unmounting failed");
+        return ExecutionStatus(errno, mountpoint + ": unmounting failed");
     }
 
     return ExecutionStatus::SUCCESS;
@@ -122,8 +123,8 @@ QString LinuxStorageDevice::toString() const
          << "Block Size: "   << _blockSize << '\n'
          << "Mountpoints:";
 
-    for (Mountpoint pt : _mountpoints) {
-       QTextStream(&info) << pt.name() << ", ";
+    for (QString pt : _mountpoints) {
+       QTextStream(&info) << pt << ", ";
     }
 
     QTextStream(&info) << '\n';

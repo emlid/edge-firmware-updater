@@ -67,14 +67,14 @@ QVector<std::shared_ptr<StorageDevice>>
 }
 
 
-QMap<QString, QString> LinuxStorageDeviceManager::mountpoints(void)
+QVector<QString> LinuxStorageDeviceManager::mountpoints(void)
 {
     auto mountedVolumes = QStorageInfo::mountedVolumes();
-    QMap<QString, QString> mntpoints;
+    QVector<QString> mntpoints;
     mntpoints.reserve(mountedVolumes.size());
 
     for (QStorageInfo volume : mountedVolumes) {
-        mntpoints.insert(volume.rootPath(), volume.device());
+        mntpoints.push_back(volume.device());
     }
 
     return mntpoints;
@@ -102,8 +102,8 @@ QVector<QString> LinuxStorageDeviceManager::
     QVector<QString> neededMountpoints;
     auto mntpoints = mountpoints();
 
-    for (QString mntpt : mntpoints.keys()) {
-        if (mntpoints.value(mntpt).startsWith(diskPath)) {
+    for (QString mntpt : mntpoints) {
+        if (mntpoints.startsWith(diskPath)) {
             neededMountpoints.push_back(mntpt);
         }
     }

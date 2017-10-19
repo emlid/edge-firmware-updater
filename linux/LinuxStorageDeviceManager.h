@@ -3,7 +3,6 @@
 
 
 #include "StorageDeviceManager.h"
-#include "Mountpoint.h"
 
 
 class LinuxStorageDeviceManager : public StorageDeviceManager
@@ -13,7 +12,7 @@ public:
 
     QVector<std::shared_ptr<StorageDevice>> physicalDrives(int vid = -1, int pid = -1) override;
 
-    QMap<QString, QString> mountpoints(void);
+    QVector<QString> mountpoints(void);
 
 private:
     ExecutionStatus _getRecommendedBlockSize(QString const& diskPath, int* const blockSize);
