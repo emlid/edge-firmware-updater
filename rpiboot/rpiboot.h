@@ -3,10 +3,6 @@
 
 #include <QThread>
 
-void rpiboot(void);
-
-void startRpiBoot(QThread *, int bootableDevces);
+int boot(void);
 
 #endif // USBBOOTRPI_H
-
-
