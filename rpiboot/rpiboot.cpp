@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <unistd.h>
+#include <QtCore>
 
 int signed_boot = 0;
 int verbose = 0;
@@ -18,25 +18,6 @@ typedef struct MESSAGE_S {
         unsigned char signature[20];
 } boot_message_t;
 
-void usage(int error)
-{
-    FILE * dest = error ? stderr : stdout;
-
-    fprintf(dest, "Usage: rpiboot\n");
-    fprintf(dest, "   or: rpiboot -d [directory]\n");
-    fprintf(dest, "Boot a Raspberry Pi in device mode either directly into a mass storage device\n");
-    fprintf(dest, "or provide a set of boot files in a directory from which to boot.  This can\n");
-    fprintf(dest, "then contain a initramfs to boot through to linux kernel\n\n");
-    fprintf(dest, "rpiboot                  : Boot the device into mass storage device\n");
-    fprintf(dest, "rpiboot -d [directory]   : Boot the device using the boot files in 'directory'\n");
-    fprintf(dest, "Further options:\n");
-    fprintf(dest, "        -l               : Loop forever\n");
-    fprintf(dest, "        -v               : Verbose\n");
-    fprintf(dest, "        -s               : Signed using bootsig.bin\n");
-    fprintf(dest, "        -h               : This help\n");
-
-    exit(error ? -1 : 0);
-}
 
 libusb_device_handle * LIBUSB_CALL open_device_with_vid(
     libusb_context *ctx, uint16_t vendor_id)
@@ -56,13 +37,18 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
         r = libusb_get_device_descriptor(dev, &desc);
         if (r < 0)
             goto out;
-        if(verbose == 2)
-            printf("Found device %u idVendor=0x%04x idProduct=0x%04x\n", i, desc.idVendor, desc.idProduct);
+        if(verbose) {
+            qInfo() << QString()
+                .asprintf("Found device %u idVendor=0x%04x idProduct=0x%04x", i, desc.idVendor, desc.idProduct);
+        }
+
         if (desc.idVendor == vendor_id) {
             if(desc.idProduct == 0x2763 ||
                desc.idProduct == 0x2764)
             {
-                if(verbose) printf("Device located successfully\n");
+                if(verbose) {
+                    qInfo() << "Device located successfully";
+                }
                 found = dev;
                 break;
             }
@@ -70,11 +56,13 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
     }
 
     if (found) {
-        sleep(1);
+        QThread::sleep(1);
         r = libusb_open(found, &handle);
         if (r < 0)
         {
-            if(verbose) printf("Failed to open the requested device\n");
+            if(verbose) {
+                qInfo("Failed to open the requested device");
+            }
             handle = NULL;
         }
     }
@@ -85,6 +73,7 @@ out:
 
 }
 
+
 int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 {
     int ret = 0;
@@ -94,44 +83,43 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
     *usb_device = open_device_with_vid(*ctx, 0x0a5c);
     if (*usb_device == NULL)
     {
-        usleep(200);
+        QThread::usleep(200);
         return -1;
     }
 
     libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
     if(config == NULL)
     {
-        printf("Failed to read config descriptor\n");
-        exit(-1);
+        qFatal("Failed to read config descriptor");
+        QThread::currentThread()->exit(-1);
     }
 
     // Handle 2837 where it can start with two interfaces, the first is mass storage
     // the second is the vendor interface for programming
-    if(config->bNumInterfaces == 1)
-    {
+    if(config->bNumInterfaces == 1) {
         interface = 0;
         out_ep = 1;
         in_ep = 2;
-    }
-    else
-    {
+    } else {
         interface = 1;
         out_ep = 3;
         in_ep = 4;
     }
 
     ret = libusb_claim_interface(*usb_device, interface);
-    if (ret)
-    {
+    if (ret) {
         libusb_close(*usb_device);
-        printf("Failed to claim interface\n");
+        qFatal("Failed to claim interface");
         return ret;
     }
 
-    if(verbose) printf("Initialised device correctly\n");
+    if(verbose) {
+        qInfo("Initialised device correctly");
+    }
 
     return ret;
 }
+
 
 int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
@@ -142,19 +130,21 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 
     if(ret != 0)
     {
-        printf("Failed control transfer\n");
+        qCritical("Failed control transfer");
         return ret;
     }
 
     if(len > 0)
     {
         ret = libusb_bulk_transfer(usb_device, out_ep,(unsigned char*) buf, len, &a_len, 100000);
-        if(verbose)
-            printf("libusb_bulk_transfer returned %d\n", ret);
+        if(verbose) {
+            qInfo() << "libusb_bulk_transfer returned " << ret;
+        }
     }
 
     return a_len;
 }
+
 
 int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 {
@@ -169,32 +159,29 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
         return ret;
 }
 
+
 boot_message_t boot_message;
 void *second_stage_txbuf;
 
-int second_stage_prep(FILE *fp, FILE *fp_sig)
+
+int second_stage_prep(QFile& fp, QFile& fp_sig)
 {
-    int size;
+    boot_message.length = fp.size();
 
-    fseek(fp, 0, SEEK_END);
-    boot_message.length = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    if(fp_sig != NULL)
-    {
-        fread(boot_message.signature, 1, sizeof(boot_message.signature), fp_sig);
+    if(fp_sig.isOpen()) {
+        fp_sig.read((char*)boot_message.signature, sizeof(boot_message.signature));
     }
 
     second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
-    if (second_stage_txbuf == NULL)
-    {
+
+    if (second_stage_txbuf == NULL) {
         printf("Failed to allocate memory\n");
         return -1;
     }
 
-    size = fread(second_stage_txbuf, 1, boot_message.length, fp);
-    if(size != boot_message.length)
-    {
+    auto size = fp.read((char*)second_stage_txbuf, boot_message.length);
+
+    if (size != boot_message.length) {
         printf("Failed to read second stage\n");
         return -1;
     }
@@ -221,7 +208,7 @@ int second_stage_boot(libusb_device_handle *usb_device)
         return -1;
     }
 
-    sleep(1);
+    QThread::sleep(1);
     size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
     if (size > 0 && retcode == 0)
@@ -238,30 +225,6 @@ int second_stage_boot(libusb_device_handle *usb_device)
 }
 
 
-FILE * check_file(char * dir, char *fname)
-{
-    FILE * fp = NULL;
-    char path[256];
-
-    // Check directory first then /usr/share/rpiboot
-    if(dir)
-    {
-        strcpy(path, dir);
-        strcat(path, "/");
-        strcat(path, fname);
-        fp = fopen(path, "rb");
-    }
-
-    if(fp == NULL)
-    {
-        strcpy(path, "/usr/share/rpiboot/");
-        strcat(path, fname);
-        fp = fopen(path, "rb");
-    }
-
-    return fp;
-}
-
 int file_server(libusb_device_handle * usb_device)
 {
     int going = 1;
@@ -269,25 +232,26 @@ int file_server(libusb_device_handle * usb_device)
         int command;
         char fname[256];
     } message;
-    static FILE * fp = NULL;
 
-    while(going)
-    {
+    static QFile fp;
+
+    while(going) {
         char message_name[][20] = {"GetFileSize", "ReadFile", "Done"};
         int i = ep_read(&message, sizeof(message), usb_device);
-        if(i < 0)
-        {
+        if(i < 0) {
             // Drop out if the device goes away
             if(i == LIBUSB_ERROR_NO_DEVICE || i == LIBUSB_ERROR_IO)
                 break;
-            sleep(1);
+            QThread::sleep(1);
             continue;
         }
-        if(verbose) printf("Received message %s: %s\n", message_name[message.command], message.fname);
+
+        if (verbose) {
+            qInfo() << "Received message" << message_name[message.command] << ':'<< message.fname;
+        }
 
         // Done can also just be null filename
-        if(strlen(message.fname) == 0)
-        {
+        if(strlen(message.fname) == 0) {
             ep_write(NULL, 0, usb_device);
             break;
         }
@@ -295,55 +259,57 @@ int file_server(libusb_device_handle * usb_device)
         switch(message.command)
         {
             case 0: // Get file size
-                if(fp)
-                    fclose(fp);
-                fp = check_file(directory, message.fname);
-                if(strlen(message.fname) && fp != NULL)
-                {
-                    int file_size;
+                if (fp.isOpen()) {
+                    fp.close();
+                }
 
-                    fseek(fp, 0, SEEK_END);
-                    file_size = ftell(fp);
-                    fseek(fp, 0, SEEK_SET);
+                qInfo() << "Request: reading file " << message.fname;
 
-                    if(verbose) printf("File size = %d bytes\n", file_size);
+                fp.setFileName(QString(directory) + QString(message.fname));
+                fp.open(QIODevice::ReadOnly);
+
+                if(strlen(message.fname) && fp.isOpen()) {
+                    int file_size = fp.size();
+
+                    if(verbose) {
+                        qInfo() << "File size = " << file_size << "bytes";
+                    }
 
                     int sz = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
                         file_size & 0xffff, file_size >> 16, NULL, 0, 1000);
 
-                    if(sz < 0)
+                    if(sz < 0) {
                         return -1;
-                }
-                else
-                {
+                    }
+                } else {
                     ep_write(NULL, 0, usb_device);
-                    if(verbose) printf("Cannot open file %s\n", message.fname);
+                    if(verbose) {
+                        qInfo() << "Cannot open file " << message.fname;
+                    }
                     break;
                 }
                 break;
 
             case 1: // Read file
-                if(fp != NULL)
+                if(fp.isOpen())
                 {
                     int file_size;
                     void *buf;
 
-                    printf("File read: %s\n", message.fname);
+                    qInfo() << "Sending: " << message.fname;
 
-                    fseek(fp, 0, SEEK_END);
-                    file_size = ftell(fp);
-                    fseek(fp, 0, SEEK_SET);
+                    file_size = fp.size();
 
                     buf = malloc(file_size);
-                    if(buf == NULL)
-                    {
-                        printf("Failed to allocate buffer for file %s\n", message.fname);
+                    if(buf == NULL) {
+                        qFatal("Failed to allocate buffer for file");
                         return -1;
                     }
-                    int read = fread(buf, 1, file_size, fp);
-                    if(read != file_size)
-                    {
-                        printf("Failed to read from input file\n");
+
+                    int read = fp.read((char*)buf, file_size);
+
+                    if(read != file_size) {
+                        qCritical("Failed to read from input file");
                         free(buf);
                         return -1;
                     }
@@ -351,18 +317,16 @@ int file_server(libusb_device_handle * usb_device)
                     int sz = ep_write(buf, file_size, usb_device);
 
                     free(buf);
-                    fclose(fp);
-                    fp = NULL;
+                    fp.close();
 
-                    if(sz != file_size)
-                    {
-                        printf("Failed to write complete file to USB device\n");
+                    if(sz != file_size) {
+                        qCritical("Failed to write complete file to USB device");
                         return -1;
                     }
-                }
-                else
-                {
-                    if(verbose) printf("No file %s found\n", message.fname);
+                } else {
+                    if(verbose) {
+                        qCritical() << "No file " << message.fname << " found.";
+                    }
                     ep_write(NULL, 0, usb_device);
                 }
                 break;
@@ -372,19 +336,17 @@ int file_server(libusb_device_handle * usb_device)
                 break;
 
             default:
-                printf("Unknown message\n");
+                qInfo("Unknown message");
                 return -1;
         }
     }
 
-    printf("Second stage boot server done\n");
+    qInfo() << "Second stage boot server done";
     return 0;
 }
 
 int boot(void)
 {
-    FILE * second_stage;
-    FILE * fp_sign = NULL;
     libusb_context *ctx;
     libusb_device_handle *usb_device;
     struct libusb_device_descriptor desc;
@@ -394,59 +356,60 @@ int boot(void)
     setbuf(stdout, NULL);
 
     // Default to standard msd directory
-    if(directory == NULL)
-        directory = "msd";
-
-    second_stage = check_file(directory, "bootcode.bin");
-    if(second_stage == NULL)
-    {
-        fprintf(stderr, "Unable to open 'bootcode.bin' from /usr/share/rpiboot or supplied directory\n");
+    if(directory == NULL) {
+        directory = ":/usbboot_files/";
     }
 
-    if(signed_boot)
-    {
-        fp_sign = check_file(directory, "bootsig.bin");
-        if(fp_sign == NULL)
-        {
-            fprintf(stderr, "Unable to open 'bootsig.bin'\n");
+    QString bootcodePath(directory + QString("bootcode.bin"));
+    QFile second_stage(bootcodePath);
+
+    if(!second_stage.open(QIODevice::ReadOnly)) {
+        qCritical() << "Unable to open 'bootcode.bin' from resources.";
+        return -1;
+    }
+
+    QFile fp_sign;
+    if(signed_boot) {
+        QString bootsigPath(directory + QString("/bootsig.bin"));
+        fp_sign.setFileName(bootsigPath);
+
+        if (!fp_sign.open(QIODevice::ReadOnly)) {
+            qCritical() << "Unable to open 'bootsig.bin'\n";
+            return -1;
         }
     }
 
-    if(second_stage_prep(second_stage, fp_sign) != 0)
-    {
-        fprintf(stderr, "Failed to prepare the second stage bootcode\n");
-        exit(-1);
+    if (second_stage_prep(second_stage, fp_sign) != 0) {
+        qCritical() << "Failed to prepare the second stage bootcode";
+        QThread::currentThread()->exit(-1);
     }
 
     int ret = libusb_init(&ctx);
-    if (ret)
-    {
-        printf("Failed to initialise libUSB\n");
-        exit(-1);
+
+    if (ret) {
+        qFatal("Failed to initialise libUSB");
+        QThread::currentThread()->exit(-1);
     }
 
     libusb_set_debug(ctx, verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
 
-    do
-    {
+    do {
         int last_serial = -1;
 
-        printf("Waiting for BCM2835/6/7\n");
+        qInfo() << "Waiting for BCM2835/6/7";
 
         // Wait for a device to get plugged in
-        do
-        {
+        do {
             ret = Initialize_Device(&ctx, &usb_device);
-            if(ret == 0)
-            {
+            if(ret == 0) {
                 libusb_get_device_descriptor(libusb_get_device(usb_device), &desc);
 
-                if(verbose)
-                    printf("Found serial number %d\n", desc.iSerialNumber);
+                if(verbose) {
+                    qInfo() << "Found serial number " << desc.iSerialNumber;
+                }
 
                 // Make sure we've re-enumerated since the last time
-                if(desc.iSerialNumber == last_serial)
-                {
+                if(desc.iSerialNumber == last_serial) {
                     ret = -1;
                     libusb_close(usb_device);
                 }
@@ -454,32 +417,30 @@ int boot(void)
                 libusb_get_active_config_descriptor(libusb_get_device(usb_device), &config);
             }
 
-            if (ret)
-            {
-                usleep(500);
+            if (ret) {
+                QThread::usleep(500);
             }
         }
         while (ret);
 
         last_serial = desc.iSerialNumber;
-        if(desc.iSerialNumber == 0)
-        {
-            printf("Sending bootcode.bin\n");
+
+        if(desc.iSerialNumber == 0) {
+            qInfo() << "Sending bootcode.bin";
             second_stage_boot(usb_device);
-        }
-        else
-        {
-            printf("Second stage boot server\n");
+        } else {
+            qInfo() << "Second stage boot server";
             file_server(usb_device);
         }
 
         libusb_close(usb_device);
-        sleep(1);
-    }
-    while(loop || desc.iSerialNumber == 0);
+        QThread::sleep(1);
+
+    } while(loop || desc.iSerialNumber == 0);
 
     libusb_exit(ctx);
 
+    qInfo() << "Rpi boot successfully finished.";
+
     return 0;
 }
-

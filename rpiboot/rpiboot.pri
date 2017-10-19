@@ -1,6 +1,5 @@
-HEADERS += rpiboot/rpiboot.h  #$$PWD/QRpiBoot.h
-
-SOURCES += rpiboot/rpiboot.cpp  #$$PWD/QRpiBoot.cpp
+HEADERS += rpiboot/rpiboot.h
+SOURCES += rpiboot/rpiboot.cpp
 
 LIBS += -lusb-1.0
 
