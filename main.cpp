@@ -4,8 +4,8 @@
 
 #include "testnotifier.h"
 #include "Flasher.h"
-
 #include "StorageDeviceManager.h"
+#include "rpiboot/rpiboot.h"
 
 
 int main(int argc, char *argv[])
@@ -14,12 +14,18 @@ int main(int argc, char *argv[])
 
     auto manager = StorageDeviceManager::instance();
 
+    int res = ::boot();
+
+    QTextStream(stdout) << "successful\n";
+
+    std::exit(0);
+
     auto physicalDrives = manager->physicalDrives(2316, 4096);
 
     for (std::shared_ptr<StorageDevice> device : physicalDrives) {
         QTextStream(stdout) << device->toString();
 
-        device-> unmountAllMountpoints();
+        device->unmountAllMountpoints();
 
         QFile src("C:\\Users\\vladimir.provalov\\Downloads\\emrasp.img");
         QFile dest;
