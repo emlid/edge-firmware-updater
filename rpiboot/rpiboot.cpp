@@ -3,24 +3,115 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <QtCore>
+#include "rpiboot.h"
 
-int signed_boot = 0;
-int verbose = 0;
-int loop = 0;
-char * directory = NULL;
 
-int out_ep;
-int in_ep;
-
-typedef struct MESSAGE_S {
+typedef struct MESSAGE_S
+{
         int length;
         unsigned char signature[20];
 } boot_message_t;
 
 
-libusb_device_handle * LIBUSB_CALL open_device_with_vid(
-    libusb_context *ctx, uint16_t vendor_id)
+class RpiBootPrivate
+{
+public:
+    RpiBootPrivate(int vid, QList<int> const& pids)
+        : _vid(vid),
+          _pids(pids),
+          _signed_boot(0),
+          _verbose(0),
+          _loop(0),
+          _directory(nullptr) { }
+
+    int vid(void) const { return _vid; }
+
+    QList<int> const& pids(void) const { return _pids; }
+
+    libusb_device_handle* LIBUSB_CALL open_device_with_vid(libusb_context *ctx, uint16_t vendor_id);
+
+    int initialize_device(libusb_context ** ctx, libusb_device_handle ** usb_device);
+
+    int ep_write(void *buf, int len, libusb_device_handle * usb_device);
+
+    int ep_read(void *buf, int len, libusb_device_handle * usb_device);
+
+    int second_stage_prep(QFile& fp, QFile& fp_sig);
+
+    int second_stage_boot(libusb_device_handle *usb_device);
+
+    int file_server(libusb_device_handle * usb_device);
+
+    int boot(void);
+
+private:
+    int _vid;
+    QList<int> _pids;
+
+    int _signed_boot;
+    int _verbose;
+    int _loop;
+    char * _directory;
+    int _out_ep;
+    int _in_ep;
+
+    void *second_stage_txbuf;
+    boot_message_t boot_message;
+};
+
+
+RpiBoot::RpiBoot(int vid, QList<int> const& pids)
+    : _pimpl(new RpiBootPrivate(vid, pids))
+{ }
+
+
+int RpiBoot::bootAsMassStorage(void)
+{
+    return _pimpl->boot();
+}
+
+
+int RpiBoot::rpiDevicesCount(void) const
+{
+    libusb_context *context = 0;
+    libusb_device **list = 0;
+    int ret = 0;
+    ssize_t count = 0;
+    int bootable = 0;
+
+    ret = libusb_init(&context);
+    Q_ASSERT(ret == 0);
+
+    count = libusb_get_device_list(context, &list);
+    Q_ASSERT(count > 0);
+
+    for (ssize_t idx = 0; idx < count; ++idx) {
+        libusb_device *device = list[idx];
+        struct libusb_device_descriptor desc;
+
+        ret = libusb_get_device_descriptor(device, &desc);
+        Q_ASSERT(ret == 0);
+
+        if (desc.idVendor == _pimpl->vid() && _pimpl->pids().contains(desc.idProduct)) {
+           bootable++;
+        }
+    }
+
+    libusb_exit(context);
+    return bootable;
+}
+
+
+RpiBoot::~RpiBoot(void)
+{
+   delete _pimpl;
+}
+
+
+/* RpiBootPrivate implementation */
+
+libusb_device_handle * LIBUSB_CALL RpiBootPrivate
+    ::open_device_with_vid(libusb_context *ctx, uint16_t vendor_id)
 {
     struct libusb_device **devs;
     struct libusb_device *found = NULL;
@@ -37,16 +128,15 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
         r = libusb_get_device_descriptor(dev, &desc);
         if (r < 0)
             goto out;
-        if(verbose) {
+        if(_verbose) {
             qInfo() << QString()
                 .asprintf("Found device %u idVendor=0x%04x idProduct=0x%04x", i, desc.idVendor, desc.idProduct);
         }
 
         if (desc.idVendor == vendor_id) {
-            if(desc.idProduct == 0x2763 ||
-               desc.idProduct == 0x2764)
+            if(_pids.contains(desc.idProduct))
             {
-                if(verbose) {
+                if(_verbose) {
                     qInfo() << "Device located successfully";
                 }
                 found = dev;
@@ -60,7 +150,7 @@ libusb_device_handle * LIBUSB_CALL open_device_with_vid(
         r = libusb_open(found, &handle);
         if (r < 0)
         {
-            if(verbose) {
+            if(_verbose) {
                 qInfo("Failed to open the requested device");
             }
             handle = NULL;
@@ -74,13 +164,13 @@ out:
 }
 
 
-int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
+int RpiBootPrivate::initialize_device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 {
     int ret = 0;
     int interface;
     struct libusb_config_descriptor *config;
 
-    *usb_device = open_device_with_vid(*ctx, 0x0a5c);
+    *usb_device = open_device_with_vid(*ctx, _vid);
     if (*usb_device == NULL)
     {
         QThread::usleep(200);
@@ -98,12 +188,12 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
     // the second is the vendor interface for programming
     if(config->bNumInterfaces == 1) {
         interface = 0;
-        out_ep = 1;
-        in_ep = 2;
+        _out_ep = 1;
+        _in_ep = 2;
     } else {
         interface = 1;
-        out_ep = 3;
-        in_ep = 4;
+        _out_ep = 3;
+        _in_ep = 4;
     }
 
     ret = libusb_claim_interface(*usb_device, interface);
@@ -113,7 +203,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
         return ret;
     }
 
-    if(verbose) {
+    if(_verbose) {
         qInfo("Initialised device correctly");
     }
 
@@ -121,7 +211,7 @@ int Initialize_Device(libusb_context ** ctx, libusb_device_handle ** usb_device)
 }
 
 
-int ep_write(void *buf, int len, libusb_device_handle * usb_device)
+int RpiBootPrivate::ep_write(void *buf, int len, libusb_device_handle * usb_device)
 {
     int a_len = 0;
     int ret =
@@ -136,8 +226,8 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 
     if(len > 0)
     {
-        ret = libusb_bulk_transfer(usb_device, out_ep,(unsigned char*) buf, len, &a_len, 100000);
-        if(verbose) {
+        ret = libusb_bulk_transfer(usb_device, _out_ep,(unsigned char*) buf, len, &a_len, 100000);
+        if(_verbose) {
             qInfo() << "libusb_bulk_transfer returned " << ret;
         }
     }
@@ -146,7 +236,7 @@ int ep_write(void *buf, int len, libusb_device_handle * usb_device)
 }
 
 
-int ep_read(void *buf, int len, libusb_device_handle * usb_device)
+int RpiBootPrivate::ep_read(void *buf, int len, libusb_device_handle * usb_device)
 {
     int ret =
         libusb_control_transfer(usb_device,
@@ -160,11 +250,7 @@ int ep_read(void *buf, int len, libusb_device_handle * usb_device)
 }
 
 
-boot_message_t boot_message;
-void *second_stage_txbuf;
-
-
-int second_stage_prep(QFile& fp, QFile& fp_sig)
+int RpiBootPrivate::second_stage_prep(QFile& fp, QFile& fp_sig)
 {
     boot_message.length = fp.size();
 
@@ -189,43 +275,42 @@ int second_stage_prep(QFile& fp, QFile& fp_sig)
     return 0;
 }
 
-int second_stage_boot(libusb_device_handle *usb_device)
+
+int RpiBootPrivate::second_stage_boot(libusb_device_handle *usb_device)
 {
     int size, retcode = 0;
 
     size = ep_write(&boot_message, sizeof(boot_message), usb_device);
-    if (size != sizeof(boot_message))
-    {
+    if (size != sizeof(boot_message)) {
         printf("Failed to write correct length, returned %d\n", size);
         return -1;
     }
 
-    if(verbose) printf("Writing %d bytes\n", boot_message.length);
+    if(_verbose) {
+        qInfo() << "Writing " << boot_message.length << " bytes.";
+    }
+
     size = ep_write(second_stage_txbuf, boot_message.length, usb_device);
-    if (size != boot_message.length)
-    {
-        printf("Failed to read correct length, returned %d\n", size);
+
+    if (size != boot_message.length) {
+        qCritical() << "Failed to read correct length, returned " << size;
         return -1;
     }
 
     QThread::sleep(1);
     size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
-    if (size > 0 && retcode == 0)
-    {
-        printf("Successful read %d bytes \n", size);
-    }
-    else
-    {
-        printf("Failed : 0x%x", retcode);
+    if (size > 0 && retcode == 0) {
+        qInfo() << "Successful read " <<  size << " bytes";
+    } else {
+        qCritical() << QString().asprintf("Failed : 0x%x", retcode);
     }
 
     return retcode;
-
 }
 
 
-int file_server(libusb_device_handle * usb_device)
+int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
 {
     int going = 1;
     struct file_message {
@@ -246,7 +331,7 @@ int file_server(libusb_device_handle * usb_device)
             continue;
         }
 
-        if (verbose) {
+        if (_verbose) {
             qInfo() << "Received message" << message_name[message.command] << ':'<< message.fname;
         }
 
@@ -265,13 +350,13 @@ int file_server(libusb_device_handle * usb_device)
 
                 qInfo() << "Request: reading file " << message.fname;
 
-                fp.setFileName(QString(directory) + QString(message.fname));
+                fp.setFileName(QString(_directory) + QString(message.fname));
                 fp.open(QIODevice::ReadOnly);
 
                 if(strlen(message.fname) && fp.isOpen()) {
                     int file_size = fp.size();
 
-                    if(verbose) {
+                    if(_verbose) {
                         qInfo() << "File size = " << file_size << "bytes";
                     }
 
@@ -283,7 +368,7 @@ int file_server(libusb_device_handle * usb_device)
                     }
                 } else {
                     ep_write(NULL, 0, usb_device);
-                    if(verbose) {
+                    if(_verbose) {
                         qInfo() << "Cannot open file " << message.fname;
                     }
                     break;
@@ -324,7 +409,7 @@ int file_server(libusb_device_handle * usb_device)
                         return -1;
                     }
                 } else {
-                    if(verbose) {
+                    if(_verbose) {
                         qCritical() << "No file " << message.fname << " found.";
                     }
                     ep_write(NULL, 0, usb_device);
@@ -345,7 +430,8 @@ int file_server(libusb_device_handle * usb_device)
     return 0;
 }
 
-int boot(void)
+
+int RpiBootPrivate::boot(void)
 {
     libusb_context *ctx;
     libusb_device_handle *usb_device;
@@ -356,11 +442,11 @@ int boot(void)
     setbuf(stdout, NULL);
 
     // Default to standard msd directory
-    if(directory == NULL) {
-        directory = ":/usbboot_files/";
+    if(_directory == NULL) {
+        _directory = ":/usbboot_files/";
     }
 
-    QString bootcodePath(directory + QString("bootcode.bin"));
+    QString bootcodePath(_directory + QString("bootcode.bin"));
     QFile second_stage(bootcodePath);
 
     if(!second_stage.open(QIODevice::ReadOnly)) {
@@ -369,8 +455,8 @@ int boot(void)
     }
 
     QFile fp_sign;
-    if(signed_boot) {
-        QString bootsigPath(directory + QString("/bootsig.bin"));
+    if(_signed_boot) {
+        QString bootsigPath(_directory + QString("/bootsig.bin"));
         fp_sign.setFileName(bootsigPath);
 
         if (!fp_sign.open(QIODevice::ReadOnly)) {
@@ -391,7 +477,7 @@ int boot(void)
         QThread::currentThread()->exit(-1);
     }
 
-    libusb_set_debug(ctx, verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
+    libusb_set_debug(ctx, _verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
 
     do {
         int last_serial = -1;
@@ -400,11 +486,11 @@ int boot(void)
 
         // Wait for a device to get plugged in
         do {
-            ret = Initialize_Device(&ctx, &usb_device);
+            ret = initialize_device(&ctx, &usb_device);
             if(ret == 0) {
                 libusb_get_device_descriptor(libusb_get_device(usb_device), &desc);
 
-                if(verbose) {
+                if(_verbose) {
                     qInfo() << "Found serial number " << desc.iSerialNumber;
                 }
 
@@ -436,7 +522,7 @@ int boot(void)
         libusb_close(usb_device);
         QThread::sleep(1);
 
-    } while(loop || desc.iSerialNumber == 0);
+    } while(_loop || desc.iSerialNumber == 0);
 
     libusb_exit(ctx);
 

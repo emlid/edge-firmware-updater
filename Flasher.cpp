@@ -33,12 +33,8 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize, QCryptographicHash::
         }
     }
 
-    emit checkingCorrectness();
-
-    auto result = _isEquals(src, dest, hashAlgo);
-
     emit flashCompleted();
-    return result;
+    return true;
 }
 
 
