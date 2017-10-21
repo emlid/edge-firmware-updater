@@ -10,31 +10,41 @@
 
 int main(int argc, char *argv[])
 {
+    qSetMessagePattern("%{type} : %{message}");
+
     QCoreApplication a(argc, argv);
+
+    RpiBoot rpiboot(0x0a5c, {0x2764, 0x2763});
+
+    if (rpiboot.rpiDevicesCount() != 0) {
+        rpiboot.bootAsMassStorage();
+    } else {
+        qInfo() << "No bootable devices found.";
+    }
+
+    std::exit(1);
 
     auto manager = StorageDeviceManager::instance();
 
-    int res = ::boot();
+    auto physicalDrives = manager->physicalDrives(0x0a5c, 0x2764);
 
-    QTextStream(stdout) << "successful\n";
-
-    std::exit(0);
-
-    auto physicalDrives = manager->physicalDrives(2316, 4096);
+    qInfo() << "devices count: " << physicalDrives.size();
 
     for (std::shared_ptr<StorageDevice> device : physicalDrives) {
         QTextStream(stdout) << device->toString();
 
         device->unmountAllMountpoints();
 
-        QFile src("C:\\Users\\vladimir.provalov\\Downloads\\emrasp.img");
+        QFile src("/home/vladimir.provalov/Downloads/emlid-raspbian-20170323.img");
         QFile dest;
 
         if (device->openAsQFile(&dest).failed()) {
+            qCritical() << "Failed to open as qfile.";
             std::exit(1);
         }
 
         if (!src.open(QIODevice::ReadOnly)) {
+            qCritical() << "Failed to open image.";
             std::exit(1);
         }
 
