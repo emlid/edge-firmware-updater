@@ -5,7 +5,7 @@ StorageDevice::StorageDevice(QObject *parent) : QObject(parent)
 
 
 StorageDevice::StorageDevice(int vid, int pid, long blockSize, QObject *parent)
-    : _vid(vid), _pid(pid), _blockSize(blockSize), QObject(parent)
+    : QObject(parent), _vid(vid), _pid(pid), _blockSize(blockSize)
 {  }
 
 
