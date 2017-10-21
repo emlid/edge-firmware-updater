@@ -5,15 +5,18 @@ const ExecutionStatus ExecutionStatus::SUCCESS = ExecutionStatus(0);
 
 
 ExecutionStatus::ExecutionStatus(int errorCode, bool isCritical)
-    : _errorMessage(""), _failed(errorCode != 0), _isCritical(isCritical)
-{
-}
+    : _failed(errorCode != 0),
+      _isCritical(isCritical),
+      _errorMessage("")
+{ }
 
 
 ExecutionStatus::ExecutionStatus(int errorCode, QString const& additionalMessage, bool isCritical)
-    :_errorMessage(""), _failed(errorCode != 0), _isCritical(isCritical)
+    : _failed(errorCode != 0),
+      _isCritical(isCritical),
+      _errorMessage("")
 {
-    qDebug() << "DEBUG_OUT: " << (isCritical ? "!!CRITICAL!!" : "") << additionalMessage;
+    (isCritical ? qCritical() : qDebug()) << additionalMessage;
 }
 
 
