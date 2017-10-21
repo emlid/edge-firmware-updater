@@ -22,7 +22,7 @@ public:
           _signed_boot(0),
           _verbose(0),
           _loop(0),
-          _directory(nullptr) { }
+          _directory(":/usbboot_files/") { }
 
     int vid(void) const { return _vid; }
 
@@ -51,7 +51,7 @@ private:
     int _signed_boot;
     int _verbose;
     int _loop;
-    char * _directory;
+    QString _directory;
     int _out_ep;
     int _in_ep;
 
@@ -350,7 +350,8 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
 
                 qInfo() << "Request: reading file " << message.fname;
 
-                fp.setFileName(QString(_directory) + QString(message.fname));
+                fp.setFileName(_directory + QString(message.fname));
+
                 fp.open(QIODevice::ReadOnly);
 
                 if(strlen(message.fname) && fp.isOpen()) {
@@ -442,9 +443,6 @@ int RpiBootPrivate::boot(void)
     setbuf(stdout, NULL);
 
     // Default to standard msd directory
-    if(_directory == NULL) {
-        _directory = ":/usbboot_files/";
-    }
 
     QString bootcodePath(_directory + QString("bootcode.bin"));
     QFile second_stage(bootcodePath);
