@@ -33,7 +33,7 @@ ExecutionStatus StorageDevice::openAsQFile(QFile * const qfile)
     auto status = open(&fd);
 
     if (!status.failed()) {
-        qfile->open(fd, QIODevice::ReadWrite);
+        qfile->open(fd, QIODevice::WriteOnly);
     }
 
     return status;
