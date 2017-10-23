@@ -1,7 +1,7 @@
-HEADERS += rpiboot/rpiboot.h
-SOURCES += rpiboot/rpiboot.cpp
+HEADERS += $$PWD/rpiboot.h
+SOURCES += $$PWD/rpiboot.cpp
 
 LIBS += -lusb-1.0
 
-RESOURCES += rpiboot/usbboot_files.qrc
+RESOURCES += $$PWD/usbboot_files.qrc
 
