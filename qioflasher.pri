@@ -9,18 +9,18 @@ unix {
 }
 
 HEADERS += \
-    StorageDevice.h \
-    StorageDeviceManager.h \
-    ExecutionStatus.h \
-    testnotifier.h \
-    Flasher.h
+    $$PWD/StorageDevice.h \
+    $$PWD/StorageDeviceManager.h \
+    $$PWD/ExecutionStatus.h \
+    $$PWD/testnotifier.h \
+    $$PWD/Flasher.h
 
-SOURCES += main.cpp \
-    StorageDevice.cpp \
-    StorageDeviceManager.cpp \
-    ExecutionStatus.cpp \
-    testnotifier.cpp \
-    Flasher.cpp
+SOURCES += \
+    $$PWD/StorageDevice.cpp \
+    $$PWD/StorageDeviceManager.cpp \
+    $$PWD/ExecutionStatus.cpp \
+    $$PWD/testnotifier.cpp \
+    $$PWD/Flasher.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
