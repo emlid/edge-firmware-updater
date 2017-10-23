@@ -1,8 +1,8 @@
-HEADERS += linux/LinuxStorageDevice.h \
-           linux/LinuxStorageDeviceManager.h
+HEADERS += $$PWD/LinuxStorageDevice.h \
+           $$PWD/LinuxStorageDeviceManager.h
 
-SOURCES += linux/LinuxStorageDevice.cpp \
-           linux/LinuxStorageDeviceManager.cpp
+SOURCES += $$PWD/LinuxStorageDevice.cpp \
+           $$PWD/LinuxStorageDeviceManager.cpp
 
 LIBS += -ludev \   # For scanning devices
         -L/usr/lib

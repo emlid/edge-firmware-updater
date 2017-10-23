@@ -2,7 +2,7 @@
 #define LINUXSTORAGEDEVICE_H
 
 
-#include "StorageDevice.h"
+#include "../StorageDevice.h"
 
 
 class LinuxStorageDevice : public StorageDevice
