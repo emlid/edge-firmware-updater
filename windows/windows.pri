@@ -1,8 +1,8 @@
-HEADERS += windows/WindowsStorageDevice.h \
-           windows/WindowsStorageDeviceManager.h
+HEADERS += $$PWD/WindowsStorageDevice.h \
+           $$PWD/WindowsStorageDeviceManager.h
 
-SOURCES += windows/WindowsStorageDevice.cpp \
-           windows/WindowsStorageDeviceManager.cpp
+SOURCES += $$PWD/WindowsStorageDevice.cpp \
+           $$PWD/WindowsStorageDeviceManager.cpp
 
 #QMAKE_LFLAGS += '\"/MANIFESTUAC:level=\'highestAvailable\' uiAccess=\'false\'\"'
 
