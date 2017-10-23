@@ -14,16 +14,6 @@ int main(int argc, char *argv[])
 
     QCoreApplication a(argc, argv);
 
-    RpiBoot rpiboot(0x0a5c, {0x2764, 0x2763});
-
-    if (rpiboot.rpiDevicesCount() != 0) {
-        rpiboot.bootAsMassStorage();
-    } else {
-        qInfo() << "No bootable devices found.";
-    }
-
-    std::exit(1);
-
     auto manager = StorageDeviceManager::instance();
 
     auto physicalDrives = manager->physicalDrives(0x0a5c, 0x2764);
@@ -33,7 +23,7 @@ int main(int argc, char *argv[])
     for (std::shared_ptr<StorageDevice> device : physicalDrives) {
         QTextStream(stdout) << device->toString();
 
-        device->unmountAllMountpoints();
+        /*device->unmountAllMountpoints();
 
         QFile src("/home/vladimir.provalov/Downloads/emlid-raspbian-20170323.img");
         QFile dest;
@@ -53,7 +43,7 @@ int main(int argc, char *argv[])
 
         if (!flasher.flash(src, dest)) {
             QTextStream("failed");
-        }
+        }*/
     }
 
     return a.exec();
