@@ -17,13 +17,13 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize, QCryptographicHash::
         rd = src.read(buffer.get(), blockSize);
 
         if (rd != blockSize && rd != rest) {
-            emit flashAborted(FlashingStatus::READ_FAILED);
+            emit flashFailed(FlashingStatus::READ_FAILED);
             return false;
         }
 
         qint64 wr = dest.write(buffer.get(), rd);
         if (wr != rd) {
-            emit flashAborted(FlashingStatus::WRITE_FAILED);
+            emit flashFailed(FlashingStatus::WRITE_FAILED);
             return false;
         }
 

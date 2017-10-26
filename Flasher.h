@@ -28,7 +28,7 @@ signals:
     void flashStarted(void);
     void flashCompleted(void);
     void progressChanged(uint progress);
-    void flashAborted(FlashingStatus status);
+    void flashFailed(FlashingStatus status);
 
     void checkingCorrectness(void);
 
