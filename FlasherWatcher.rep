@@ -1,7 +1,24 @@
 #include <QtCore>
 
+
 class FlasherWatcher
 {
-    PROP(bool currState=false);
-    SLOT(void server_slot(bool clientState));
+
+    ENUM FlasherState {
+        Started,
+        DeviceFound,
+        DeviceNotFound,
+        ImageReadingFailed,
+        DeviceWritingFailed,
+        UnexpectedError,
+        Finished }
+
+    SLOT(void start());
+
+    SIGNAL(rpiBootStateChanged(FlasherState value));
+
+    SIGNAL(deviceScannerStateChanged(FlasherState value));
+
+    SIGNAL(firmwareUpgraderStateChanged(FlasherState value));
+
 };
