@@ -8,6 +8,8 @@ class FlasherWatcher
         Started,
         DeviceFound,
         DeviceNotFound,
+        OpenImageFailed,
+        OpenDeviceFailed,
         ImageReadingFailed,
         DeviceWritingFailed,
         UnexpectedError,
@@ -20,5 +22,7 @@ class FlasherWatcher
     SIGNAL(deviceScannerStateChanged(FlasherState value));
 
     SIGNAL(firmwareUpgraderStateChanged(FlasherState value));
+
+    SIGNAL(flashingProgressChanged(uint progress));
 
 };
