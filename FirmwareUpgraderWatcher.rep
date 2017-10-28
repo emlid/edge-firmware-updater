@@ -1,0 +1,10 @@
+#include <QtCore>
+
+
+class FirmwareUpgraderWatcher
+{
+    SLOT(void start());
+
+    SIGNAL(subsystemStateChanged(QString subsystem, uint state));
+    SIGNAL(flasherProgressChanged(uint value));
+};

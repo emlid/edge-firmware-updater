@@ -1,75 +1,54 @@
-﻿#include <QSignalSpy>
+#include "FirmwareUpgrader.h"
 
 #include "rpiboot/rpiboot.h"
 
-#include "RemoteFlasherWatcher.h"
+#include "FirmwareUpgraderWatcher.h"
 #include "StorageDeviceManager.h"
 #include "Flasher.h"
 
 
-RemoteFlasherWatcher::RemoteFlasherWatcher(QObject *parent)
-    : FlasherWatcherSource(parent)
-{ }
+FirmwareUpgrader::FirmwareUpgrader(QObject *parent)
+    : QObject(parent)
+{  }
 
 
-void RemoteFlasherWatcher::start(void)
+void FirmwareUpgrader::
+    _setCurrentState(QString const& subsystem, FirmwareUpgrader::State state)
 {
-    qInfo() << "Firmware upgrader started.";
-    runAllSteps();
-    qInfo() << "Firmware upgrader finished.";
+    Q_EMIT subsystemStateChanged(subsystem, state);
 }
 
 
-void RemoteFlasherWatcher::
-    setRpiBootState(RemoteFlasherWatcher::FlasherState value)
+bool FirmwareUpgrader::runRpiBootStep(int vid, QList<int> const& pids)
 {
-    Q_EMIT rpiBootStateChanged(value);
-}
+    auto setRpiBootState = [this] (FirmwareUpgrader::State const& state)
+        { _setCurrentState("RpiBoot", state); };
 
-
-void RemoteFlasherWatcher::
-    setDeviceScannerState(RemoteFlasherWatcher::FlasherState value)
-{
-    Q_EMIT deviceScannerStateChanged(value);
-}
-
-
-void RemoteFlasherWatcher::
-    setFirmwareUpgraderState(RemoteFlasherWatcher::FlasherState value)
-{
-    Q_EMIT firmwareUpgraderStateChanged(value);
-}
-
-
-bool RemoteFlasherWatcher::runRpiBootStep(int vid, QList<int> const& pids)
-{
     RpiBoot rpiboot(vid, pids);
 
-    setRpiBootState(FlasherState::Started);
+    setRpiBootState(FirmwareUpgrader::State::Started);
 
-    if (rpiboot.rpiDevicesCount() == 0) {
-        setRpiBootState(FlasherState::DeviceNotFound);
-        qCritical() << "No one rpi devices found.";
-        return false;
-    }
+    auto successful = rpiboot.rpiDevicesCount() > 0
+            && rpiboot.bootAsMassStorage() == 0;
 
-    auto successful = rpiboot.bootAsMassStorage();
-
-    if (successful != 0) {
-        setRpiBootState(FlasherState::UnexpectedError);
+    if (!successful) {
+        setRpiBootState(FirmwareUpgrader::State::DeviceNotFound);
         qCritical() << "Rpiboot failed";
         return false;
     }
 
-    setRpiBootState(FlasherState::Finished);
+    setRpiBootState(FirmwareUpgrader::State::Finished);
     return true;
 }
 
 
-bool RemoteFlasherWatcher::
+bool FirmwareUpgrader::
     runDeviceScannerStep(int vid, QList<int> const& pids, QVector<std::shared_ptr<StorageDevice>>* physicalDrives)
 {
-    setDeviceScannerState(FlasherState::Started);
+    auto setDeviceScannerState = [this] (FirmwareUpgrader::State const& state)
+        { _setCurrentState("DeviceScanner", state); };
+
+    setDeviceScannerState(FirmwareUpgrader::State::Started);
 
     qInfo() << "Device detecting...";
 
@@ -93,22 +72,23 @@ bool RemoteFlasherWatcher::
     } while (totalSleepTime < maxPollingTime);
 
     if (totalSleepTime > maxPollingTime) {
-        setDeviceScannerState(FlasherState::DeviceNotFound);
+        setDeviceScannerState(FirmwareUpgrader::State::DeviceNotFound);
         qCritical() << "Rpi as mass storage device not found";
         return false;
     }
 
     qInfo() << "Rpi device's found.";
-    setDeviceScannerState(FlasherState::DeviceFound);
+    setDeviceScannerState(FirmwareUpgrader::State::DeviceFound);
 
     return true;
 }
 
 
-bool RemoteFlasherWatcher::
+bool FirmwareUpgrader::
     runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives)
 {
-    setFirmwareUpgraderState(FlasherState::Started);
+    auto setFlasherState = [this] (FirmwareUpgrader::State const& state)
+        { _setCurrentState("Flasher", state); };
 
     for (auto device : physicalDrives) {
         qInfo() << "About Device\n" << device-> toString();
@@ -121,7 +101,7 @@ bool RemoteFlasherWatcher::
         auto successful = imageFile.open(QIODevice::ReadOnly);
 
         if (!successful) {
-            setFirmwareUpgraderState(FlasherState::OpenImageFailed);
+            setFlasherState(FirmwareUpgrader::State::OpenImageFailed);
             qCritical() << "Failed to open image.";
             return false;
         }
@@ -131,7 +111,7 @@ bool RemoteFlasherWatcher::
         auto status = device->openAsQFile(&rpiDeviceFile);
 
         if (status.failed()) {
-            setFirmwareUpgraderState(FlasherState::OpenDeviceFailed);
+            setFlasherState(FirmwareUpgrader::State::OpenDeviceFailed);
             qCritical() << "Failed to open as qfile.";
             return false;
         }
@@ -139,10 +119,10 @@ bool RemoteFlasherWatcher::
         // Connect all for receiving flasher state
         Flasher flasher;
 
-        connect(&flasher, &Flasher::flashStarted,    this, &RemoteFlasherWatcher::_onFlashStarted);
-        connect(&flasher, &Flasher::flashCompleted,  this, &RemoteFlasherWatcher::_onFlashCompleted);
-        connect(&flasher, &Flasher::flashFailed,     this, &RemoteFlasherWatcher::_onFlashFailed);
-        connect(&flasher, &Flasher::progressChanged, this, &RemoteFlasherWatcher::_onProgressChanged);
+        connect(&flasher, &Flasher::flashStarted,    this, &FirmwareUpgrader::_onFlashStarted);
+        connect(&flasher, &Flasher::flashCompleted,  this, &FirmwareUpgrader::_onFlashCompleted);
+        connect(&flasher, &Flasher::flashFailed,     this, &FirmwareUpgrader::_onFlashFailed);
+        connect(&flasher, &Flasher::progressChanged, this, &FirmwareUpgrader::_onProgressChanged);
 
         // Lets flashing our rpi device
         successful = flasher.flash(imageFile, rpiDeviceFile);
@@ -157,7 +137,15 @@ bool RemoteFlasherWatcher::
 }
 
 
-void RemoteFlasherWatcher::runAllSteps(void)
+void FirmwareUpgrader::start(void)
+{
+    qInfo() << ":: Firmware upgrader started ::";
+    _runAllSteps();
+    qInfo() << ":: Firmware upgrader finished ::";
+}
+
+
+void FirmwareUpgrader::_runAllSteps(void)
 {
     auto const requiredVid = 0x0a5c;
     auto requiredPids = QList<int>({ 0x2764, 0x2763 });
@@ -170,33 +158,33 @@ void RemoteFlasherWatcher::runAllSteps(void)
 }
 
 
-void RemoteFlasherWatcher::_onFlashStarted()
+void FirmwareUpgrader::_onFlashStarted()
 {
     qInfo() << "Flashing started.";
-    setFirmwareUpgraderState(FlasherState::Started);
+    _setCurrentState("Flasher", FirmwareUpgrader::State::Started);
 }
 
 
-void RemoteFlasherWatcher::_onFlashCompleted()
+void FirmwareUpgrader::_onFlashCompleted()
 {
     qInfo() << "Flashing finished.";
-    setFirmwareUpgraderState(FlasherState::Finished);
+    _setCurrentState("Flasher", FirmwareUpgrader::State::Finished);
 }
 
 
-void RemoteFlasherWatcher::_onProgressChanged(uint progress)
+void FirmwareUpgrader::_onProgressChanged(uint progress)
 {
     qInfo() << "Progress: " << progress;
     emit flashingProgressChanged(progress);
 }
 
 
-void RemoteFlasherWatcher::
+void FirmwareUpgrader::
     _onFlashFailed(Flasher::FlashingStatus status)
 {
     if (status == Flasher::FlashingStatus::READ_FAILED) {
-       setFirmwareUpgraderState(FlasherState::ImageReadingFailed);
+       _setCurrentState("Flasher", FirmwareUpgrader::State::ImageReadingFailed);
     } else {
-       setFirmwareUpgraderState(FlasherState::DeviceWritingFailed);
+       _setCurrentState("Flasher", FirmwareUpgrader::State::DeviceWritingFailed);
     }
 }
