@@ -1,12 +1,16 @@
 #ifndef REMOTEFLASHERWATCHER_H
 #define REMOTEFLASHERWATCHER_H
 
+#include <memory>
 
 #include "Flasher.h"
 #include "rep_FlasherWatcher_source.h"
 
 
-class RemoteFlasherWatcher : public FlasherWatcherSimpleSource
+class StorageDevice;
+
+
+class RemoteFlasherWatcher : public FlasherWatcherSource
 {
 
     Q_OBJECT
@@ -15,6 +19,12 @@ public:
 
     virtual void start(void) override;
 
+    bool runRpiBootStep(int vid, QList<int> const& pids);
+
+    bool runDeviceScannerStep(int vid, QList<int> const& pids, QVector<std::shared_ptr<StorageDevice>>* physicalDrives);
+
+    bool runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives);
+
 public slots:
     void setRpiBootState(FlasherState value);
 
@@ -22,14 +32,16 @@ public slots:
 
     void setFirmwareUpgraderState(FlasherState value);
 
+    void runAllSteps(void);
+
 private slots:
-    void onFlashStarted();
+    void _onFlashStarted();
 
-    void onFlashCompleted();
+    void _onFlashCompleted();
 
-    void onProgressChanged(uint progress);
+    void _onProgressChanged(uint progress);
 
-    void onFlashFailed(Flasher::FlashingStatus status);
+    void _onFlashFailed(Flasher::FlashingStatus status);
 
 };
 
