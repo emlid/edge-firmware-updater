@@ -1,7 +1,7 @@
 #include <QtRemoteObjects>
 #include <QtCore>
 
-#include "RemoteFlasherWatcher.h"
+#include "FirmwareUpgraderWatcher.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,12 +9,19 @@ int main(int argc, char *argv[])
 
     qSetMessagePattern("%{type} : %{message}");
 
-    auto serverUrl = QUrl(QStringLiteral("local:edge_fw_upgrader"));
+    auto serverUrl = QUrl(QStringLiteral("local:fiw_upgrader"));
     QRemoteObjectHost serverNode(serverUrl);
 
     // Remote our watcher to other processes
-    RemoteFlasherWatcher watcher;
-    serverNode.enableRemoting(&watcher);
+    FirmwareUpgraderWatcher watcher;
+    auto successful = serverNode.enableRemoting(&watcher);
+
+    if (successful) {
+        qInfo() << "Remoting started.";
+    } else {
+        qCritical() << "Remoting failed.";
+        std::exit(EXIT_FAILURE);
+    }
 
     return a.exec();
 }
