@@ -1,5 +1,12 @@
+equals(QT_MAJOR_VERSION, 5) {
+    lessThan(QT_MINOR_VERSION, 9) {
+        error("Qt 5.9 is required.")
+    }
+}
+
 QT += core testlib remoteobjects
 QT -= gui
+
 
 CONFIG += c++11
 
@@ -13,17 +20,19 @@ OBJECTS_DIR = obj
 MOC_DIR = moc
 RCC_DIR = resources
 
-SOURCES += main.cpp \
-    FirmwareUpgrader.cpp \
-    FirmwareUpgraderWatcher.cpp
+SOURCES += $$PWD/src/main.cpp \
+    $$PWD/src/FirmwareUpgrader.cpp \
+    $$PWD/src/FirmwareUpgraderWatcher.cpp \
+    $$PWD/src/Flasher.cpp
 
 HEADERS += \
-    FirmwareUpgrader.h \
-    FirmwareUpgraderWatcher.h
+    $$PWD/src/FirmwareUpgrader.h \
+    $$PWD/src/FirmwareUpgraderWatcher.h \
+    $$PWD/src/Flasher.h
 
-REPC_SOURCE = FirmwareUpgraderWatcher.rep
+REPC_SOURCE = $$PWD/src/FirmwareUpgraderWatcher.rep
 
-include(qioflasher.pri)
+include(src/devapi/devapi.pri)
 
 
 # The following define makes your compiler emit warnings if you use
