@@ -12,14 +12,12 @@ HEADERS += \
     $$PWD/StorageDevice.h \
     $$PWD/StorageDeviceManager.h \
     $$PWD/ExecutionStatus.h \
-    $$PWD/testnotifier.h \
     $$PWD/Flasher.h
 
 SOURCES += \
     $$PWD/StorageDevice.cpp \
     $$PWD/StorageDeviceManager.cpp \
     $$PWD/ExecutionStatus.cpp \
-    $$PWD/testnotifier.cpp \
     $$PWD/Flasher.cpp
 
 # The following define makes your compiler emit warnings if you use

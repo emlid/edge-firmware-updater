@@ -14,12 +14,14 @@ MOC_DIR = moc
 RCC_DIR = resources
 
 SOURCES += main.cpp \
-    RemoteFlasherWatcher.cpp
+    FirmwareUpgrader.cpp \
+    FirmwareUpgraderWatcher.cpp
 
 HEADERS += \
-    RemoteFlasherWatcher.h
+    FirmwareUpgrader.h \
+    FirmwareUpgraderWatcher.h
 
-REPC_SOURCE = FlasherWatcher.rep
+REPC_SOURCE = FirmwareUpgraderWatcher.rep
 
 include(qioflasher.pri)
 
