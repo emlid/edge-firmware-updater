@@ -1,9 +1,9 @@
 #include "FirmwareUpgrader.h"
 
-#include "rpiboot/rpiboot.h"
+#include "devapi/rpiboot/rpiboot.h"
+#include "devapi/StorageDeviceManager.h"
 
 #include "FirmwareUpgraderWatcher.h"
-#include "StorageDeviceManager.h"
 #include "Flasher.h"
 
 
