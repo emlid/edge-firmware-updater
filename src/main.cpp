@@ -2,15 +2,21 @@
 #include <QStandardPaths>
 #include <QtCore>
 
-#include "FirmwareUpgraderWatcher.h"
 #include <iostream>
 
+#ifdef Q_OS_LINUX
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 
-void messageHandler(QtMsgType type, const QMessageLogContext& context, QString const& msg)
+#include "FirmwareUpgraderWatcher.h"
+
+
+void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QString const& msg)
 {
     Q_UNUSED(context);
 
-    static auto  logFilename = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/fw_log";
+    static auto  logFilename = "/home/vladimir.provalov/fwupgrader.log";
     static QFile logFile(logFilename);
 
     if (!logFile.isOpen()) {
@@ -27,12 +33,12 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, QString c
     auto sendlog =
         [&logDataStream, &errDataStream, &msg]
             (QString const& prefix) -> void {
-                auto mess = prefix + msg;
+                auto mess = QTime::currentTime().toString() + ": " + prefix + msg + '\n';
                 logDataStream << mess;
                 errDataStream << mess;
             };
 
-    switch (type) {
+    switch (msgType) {
         case QtDebugMsg:
             sendlog("debug: ");
             break;
@@ -61,12 +67,21 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, QString c
 }
 
 
+void reducePrivilege(void) {
+#ifdef Q_OS_LINUX
+    ::umask(0);
+#endif
+}
+
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    qInstallMessageHandler(messageHandler);
+    qInstallMessageHandler(::messageHandler);
 
-    auto serverUrl = QUrl(QStringLiteral("local:ed"));
+    ::reducePrivilege();
+
+    auto serverUrl = QUrl(QStringLiteral("local:fwupg_socket"));
     QRemoteObjectHost serverNode(serverUrl);
 
     // Remote our watcher to other processes
