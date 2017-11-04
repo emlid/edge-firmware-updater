@@ -7,34 +7,29 @@ FirmwareUpgraderWatcher::FirmwareUpgraderWatcher(QObject *parent)
 { }
 
 
-void FirmwareUpgraderWatcher::start(void)
+void FirmwareUpgraderWatcher::start(QString firmwareFilename)
 {
-    auto fwUpgrader = new FirmwareUpgrader();
+    auto imageFileInfo = QFileInfo(firmwareFilename);
+
+    if (!(imageFileInfo.exists() && imageFileInfo.isReadable() && imageFileInfo.isFile())) {
+        emit subsystemStateChanged(QString("FirmwareUpgrader"), 3);
+        return;
+    }
+
+    auto fwUpgrader = new FirmwareUpgrader(firmwareFilename);
     fwUpgrader->moveToThread(&_thread);
 
     connect(&_thread, &QThread::started,  fwUpgrader, &FirmwareUpgrader::start);
     connect(&_thread, &QThread::finished, fwUpgrader, &FirmwareUpgrader::deleteLater);
 
-    auto stateChangedConnection = std::shared_ptr<QMetaObject::Connection>();
-    *stateChangedConnection = connect(fwUpgrader, &FirmwareUpgrader::subsystemStateChanged,
+    QObject::connect(fwUpgrader, &FirmwareUpgrader::subsystemStateChanged,
             [this] (QString const& subsystem, FirmwareUpgrader::State state) {
                 emit subsystemStateChanged(subsystem, static_cast<uint>(state));
             }
     );
 
-    auto progressChangedConnection = std::shared_ptr<QMetaObject::Connection>();
-    *progressChangedConnection = connect(fwUpgrader, &FirmwareUpgrader::flashingProgressChanged,
-            [this] (uint progress) {
-                emit flasherProgressChanged(progress);
-            }
-    );
-
-    connect(this, &FirmwareUpgraderWatcher::destroyed,
-        [stateChangedConnection, progressChangedConnection] () {
-            QObject::disconnect(*stateChangedConnection);
-            QObject::disconnect(*progressChangedConnection);
-        }
-    );
+    QObject::connect(fwUpgrader, &FirmwareUpgrader::flashingProgressChanged,
+                     this, &FirmwareUpgraderWatcher::flasherProgressChanged);
 
     _thread.start();
 }

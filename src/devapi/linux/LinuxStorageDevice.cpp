@@ -90,7 +90,7 @@ ExecutionStatus LinuxStorageDevice::close(void)
 ExecutionStatus LinuxStorageDevice::
     unmountAllMountpoints(void)
 {
-    for (QString mntpt : _mountpoints) {
+    for (QString const& mntpt : _mountpoints) {
         auto status = unmount(mntpt);
         if (status.failed()) {
             return status;
@@ -123,7 +123,7 @@ QString LinuxStorageDevice::toString() const
          << "Block Size: "   << _blockSize << '\n'
          << "Mountpoints:";
 
-    for (QString pt : _mountpoints) {
+    for (QString const& pt : _mountpoints) {
        QTextStream(&info) << pt << ", ";
     }
 

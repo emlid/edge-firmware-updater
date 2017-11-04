@@ -13,7 +13,7 @@ class FirmwareUpgraderWatcher : public FirmwareUpgraderWatcherSimpleSource
 public:
     explicit FirmwareUpgraderWatcher(QObject *parent = nullptr);
 
-    virtual void start(void) override;
+    virtual void start(QString firmwareFilename) override;
 
 private:
     QThread _thread;

@@ -74,7 +74,7 @@ QVector<QString> LinuxStorageDeviceManager::mountpoints(void)
     QVector<QString> mntpoints;
     mntpoints.reserve(mountedVolumes.size());
 
-    for (QStorageInfo volume : mountedVolumes) {
+    for (auto const& volume : mountedVolumes) {
         mntpoints.push_back(volume.device());
     }
 
@@ -103,7 +103,7 @@ QVector<QString> LinuxStorageDeviceManager::
     QVector<QString> neededMountpoints;
     auto mntpoints = mountpoints();
 
-    for (QString mntpt : mntpoints) {
+    for (QString const& mntpt : mntpoints) {
         if (mntpoints.startsWith(diskPath)) {
             neededMountpoints.push_back(mntpt);
         }

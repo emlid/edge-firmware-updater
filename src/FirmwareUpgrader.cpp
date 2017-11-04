@@ -7,8 +7,9 @@
 #include "Flasher.h"
 
 
-FirmwareUpgrader::FirmwareUpgrader(QObject *parent)
-    : QObject(parent)
+FirmwareUpgrader::FirmwareUpgrader(QString const& firmwareFilename, QObject *parent)
+    : QObject(parent),
+      _firmwareFilename(firmwareFilename)
 {  }
 
 
@@ -97,7 +98,7 @@ bool FirmwareUpgrader::
         device->unmountAllMountpoints();
 
         // Try to open file with Image
-        QFile imageFile("/home/vladimir.provalov/Downloads/emlid-raspbian-20170323.img");
+        QFile imageFile(_firmwareFilename);
         auto successful = imageFile.open(QIODevice::ReadOnly);
 
         if (!successful) {

@@ -28,7 +28,7 @@ public:
         DeviceWritingFailed
     };
 
-    explicit FirmwareUpgrader(QObject *parent = nullptr);
+    explicit FirmwareUpgrader(QString const& firmwareFilename, QObject *parent = nullptr);
 
     bool runRpiBootStep(int vid, QList<int> const& pids);
 
@@ -57,6 +57,8 @@ private:
     void _setCurrentState(QString const& subsystem, State value);
 
     void _runAllSteps(void);
+
+    QString _firmwareFilename;
 };
 
 #endif // FIRMWAREUPGRADER_H
