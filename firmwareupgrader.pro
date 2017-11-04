@@ -10,7 +10,7 @@ QT -= gui
 
 CONFIG += c++11
 
-TARGET = qioflasher
+TARGET = fwupgrader
 CONFIG += console
 CONFIG -= app_bundle
 
