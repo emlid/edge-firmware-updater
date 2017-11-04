@@ -12,7 +12,9 @@ void FirmwareUpgraderWatcher::start(QString firmwareFilename)
     auto imageFileInfo = QFileInfo(firmwareFilename);
 
     if (!(imageFileInfo.exists() && imageFileInfo.isReadable() && imageFileInfo.isFile())) {
-        emit subsystemStateChanged(QString("FirmwareUpgrader"), 3);
+        qCritical() << "incorrect image file.";
+        emit subsystemStateChanged(QString("FirmwareUpgrader"),
+                                   static_cast<uint>(FirmwareUpgrader::State::OpenImageFailed));
         return;
     }
 
