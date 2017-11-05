@@ -97,7 +97,7 @@ bool FirmwareUpgrader::
     auto setFlasherState = [this] (FirmwareUpgrader::State const& state)
         { _setCurrentState(FirmwareUpgrader::FLASHER_SUBSYSTEM_NAME, state); };
 
-    for (auto device : physicalDrives) {
+    for (auto const& device : physicalDrives) {
         qInfo() << "About Device\n" << device-> toString();
 
         // First: unmount all mountpoints (it's required for windows and optional for linux)
