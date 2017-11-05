@@ -69,7 +69,7 @@ QVector<QString> LinuxStorageDevice::mountpoints() const
 
 ExecutionStatus LinuxStorageDevice::open(int* const filedesc)
 {
-    _fd = ::open(_diskPath.toStdString().data(), O_WRONLY);
+    _fd = ::open(_diskPath.toStdString().data(), O_RDWR);
     if (_fd == -1) {
         return ExecutionStatus(errno, _diskPath + ": can not open file");
     }
@@ -104,9 +104,12 @@ ExecutionStatus LinuxStorageDevice::
 ExecutionStatus LinuxStorageDevice::
     unmount(QString const& mountpoint)
 {
-    if (::umount(mountpoint.toStdString().data())) {
+    if (::umount2(mountpoint.toStdString().data(), 0) != 0) {
+        qCritical() << "Unmount " << mountpoint << " failed with code" << errno;
         return ExecutionStatus(errno, mountpoint + ": unmounting failed");
     }
+
+    qInfo() << "Mountpoint " << mountpoint << " was unmounted";
 
     return ExecutionStatus::SUCCESS;
 }

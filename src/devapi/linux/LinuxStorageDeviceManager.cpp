@@ -50,6 +50,10 @@ QVector<std::shared_ptr<StorageDevice>>
         }
 
         auto diskPath = QString(::udev_device_get_devnode(device.get()));
+
+        // wait while OS automount our rpi device
+        QThread::sleep(2);
+
         auto relatedMountpoints = _relatedMountpoints(diskPath);
 
         int blockSize = -1;
@@ -72,7 +76,7 @@ QVector<QString> LinuxStorageDeviceManager::mountpoints(void)
     mntpoints.reserve(mountedVolumes.size());
 
     for (auto const& volume : mountedVolumes) {
-        mntpoints.push_back(volume.device());
+        mntpoints.push_back(volume.rootPath());
     }
 
     return mntpoints;
@@ -98,11 +102,11 @@ QVector<QString> LinuxStorageDeviceManager::
     _relatedMountpoints(QString const& diskPath)
 {
     QVector<QString> neededMountpoints;
-    auto mntpoints = mountpoints();
+    auto mountedVolumes = QStorageInfo::mountedVolumes();
 
-    for (QString const& mntpt : mntpoints) {
-        if (mntpoints.startsWith(diskPath)) {
-            neededMountpoints.push_back(mntpt);
+    for (auto const& mntpt : mountedVolumes) {
+        if (QString(mntpt.device()).startsWith(diskPath)) {
+            neededMountpoints.push_back(mntpt.rootPath());
         }
     }
 
