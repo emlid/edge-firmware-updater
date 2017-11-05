@@ -4,6 +4,8 @@ equals(QT_MAJOR_VERSION, 5) {
     }
 }
 
+message(Qt version: $$[QT_VERSION])
+
 QT += core testlib remoteobjects
 QT -= gui
 
