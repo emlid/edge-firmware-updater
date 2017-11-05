@@ -45,9 +45,6 @@ QVector<std::shared_ptr<StorageDevice>>
         auto deviceVid = QString(::udev_device_get_property_value(device.get(), "ID_VENDOR_ID"));
         auto devicePid = QString(::udev_device_get_property_value(device.get(), "ID_MODEL_ID"));
 
-        qDebug() << "Vid :" << deviceVid << " " << requiredVid;
-        qDebug() << "Pid :" << devicePid << " " << requiredPid;
-
         if (deviceVid != requiredVid) {
             continue;
         }

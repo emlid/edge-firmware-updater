@@ -8,6 +8,7 @@ Flasher::Flasher(QObject *parent) : QObject(parent) { }
 
 bool Flasher::flash(QFile& src, QFile& dest, int blockSize, QCryptographicHash::Algorithm hashAlgo) {
     Q_UNUSED(hashAlgo);
+    emit flashStarted();
 
     auto srcSize  = src.size();
     auto buffer   = std::unique_ptr<char[]>(new char[blockSize]);
