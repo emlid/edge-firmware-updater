@@ -16,7 +16,7 @@ FirmwareUpgrader::FirmwareUpgrader(QString const& firmwareFilename, QObject *par
 void FirmwareUpgrader::
     _setCurrentState(QString const& subsystem, FirmwareUpgrader::State state)
 {
-    Q_EMIT subsystemStateChanged(subsystem, state);
+    Q_EMIT subsystemStateChanged(subsystem, static_cast<uint>(state));
 }
 
 

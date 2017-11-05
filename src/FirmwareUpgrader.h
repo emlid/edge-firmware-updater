@@ -16,7 +16,7 @@ class FirmwareUpgrader : public QObject
     Q_OBJECT
 
 public:
-    enum class State {
+    enum State {
         Started = 0,
         Finished,
         UnexpectedError,
@@ -37,7 +37,7 @@ public:
     bool runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives);
 
 signals:
-    void subsystemStateChanged(QString const& subsystem, State value);
+    void subsystemStateChanged(QString const& subsystem, uint value);
 
     void flashingProgressChanged(uint value);
 
