@@ -4,7 +4,13 @@
 #include "devapi/StorageDeviceManager.h"
 
 #include "FirmwareUpgraderWatcher.h"
+#include "ChecksumCalculator.h"
 #include "Flasher.h"
+
+
+QString const FirmwareUpgrader::RPIBOOT_SUBSYSTEM_NAME       = QStringLiteral("RpiBoot");
+QString const FirmwareUpgrader::DEVICESCANNER_SUBSYSTEM_NAME = QStringLiteral("DeviceScanner");
+QString const FirmwareUpgrader::FLASHER_SUBSYSTEM_NAME       = QStringLiteral("Flasher");
 
 
 FirmwareUpgrader::FirmwareUpgrader(QString const& firmwareFilename, QObject *parent)
@@ -23,7 +29,7 @@ void FirmwareUpgrader::
 bool FirmwareUpgrader::runRpiBootStep(int vid, QList<int> const& pids)
 {
     auto setRpiBootState = [this] (FirmwareUpgrader::State const& state)
-        { _setCurrentState("RpiBoot", state); };
+        { _setCurrentState(FirmwareUpgrader::RPIBOOT_SUBSYSTEM_NAME, state); };
 
     RpiBoot rpiboot(vid, pids);
 
@@ -47,7 +53,7 @@ bool FirmwareUpgrader::
     runDeviceScannerStep(int vid, QList<int> const& pids, QVector<std::shared_ptr<StorageDevice>>* physicalDrives)
 {
     auto setDeviceScannerState = [this] (FirmwareUpgrader::State const& state)
-        { _setCurrentState("DeviceScanner", state); };
+        { _setCurrentState(FirmwareUpgrader::DEVICESCANNER_SUBSYSTEM_NAME, state); };
 
     setDeviceScannerState(FirmwareUpgrader::State::Started);
 
@@ -89,13 +95,15 @@ bool FirmwareUpgrader::
     runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives)
 {
     auto setFlasherState = [this] (FirmwareUpgrader::State const& state)
-        { _setCurrentState("Flasher", state); };
+        { _setCurrentState(FirmwareUpgrader::FLASHER_SUBSYSTEM_NAME, state); };
 
     for (auto device : physicalDrives) {
         qInfo() << "About Device\n" << device-> toString();
 
         // First: unmount all mountpoints (it's required for windows and optional for linux)
-        device->unmountAllMountpoints();
+        if (device->unmountAllMountpoints().failed()) {
+            qWarning() << "Unmounting related mountpoints failed.";
+        }
 
         // Try to open file with Image
         QFile imageFile(_firmwareFilename);
@@ -125,16 +133,38 @@ bool FirmwareUpgrader::
         connect(&flasher, &Flasher::flashFailed,     this, &FirmwareUpgrader::_onFlashFailed);
         connect(&flasher, &Flasher::progressChanged, this, &FirmwareUpgrader::_onProgressChanged);
 
-        // Lets flashing our rpi device
-        successful = flasher.flash(imageFile, rpiDeviceFile);
+        // Lets flash our rpi device
+        auto ioBlockSize = 1 << 16; // 64kb
+        successful = flasher.flash(imageFile, rpiDeviceFile, ioBlockSize);
 
         if (!successful) {
             qCritical() << "Flashing failed";
             return false;
         }
+
+        setFlasherState(FirmwareUpgrader::State::CheckingCorrectness);
+        successful = _checkCorrectness(imageFile, rpiDeviceFile);
+
+        if (!successful) {
+            qWarning() << "Checksums of image and device isn't equal.";
+            return false;
+        }
+
+        qInfo() << "Image correctly wrote to rpi device.";
     }
 
     return false;
+}
+
+
+bool FirmwareUpgrader::_checkCorrectness(QFile& image, QFile& device)
+{
+    ChecksumCalculator calc;
+
+    auto imgChecksum = calc.calculate(image, image.size());
+    auto devChecksum = calc.calculate(device, image.size());
+
+    return imgChecksum == devChecksum;
 }
 
 
@@ -184,8 +214,10 @@ void FirmwareUpgrader::
     _onFlashFailed(Flasher::FlashingStatus status)
 {
     if (status == Flasher::FlashingStatus::READ_FAILED) {
+        qCritical() << "Flasher: image reading failed";
        _setCurrentState("Flasher", FirmwareUpgrader::State::ImageReadingFailed);
     } else {
+        qCritical() << "Flasher: device writing failed";
        _setCurrentState("Flasher", FirmwareUpgrader::State::DeviceWritingFailed);
     }
 }

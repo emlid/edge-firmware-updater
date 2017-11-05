@@ -16,6 +16,10 @@ class FirmwareUpgrader : public QObject
     Q_OBJECT
 
 public:
+    static const QString RPIBOOT_SUBSYSTEM_NAME;
+    static const QString DEVICESCANNER_SUBSYSTEM_NAME;
+    static const QString FLASHER_SUBSYSTEM_NAME;
+
     enum State {
         Started = 0,
         Finished,
@@ -25,7 +29,8 @@ public:
         OpenImageFailed,
         OpenDeviceFailed,
         ImageReadingFailed,
-        DeviceWritingFailed
+        DeviceWritingFailed,
+        CheckingCorrectness
     };
 
     explicit FirmwareUpgrader(QString const& firmwareFilename, QObject *parent = nullptr);
@@ -35,6 +40,7 @@ public:
     bool runDeviceScannerStep(int vid, QList<int> const& pids, QVector<std::shared_ptr<StorageDevice>>* physicalDrives);
 
     bool runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives);
+
 
 signals:
     void subsystemStateChanged(QString const& subsystem, uint value);
@@ -54,6 +60,8 @@ private slots:
     void _onFlashFailed(Flasher::FlashingStatus status);
 
 private:
+    bool _checkCorrectness(QFile& image, QFile& device);
+
     void _setCurrentState(QString const& subsystem, State value);
 
     void _runAllSteps(void);
