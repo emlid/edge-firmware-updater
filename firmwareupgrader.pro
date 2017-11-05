@@ -1,7 +1,9 @@
-equals(QT_MAJOR_VERSION, 5) {
-    lessThan(QT_MINOR_VERSION, 9) {
-        error("Qt 5.9 is required.")
-    }
+lessThan(QT_MAJOR_VERSION, 5) {
+        error("Required at least Qt 5.9.")
+}
+
+equals(QT_MAJOR_VERSION, 5) : lessThan(QT_MINOR_VERSION, 9) {
+        error("Required at least Qt 5.9.")
 }
 
 message(Qt version: $$[QT_VERSION])
@@ -25,12 +27,14 @@ RCC_DIR = resources
 SOURCES += $$PWD/src/main.cpp \
     $$PWD/src/FirmwareUpgrader.cpp \
     $$PWD/src/FirmwareUpgraderWatcher.cpp \
-    $$PWD/src/Flasher.cpp
+    $$PWD/src/Flasher.cpp \
+    $$PWD/src/ChecksumCalculator.cc
 
 HEADERS += \
     $$PWD/src/FirmwareUpgrader.h \
     $$PWD/src/FirmwareUpgraderWatcher.h \
-    $$PWD/src/Flasher.h
+    $$PWD/src/Flasher.h \
+    $$PWD/src/ChecksumCalculator.h
 
 REPC_SOURCE = $$PWD/src/FirmwareUpgraderWatcher.rep
 
