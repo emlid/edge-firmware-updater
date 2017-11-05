@@ -4,6 +4,7 @@
 #include <QtCore>
 
 #include "rep_FirmwareUpgraderWatcher_source.h"
+#include "FirmwareUpgrader.h"
 
 
 class FirmwareUpgraderWatcher : public FirmwareUpgraderWatcherSimpleSource
@@ -18,6 +19,8 @@ public:
 private:
     QThread _thread;
 
+private slots:
+    void _onSubsystemStateChanged(QString subsystem, uint state);
 };
 
 
