@@ -30,7 +30,9 @@ public:
         OpenDeviceFailed,
         ImageReadingFailed,
         DeviceWritingFailed,
-        CheckingCorrectness
+        CheckingCorrectness,
+        ImageUncorrectlyWrote,
+        ImageCorrectlyWrote
     };
 
     explicit FirmwareUpgrader(QString const& firmwareFilename, QObject *parent = nullptr);
@@ -41,14 +43,15 @@ public:
 
     bool runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives);
 
+public slots:
+    void start(void);
 
 signals:
+    void finished(void);
+
     void subsystemStateChanged(QString const& subsystem, uint value);
 
     void flashingProgressChanged(uint value);
-
-public slots:
-    void start(void);
 
 private slots:
     void _onFlashStarted();

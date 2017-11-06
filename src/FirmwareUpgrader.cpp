@@ -147,9 +147,11 @@ bool FirmwareUpgrader::
 
         if (!successful) {
             qWarning() << "Checksums of image and device isn't equal.";
+            setFlasherState(FirmwareUpgrader::State::ImageUncorrectlyWrote);
             return false;
         }
 
+        setFlasherState(FirmwareUpgrader::State::ImageCorrectlyWrote);
         qInfo() << "Image correctly wrote to rpi device.";
     }
 
@@ -160,6 +162,8 @@ bool FirmwareUpgrader::
 bool FirmwareUpgrader::_checkCorrectness(QFile& image, QFile& device)
 {
     ChecksumCalculator calc;
+
+    connect(&calc, &ChecksumCalculator::progressChanged, this, &FirmwareUpgrader::flashingProgressChanged);
 
     auto imgChecksum = calc.calculate(image, image.size());
     auto devChecksum = calc.calculate(device, image.size());
@@ -172,14 +176,15 @@ void FirmwareUpgrader::start(void)
 {
     qInfo() << ":: Firmware upgrader started ::";
     _runAllSteps();
+    emit finished();
     qInfo() << ":: Firmware upgrader finished ::";
 }
 
 
 void FirmwareUpgrader::_runAllSteps(void)
 {
-    auto const requiredVid = 0x0a5c;
-    auto requiredPids = QList<int>({ 0x2764, 0x2763 });
+    auto const requiredVid = 0x0a5c; // Edge Vid
+    auto requiredPids = QList<int>({ 0x2764, 0x2763 }); // Edge pids
 
     QVector<std::shared_ptr<StorageDevice>> physicalDrives;
 
