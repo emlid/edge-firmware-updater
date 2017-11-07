@@ -15,6 +15,7 @@ public:
     explicit FirmwareUpgraderWatcher(QObject *parent = nullptr);
 
     virtual void start(QString firmwareFilename) override;
+    virtual void cancel(void) override;
 
 private:
     QThread _thread;

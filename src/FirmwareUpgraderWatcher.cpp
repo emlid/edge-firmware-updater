@@ -23,8 +23,11 @@ void FirmwareUpgraderWatcher::start(QString firmwareFilename)
     auto fwUpgrader = new FirmwareUpgrader(firmwareFilename);
     fwUpgrader->moveToThread(&_thread);
 
-    connect(&_thread, &QThread::started,  fwUpgrader, &FirmwareUpgrader::start);
-    connect(&_thread, &QThread::finished, fwUpgrader, &FirmwareUpgrader::deleteLater);
+    QObject::connect(&_thread, &QThread::started,  fwUpgrader, &FirmwareUpgrader::start);
+    QObject::connect(&_thread, &QThread::finished, fwUpgrader, &FirmwareUpgrader::deleteLater);
+
+    QObject::connect(fwUpgrader, &FirmwareUpgrader::finished, this, &FirmwareUpgraderWatcher::finished);
+    QObject::connect(fwUpgrader, &FirmwareUpgrader::finished, this, &FirmwareUpgraderWatcher::cancel);
 
     QObject::connect(fwUpgrader, &FirmwareUpgrader::subsystemStateChanged, this,
                      &FirmwareUpgraderWatcher::_onSubsystemStateChanged);
@@ -39,4 +42,17 @@ void FirmwareUpgraderWatcher::start(QString firmwareFilename)
 void FirmwareUpgraderWatcher::_onSubsystemStateChanged(QString subsystem, uint state)
 {
     emit subsystemStateChanged(subsystem, static_cast<uint>(state));
+}
+
+
+void FirmwareUpgraderWatcher::cancel(void)
+{
+    if (_thread.isRunning()) {
+        _thread.quit();
+        _thread.wait();
+    }
+
+    emit finished();
+
+    std::exit(0);
 }
