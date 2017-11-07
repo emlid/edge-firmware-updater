@@ -16,7 +16,9 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
 {
     Q_UNUSED(context);
 
-    static auto  logFilename = "/home/vladimir.provalov/fwupgrader.log";
+#ifdef QT_DEBUG
+    static auto  logFilename =
+            QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/fwupgrader.log";
     static QFile logFile(logFilename);
 
     if (!logFile.isOpen()) {
@@ -28,13 +30,17 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
     }
 
     QTextStream logDataStream(&logFile);
+#endif
+
     QTextStream errDataStream(stderr);
 
     auto sendlog =
         [&logDataStream, &errDataStream, &msg]
             (QString const& prefix) -> void {
                 auto mess = QTime::currentTime().toString() + ": " + prefix + msg + '\n';
+#ifdef QT_DEBUG
                 logDataStream << mess;
+#endif
                 errDataStream << mess;
             };
 
@@ -67,7 +73,7 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
 }
 
 
-void reducePrivilege(void) {
+void reducePriviledge(void) {
 #ifdef Q_OS_LINUX
     ::umask(0);
 #endif
@@ -79,7 +85,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     qInstallMessageHandler(::messageHandler);
 
-    ::reducePrivilege();
+    ::reducePriviledge();
 
     auto serverUrl = QUrl(QStringLiteral("local:fwupg_socket"));
     QRemoteObjectHost serverNode(serverUrl);
