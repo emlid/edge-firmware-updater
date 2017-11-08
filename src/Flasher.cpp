@@ -1,6 +1,7 @@
 #include "Flasher.h"
 #include <memory>
 #include <iostream>
+#include <QtConcurrent/QtConcurrent>
 
 
 Flasher::Flasher(QObject *parent) : QObject(parent) { }
@@ -12,26 +13,28 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
     auto srcSize  = src.size();
     auto buffer   = std::unique_ptr<char[]>(new char[blockSize]);
 
-    quint64 oldProgress = 0;
-    for (qint64 rest = srcSize, rd = 0, i = 0; rest ; rest -= rd, i++) {
-        rd = src.read(buffer.get(), blockSize);
+    auto savedProgress = 0l;
 
-        if (rd != blockSize && rd != rest) {
+    for (auto wroteBytes = 0l; wroteBytes != srcSize;) {
+
+        auto readed = src.read(buffer.get(), blockSize);
+        if (readed != blockSize && readed != srcSize - wroteBytes) {
             emit flashFailed(FlashingStatus::READ_FAILED);
             return false;
         }
 
-        qint64 wr = dest.write(buffer.get(), rd);
-        if (wr != rd) {
+        auto wrote= dest.write(buffer.get(), readed);
+        if (wrote != readed) {
             emit flashFailed(FlashingStatus::WRITE_FAILED);
             return false;
         }
 
-        quint64 progress = (rest * 100) / srcSize;
+        wroteBytes += wrote;
+        auto progress = (wroteBytes * 100l) / srcSize;
 
-        if (progress != oldProgress) {
-            oldProgress = progress;
-            emit progressChanged(100 - (rest * 100) / srcSize);
+        if (progress != savedProgress) {
+            savedProgress = progress;
+            emit progressChanged(progress);
         }
     }
 
