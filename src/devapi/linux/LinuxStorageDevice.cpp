@@ -69,7 +69,7 @@ QVector<QString> LinuxStorageDevice::mountpoints() const
 
 ExecutionStatus LinuxStorageDevice::open(int* const filedesc)
 {
-    _fd = ::open(_diskPath.toStdString().data(), O_RDWR);
+    _fd = ::open(_diskPath.toStdString().data(), O_RDWR | O_SYNC);
     if (_fd == -1) {
         return ExecutionStatus(errno, _diskPath + ": can not open file");
     }
