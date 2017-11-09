@@ -13,9 +13,9 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
     auto srcSize  = src.size();
     auto buffer   = std::unique_ptr<char[]>(new char[blockSize]);
 
-    auto savedProgress = 0l;
+    auto savedProgress = 0;
 
-    for (auto wroteBytes = 0l; wroteBytes != srcSize;) {
+    for (qint64 wroteBytes = 0; wroteBytes != srcSize;) {
 
         auto readed = src.read(buffer.get(), blockSize);
         if (readed != blockSize && readed != srcSize - wroteBytes) {
@@ -23,14 +23,14 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
             return false;
         }
 
-        auto wrote= dest.write(buffer.get(), readed);
+        auto wrote = dest.write(buffer.get(), readed);
         if (wrote != readed) {
             emit flashFailed(FlashingStatus::WRITE_FAILED);
             return false;
         }
 
         wroteBytes += wrote;
-        auto progress = (wroteBytes * 100l) / srcSize;
+        qint64 progress = (wroteBytes * 100) / srcSize;
 
         if (progress != savedProgress) {
             savedProgress = progress;

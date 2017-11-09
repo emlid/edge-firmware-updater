@@ -18,7 +18,7 @@ QByteArray ChecksumCalculator::calculate(QFile &file, qint64 length, int ioBlock
     auto fileSize = length;
     auto progress = 0;
 
-    auto readed = 0l;
+    qint64 readed = 0l;
 
     while (readed < fileSize) {
         if (readed + ioBlockSize > fileSize) {
