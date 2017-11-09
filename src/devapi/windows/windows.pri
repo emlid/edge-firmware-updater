@@ -4,6 +4,6 @@ HEADERS += $$PWD/WindowsStorageDevice.h \
 SOURCES += $$PWD/WindowsStorageDevice.cpp \
            $$PWD/WindowsStorageDeviceManager.cpp
 
-#QMAKE_LFLAGS += '\"/MANIFESTUAC:level=\'highestAvailable\' uiAccess=\'false\'\"'
+QMAKE_LFLAGS += '\"/MANIFESTUAC:level=\'highestAvailable\' uiAccess=\'false\'\"'
 
 LIBS += -lsetupAPI

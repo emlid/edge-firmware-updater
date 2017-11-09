@@ -56,7 +56,12 @@ QVector<std::shared_ptr<StorageDevice>> WindowsStorageDeviceManager::
             auto devVid = _extractVid(devicePath);
             auto devPid = _extractPid(devicePath);
 
-            if (devVid != vid || devPid != pid) return;
+            qInfo() << "Device vid: " << devVid;
+            qInfo() << "Required vid: " <<  vid;
+
+            Q_UNUSED(devPid);
+
+            if (devVid != vid) return;
 
             auto storageDevicePtr = _constructStorageDevice(devicePath, vid, pid);
             if (storageDevicePtr.get() != nullptr) {

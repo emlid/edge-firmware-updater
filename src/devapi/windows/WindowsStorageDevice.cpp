@@ -63,7 +63,7 @@ ExecutionStatus WindowsStorageDevice::open(int* const filedesc)
         return ExecutionStatus(::GetLastError(), _devicePath + ": open for writing failed.");
     }
 
-    *filedesc = _open_osfhandle(reinterpret_cast<intptr_t>(_handle), _O_RAW | _O_WRONLY | _O_RDONLY);
+    *filedesc = _open_osfhandle(reinterpret_cast<intptr_t>(_handle), _O_RAW | _O_RDWR);
 
     return ExecutionStatus::SUCCESS;
 }

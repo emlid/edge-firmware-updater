@@ -9,7 +9,7 @@
 #include <windows.h>
 #include <SetupAPI.h>
 
-#include "StorageDeviceManager.h"
+#include "../StorageDeviceManager.h"
 
 class WindowsStorageDeviceManager : public StorageDeviceManager
 {

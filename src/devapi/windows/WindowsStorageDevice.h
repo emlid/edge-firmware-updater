@@ -3,7 +3,7 @@
 
 #include <windows.h>
 
-#include "StorageDevice.h"
+#include "../StorageDevice.h"
 
 class WindowsStorageDevice: public StorageDevice
 {
