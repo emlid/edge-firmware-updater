@@ -16,9 +16,8 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
 {
     Q_UNUSED(context);
 
-#ifdef QT_DEBUG
     static auto  logFilename =
-            QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/fwupgrader.log";
+            QCoreApplication::applicationDirPath() + "/fwupgrader.log";
     static QFile logFile(logFilename);
 
     if (!logFile.isOpen()) {
@@ -29,18 +28,14 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
         }
     }
 
-    QTextStream logDataStream(&logFile);
-#endif
-
+    QDataStream logDataStream(&logFile);
     QTextStream errDataStream(stderr);
 
     auto sendlog =
         [&logDataStream, &errDataStream, &msg]
             (QString const& prefix) -> void {
                 auto mess = QTime::currentTime().toString() + ": " + prefix + msg + '\n';
-#ifdef QT_DEBUG
                 logDataStream << mess;
-#endif
                 errDataStream << mess;
             };
 
@@ -68,8 +63,6 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
         default:
             break;
     }
-
-    logDataStream.flush();
 }
 
 
