@@ -14,7 +14,7 @@ class FirmwareUpgraderWatcher : public FirmwareUpgraderWatcherSimpleSource
 public:
     explicit FirmwareUpgraderWatcher(QObject *parent = nullptr);
 
-    virtual void start(QString firmwareFilename) override;
+    virtual void start(QString firmwareFilename, bool checksumEnabled) override;
     virtual void cancel(void) override;
 
 private:

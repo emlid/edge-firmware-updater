@@ -3,8 +3,8 @@
 
 class FirmwareUpgraderWatcher
 {
-    SLOT(void cancel())
-    SLOT(void start(QString firmwareFilename));
+    SLOT(void start(QString firmwareFilename, bool checksumEnabled));
+    SLOT(void cancel());
 
     SIGNAL(finished());
     SIGNAL(subsystemStateChanged(QString subsystem, uint state));

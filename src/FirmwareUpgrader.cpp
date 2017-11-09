@@ -13,9 +13,10 @@ QString const FirmwareUpgrader::DEVICESCANNER_SUBSYSTEM_NAME = QStringLiteral("D
 QString const FirmwareUpgrader::FLASHER_SUBSYSTEM_NAME       = QStringLiteral("Flasher");
 
 
-FirmwareUpgrader::FirmwareUpgrader(QString const& firmwareFilename, QObject *parent)
+FirmwareUpgrader::FirmwareUpgrader(QString const& firmwareFilename, bool checksumEnabled, QObject *parent)
     : QObject(parent),
-      _firmwareFilename(firmwareFilename)
+      _firmwareFilename(firmwareFilename),
+      _checksumEnabled(checksumEnabled)
 {  }
 
 
@@ -140,6 +141,11 @@ bool FirmwareUpgrader::
         if (!successful) {
             qCritical() << "Flashing failed";
             return false;
+        }
+
+        // if checksum not important - leave this step
+        if (!_checksumEnabled) {
+            return true;
         }
 
         setFlasherState(FirmwareUpgrader::State::CheckingCorrectness);

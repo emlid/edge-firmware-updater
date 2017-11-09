@@ -35,7 +35,7 @@ public:
         ImageCorrectlyWrote
     };
 
-    explicit FirmwareUpgrader(QString const& firmwareFilename, QObject *parent = nullptr);
+    explicit FirmwareUpgrader(QString const& firmwareFilename, bool checksumEnabled, QObject *parent = nullptr);
 
     bool runRpiBootStep(int vid, QList<int> const& pids);
 
@@ -70,6 +70,7 @@ private:
     void _runAllSteps(void);
 
     QString _firmwareFilename;
+    bool    _checksumEnabled;
 };
 
 #endif // FIRMWAREUPGRADER_H

@@ -7,7 +7,7 @@ FirmwareUpgraderWatcher::FirmwareUpgraderWatcher(QObject *parent)
 { }
 
 
-void FirmwareUpgraderWatcher::start(QString firmwareFilename)
+void FirmwareUpgraderWatcher::start(QString firmwareFilename, bool checksumEnabled)
 {
     auto imageFileInfo = QFileInfo(firmwareFilename);
 
@@ -20,7 +20,7 @@ void FirmwareUpgraderWatcher::start(QString firmwareFilename)
         return;
     }
 
-    auto fwUpgrader = new FirmwareUpgrader(firmwareFilename);
+    auto fwUpgrader = new FirmwareUpgrader(firmwareFilename, checksumEnabled);
     fwUpgrader->moveToThread(&_thread);
 
     QObject::connect(&_thread, &QThread::started,  fwUpgrader, &FirmwareUpgrader::start);
