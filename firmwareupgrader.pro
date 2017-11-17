@@ -12,7 +12,7 @@ QT += core testlib remoteobjects
 QT -= gui
 
 
-CONFIG += c++11
+CONFIG += c++14
 
 TARGET = fwupgrader
 CONFIG += console
@@ -34,7 +34,8 @@ HEADERS += \
     $$PWD/src/FirmwareUpgrader.h \
     $$PWD/src/FirmwareUpgraderWatcher.h \
     $$PWD/src/Flasher.h \
-    $$PWD/src/ChecksumCalculator.h
+    $$PWD/src/ChecksumCalculator.h \
+    src/States.h
 
 REPC_SOURCE = $$PWD/src/FirmwareUpgraderWatcher.rep
 
