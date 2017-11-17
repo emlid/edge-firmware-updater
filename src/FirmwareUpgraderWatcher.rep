@@ -1,12 +1,26 @@
 #include <QtCore>
 
-
 class FirmwareUpgraderWatcher
 {
-    SLOT(void start(QString firmwareFilename, bool checksumEnabled));
-    SLOT(void cancel());
+    SLOT(void setFilterParams(int vid, QList<int> pids));
 
-    SIGNAL(finished());
-    SIGNAL(subsystemStateChanged(QString subsystem, uint state));
+    SLOT(void runRpiBootStep());
+    SIGNAL(rpiBootStateChanged(uint state, uint type));
+    SIGNAL(rpiBootFinished(bool status));
+
+    SLOT(void runDeviceScannerStep());
+    SIGNAL(deviceScannerStateChanged(uint state, uint type));
+    SIGNAL(deviceMountpoints(QStringList list));
+    SIGNAL(deviceScannerFinished(bool status));
+
+    SLOT(void runFlasherStep(QString firmwareUpgrader, bool checksumEnabled));
+    SIGNAL(flasherStateChanged(uint state, uint type));
     SIGNAL(flasherProgressChanged(uint value));
+    SIGNAL(flasherFinished(bool status));
+
+    SLOT(void cancel());
+    SIGNAL(cancelled());
+
+    SLOT(void finish());
+    SIGNAL(finished());
 };

@@ -14,14 +14,37 @@ class FirmwareUpgraderWatcher : public FirmwareUpgraderWatcherSimpleSource
 public:
     explicit FirmwareUpgraderWatcher(QObject *parent = nullptr);
 
-    virtual void start(QString firmwareFilename, bool checksumEnabled) override;
-    virtual void cancel(void) override;
+public slots:
+    void setFilterParams(int vid, QList<int> pids);
 
-private:
-    QThread _thread;
+    void runRpiBootStep(void) override final;
+
+    void runDeviceScannerStep(void) override final;
+
+    void runFlasherStep(QString firmwareFilename, bool checksumEnabled);
+
+    void cancel(void) override final;
+
+    void finish(void) override final;
+
+signals:
+    void execRpiBoot(void);
+
+    void execDeviceScannerStep(void);
+
+    void execFlasher(QString const& firmwareFilename, bool checksumEnabled);
+
+    void setVidPid(int vid, QList<int> pids);
 
 private slots:
-    void _onSubsystemStateChanged(QString subsystem, uint state);
+    void _onRpiBootStateChanged(states::RpiBootState state, states::StateType type);
+    void _onDeviceScannerStateChanged(states::DeviceScannerState state, states::StateType type);
+    void _onFlasherStateChanged(states::FlasherState state, states::StateType type);
+
+private:
+    void _initConnections(FirmwareUpgrader*);
+
+    QThread _thread;
 };
 
 
