@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Flasher.h"
-#include "rep_FirmwareUpgraderWatcher_source.h"
+#include "States.h"
 
 
 class StorageDevice;
@@ -16,47 +16,37 @@ class FirmwareUpgrader : public QObject
     Q_OBJECT
 
 public:
-    static const QString RPIBOOT_SUBSYSTEM_NAME;
-    static const QString DEVICESCANNER_SUBSYSTEM_NAME;
-    static const QString FLASHER_SUBSYSTEM_NAME;
-
-    enum State {
-        Started = 0,
-        Finished,
-        UnexpectedError,
-        DeviceFound,
-        DeviceNotFound,
-        OpenImageFailed,
-        OpenDeviceFailed,
-        ImageReadingFailed,
-        DeviceWritingFailed,
-        CheckingCorrectness,
-        ImageUncorrectlyWrote,
-        ImageCorrectlyWrote
-    };
-
-    explicit FirmwareUpgrader(QString const& firmwareFilename, bool checksumEnabled, QObject *parent = nullptr);
-
-    bool runRpiBootStep(int vid, QList<int> const& pids);
-
-    bool runDeviceScannerStep(int vid, QList<int> const& pids, QVector<std::shared_ptr<StorageDevice>>* physicalDrives);
-
-    bool runFlashingDeviceStep(QVector<std::shared_ptr<StorageDevice>> const& physicalDrives);
+    explicit FirmwareUpgrader(QObject *parent = nullptr);
 
 public slots:
+    void setVidPid(int vid, QList<int> const& _pids);
+
+    bool runRpiBootStep(void);
+
+    bool runDeviceScannerStep(void);
+
+    bool runFlashingDeviceStep(
+            QString const& firmwareFilename,
+            bool checksumEnabled);
+
     void start(void);
 
 signals:
     void finished(void);
 
-    void subsystemStateChanged(QString const& subsystem, uint value);
+    void flasherStateChanged(states::FlasherState const& state,
+        states::StateType const& type = states::StateType::Info);
+
+    void deviceScannerStateChanged(states::DeviceScannerState const& state,
+        states::StateType const& type = states::StateType::Info);
+
+    void rpibootStateChanged(states::RpiBootState const& state,
+        states::StateType const& type = states::StateType::Info);
 
     void flashingProgressChanged(uint value);
 
 private slots:
     void _onFlashStarted();
-
-    void _onFlashCompleted();
 
     void _onProgressChanged(uint progress);
 
@@ -65,12 +55,11 @@ private slots:
 private:
     bool _checkCorrectness(QFile& image, QFile& device);
 
-    void _setCurrentState(QString const& subsystem, State value);
-
     void _runAllSteps(void);
 
-    QString _firmwareFilename;
-    bool    _checksumEnabled;
+    QVector<std::shared_ptr<StorageDevice>> _physicalDrives;
+    int _vid;
+    QList<int> _pids;
 };
 
 #endif // FIRMWAREUPGRADER_H
