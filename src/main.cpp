@@ -28,7 +28,7 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
         }
     }
 
-    QDataStream logDataStream(&logFile);
+    QTextStream logDataStream(&logFile);
     QTextStream errDataStream(stderr);
 
     auto sendlog =
@@ -63,6 +63,8 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
         default:
             break;
     }
+
+    logDataStream.flush();
 }
 
 
@@ -75,6 +77,11 @@ void reducePriviledge(void) {
 
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<states::DeviceScannerState>("states::DeviceScannerState");
+    qRegisterMetaType<states::RpiBootState>("states::RpiBootState");
+    qRegisterMetaType<states::FlasherState>("states::FlasherState");
+    qRegisterMetaType<states::StateType>("states::StateType");
+
     QCoreApplication a(argc, argv);
     qInstallMessageHandler(::messageHandler);
 
