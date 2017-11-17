@@ -2,7 +2,7 @@
 
 #include "FirmwareUpgraderWatcher.h"
 #include "FirmwareUpgrader.h"
-#include "States.h"
+#include "shared/States.h"
 
 FirmwareUpgraderWatcher::FirmwareUpgraderWatcher(QObject *parent)
     : FirmwareUpgraderWatcherSimpleSource(parent)

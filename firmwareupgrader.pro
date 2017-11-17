@@ -35,9 +35,9 @@ HEADERS += \
     $$PWD/src/FirmwareUpgraderWatcher.h \
     $$PWD/src/Flasher.h \
     $$PWD/src/ChecksumCalculator.h \
-    src/States.h
+    $$PWD/src/shared/States.h
 
-REPC_SOURCE = $$PWD/src/FirmwareUpgraderWatcher.rep
+REPC_SOURCE = $$PWD/src/shared/FirmwareUpgraderWatcher.rep
 
 include(src/devapi/devapi.pri)
 

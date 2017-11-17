@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Flasher.h"
-#include "States.h"
+#include "shared/States.h"
 
 
 class StorageDevice;
