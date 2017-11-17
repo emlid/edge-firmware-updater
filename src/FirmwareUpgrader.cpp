@@ -79,6 +79,8 @@ bool FirmwareUpgrader::
 
     qInfo() << "Rpi device's found.";
 
+    emit deviceMountpoints(QStringList(_physicalDrives.at(0)->mountpoints().toList()));
+
     emit deviceScannerStateChanged(states::DeviceScannerState::ScannerDeviceFound);
     emit deviceScannerStateChanged(states::DeviceScannerState::ScannerFinished);
 
@@ -164,24 +166,6 @@ bool FirmwareUpgrader::_checkCorrectness(QFile& image, QFile& device)
     auto devChecksum = calc.calculate(device, image.size());
 
     return imgChecksum == devChecksum;
-}
-
-
-void FirmwareUpgrader::start(void)
-{
-    qInfo() << ":: Firmware upgrader started ::";
-    _runAllSteps();
-    emit finished();
-    qInfo() << ":: Firmware upgrader finished ::";
-}
-
-
-void FirmwareUpgrader::_runAllSteps(void)
-{
-    auto const requiredVid = 0x0a5c; // Edge Vid
-    auto requiredPids = QList<int>({ 0x2764, 0x2763 }); // Edge pids
-
-    QVector<std::shared_ptr<StorageDevice>> physicalDrives;
 }
 
 

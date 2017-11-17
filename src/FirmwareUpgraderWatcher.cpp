@@ -20,6 +20,9 @@ void FirmwareUpgraderWatcher::_initConnections(FirmwareUpgrader* fwUpgrader)
     QObject::connect(fwUpgrader, &FirmwareUpgrader::flashingProgressChanged,
                      this, &FirmwareUpgraderWatcher::flasherProgressChanged);
 
+    QObject::connect(fwUpgrader, &FirmwareUpgrader::deviceMountpoints,
+                     this, &FirmwareUpgraderWatcher::deviceMountpoints);
+
     // Signals with states
     QObject::connect(fwUpgrader, &FirmwareUpgrader::flasherStateChanged,
                      this, &FirmwareUpgraderWatcher::_onFlasherStateChanged);
@@ -41,6 +44,7 @@ void FirmwareUpgraderWatcher::_initConnections(FirmwareUpgrader* fwUpgrader)
 
     QObject::connect(this, &FirmwareUpgraderWatcher::setVidPid,
                      fwUpgrader, &FirmwareUpgrader::setVidPid);
+
 }
 
 

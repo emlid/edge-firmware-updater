@@ -29,10 +29,10 @@ public slots:
             QString const& firmwareFilename,
             bool checksumEnabled);
 
-    void start(void);
-
 signals:
     void finished(void);
+
+    void deviceMountpoints(QStringList mntpts);
 
     void flasherStateChanged(states::FlasherState const& state,
         states::StateType const& type = states::StateType::Info);
@@ -54,8 +54,6 @@ private slots:
 
 private:
     bool _checkCorrectness(QFile& image, QFile& device);
-
-    void _runAllSteps(void);
 
     QVector<std::shared_ptr<StorageDevice>> _physicalDrives;
     int _vid;
