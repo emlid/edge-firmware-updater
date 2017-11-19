@@ -15,7 +15,7 @@ After these steps firmware upgrader:
 + Flash device with previously selected firmware image file
 + Check on correctness (Compute checksum of data in the device and compare with image checksum)
 
-_Interprocess API for this application you can see in src/FirmwareUpgraderWatcher.rep_
+_Interprocess API for this application you can see in ```src/shared/``` directory_
 
 ## Supported Operating Systems
 
@@ -33,17 +33,17 @@ _Interprocess API for this application you can see in src/FirmwareUpgraderWatche
 ### Build
   ``` qmake firmwareupgrader.pro ```
   
-## Usage in other QT projects
+## Usage in other Qt projects
 + For interaction with Firmware Upgrader you should:
   - build Firmware Upgrader project as executable
-  - include to your project file QtRemoteObjects framework
+  - include into your project file QtRemoteObjects framework
   
     ```QT += remoteobjects```
-  - add to your project FirmwareUpgraderWatcher.rep .
+  - add to your project ```FirmwareUpgraderWatcher.rep and States.h``` from ```src/shared/``` directory .
     (this is replica file which will be compiled in c++ class automatically by qt repc compiler)
     this class used for interact with Firmware Upgrader.
     
-    ```REPC_REPLICA = FirmwareUpgraderWatcher.rep```
+    ```REPC_REPLICA = FirmwareUpgraderWatcher.rep```  
+    ```HEADERS += States.h```
   - run from your application Firmware Upgrader binary with administrative priviledges
-  
-    ```QProcess::start("gksudo " + QString("path/to/fw/upgrader/executable")); ```
+    + Linux: ```QProcess::start("pkexec " + QString("path/to/fw/upgrader/executable")); ```
