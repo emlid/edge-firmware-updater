@@ -9,7 +9,9 @@
 
 
 FirmwareUpgrader::FirmwareUpgrader(QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      _vid(-1),
+      _stopThread(false)
 {  }
 
 
@@ -22,6 +24,12 @@ void FirmwareUpgrader::setVidPid(int vid, QList<int> const& pids)
 
 bool FirmwareUpgrader::runRpiBootStep(void)
 {
+    _cancellationPoint();
+    if (_vid  == -1 || _pids.empty()) {
+        qCritical() << "Vid and pids not selected";
+        return false;
+    }
+
     RpiBoot rpiboot(_vid, _pids);
 
     emit rpibootStateChanged(states::RpiBootState::RpiBootStarted,
@@ -29,6 +37,8 @@ bool FirmwareUpgrader::runRpiBootStep(void)
 
     auto successful = rpiboot.rpiDevicesCount() > 0
             && rpiboot.bootAsMassStorage() == 0;
+
+    _cancellationPoint();
 
     if (!successful) {
         emit rpibootStateChanged(states::RpiBootState::RpiBootFailed,
@@ -59,6 +69,7 @@ bool FirmwareUpgrader::
 
     do {
         QThread::msleep(sleepTime);
+        _cancellationPoint();
         auto drives = manager->physicalDrives(_vid, _pids.at(0));
 
         if (drives.size() > 0) {
@@ -78,6 +89,7 @@ bool FirmwareUpgrader::
     }
 
     qInfo() << "Rpi device's found.";
+    _cancellationPoint();
 
     emit deviceMountpoints(QStringList(_physicalDrives.at(0)->mountpoints().toList()));
 
@@ -92,6 +104,7 @@ bool FirmwareUpgrader::
     runFlashingDeviceStep( QString const& firmwareFilename, bool checksumEnabled)
 {
     for (auto const& device : _physicalDrives) {
+        _cancellationPoint();
         qInfo() << "About Device\n" << device-> toString();
 
         // First: unmount all mountpoints (it's required for windows and optional for linux)
@@ -128,6 +141,7 @@ bool FirmwareUpgrader::
         connect(&flasher, &Flasher::flashFailed,     this, &FirmwareUpgrader::_onFlashFailed);
         connect(&flasher, &Flasher::progressChanged, this, &FirmwareUpgrader::_onProgressChanged);
 
+        _cancellationPoint();
         // Lets flash our rpi device
         auto ioBlockSize = 1 << 16; // 64kb
         successful = flasher.flash(imageFile, rpiDeviceFile, ioBlockSize);
@@ -140,6 +154,8 @@ bool FirmwareUpgrader::
         }
 
         if (checksumEnabled) {
+            _cancellationPoint();
+            emit flasherStateChanged(states::FlasherState::FlasherCheckingCorrectnessStarted);
             successful = _checkCorrectness(imageFile, rpiDeviceFile);
             if (!successful) {
                 qWarning("image uncorrectly wrote.");
@@ -153,6 +169,20 @@ bool FirmwareUpgrader::
     }
 
     return true;
+}
+
+
+void FirmwareUpgrader::stop(void)
+{
+    _stopThread = true;
+}
+
+
+void FirmwareUpgrader::_cancellationPoint(void) {
+    qInfo() << "Cancellation point: " << _stopThread;
+    if (_stopThread) {
+        QThread::currentThread()->quit();
+    }
 }
 
 
@@ -180,6 +210,7 @@ void FirmwareUpgrader::_onProgressChanged(uint progress)
 {
     qInfo() << "Progress: " << progress;
     emit flashingProgressChanged(progress);
+    _cancellationPoint();
 }
 
 

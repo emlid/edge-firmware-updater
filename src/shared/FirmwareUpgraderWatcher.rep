@@ -2,7 +2,7 @@
 
 class FirmwareUpgraderWatcher
 {
-    SLOT(void setFilterParams(int vid, QList<int> pids));
+    SLOT(void setVidPid(int vid, QList<int> pids));
 
     SLOT(void runRpiBootStep());
     SIGNAL(rpiBootStateChanged(uint state, uint type));
@@ -17,9 +17,6 @@ class FirmwareUpgraderWatcher
     SIGNAL(flasherStateChanged(uint state, uint type));
     SIGNAL(flasherProgressChanged(uint value));
     SIGNAL(flasherFinished(bool status));
-
-    SLOT(void cancel());
-    SIGNAL(cancelled());
 
     SLOT(void finish());
     SIGNAL(finished());

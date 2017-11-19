@@ -22,12 +22,9 @@ public slots:
     void setVidPid(int vid, QList<int> const& _pids);
 
     bool runRpiBootStep(void);
-
     bool runDeviceScannerStep(void);
-
-    bool runFlashingDeviceStep(
-            QString const& firmwareFilename,
-            bool checksumEnabled);
+    bool runFlashingDeviceStep(QString const& firmwareFilename, bool checksumEnabled);
+    void stop(void);
 
 signals:
     void finished(void);
@@ -46,18 +43,18 @@ signals:
     void flashingProgressChanged(uint value);
 
 private slots:
-    void _onFlashStarted();
-
-    void _onProgressChanged(uint progress);
-
-    void _onFlashFailed(Flasher::FlashingStatus status);
+    void _onFlashStarted    (void);
+    void _onProgressChanged (uint progress);
+    void _onFlashFailed     (Flasher::FlashingStatus status);
 
 private:
+    void _cancellationPoint(void);
     bool _checkCorrectness(QFile& image, QFile& device);
 
-    QVector<std::shared_ptr<StorageDevice>> _physicalDrives;
     int _vid;
     QList<int> _pids;
+    QVector<std::shared_ptr<StorageDevice>> _physicalDrives;
+    bool _stopThread; // flag
 };
 
 #endif // FIRMWAREUPGRADER_H
