@@ -95,20 +95,20 @@ void FirmwareUpgraderWatcher::setFilterParams(int vid, QList<int> pids)
 
 void FirmwareUpgraderWatcher::cancel(void)
 {
-    _thread.quit();
+    _thread.terminate();
     _thread.wait();
-
     emit cancelled();
     _thread.start();
 }
 
 void FirmwareUpgraderWatcher::finish(void)
 {
-    qInfo() << "firmware upgrader finished";
-    cancel();
-    emit finished();
+    _thread.terminate();
+    _thread.wait();
 
-    std::exit(EXIT_SUCCESS);
+    emit finished();
+    qInfo() << "firmware upgrader finished";
+    QCoreApplication::quit();
 }
 
 
@@ -127,6 +127,5 @@ void FirmwareUpgraderWatcher::runDeviceScannerStep(void)
 void FirmwareUpgraderWatcher::runFlasherStep(QString firmwareFilename, bool checksumEnabled)
 {
     qInfo() << "Firmware image filename: " << firmwareFilename;
-
     emit execFlasher(firmwareFilename, checksumEnabled);
 }
