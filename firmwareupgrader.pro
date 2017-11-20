@@ -8,9 +8,9 @@ equals(QT_MAJOR_VERSION, 5) : lessThan(QT_MINOR_VERSION, 9) {
 
 message(Qt version: $$[QT_VERSION])
 
+
 QT += core testlib remoteobjects
 QT -= gui
-
 
 CONFIG += c++14
 
@@ -21,26 +21,22 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 OBJECTS_DIR = obj
-MOC_DIR = moc
-RCC_DIR = resources
+MOC_DIR     = moc
+RCC_DIR     = resources
 
-SOURCES += $$PWD/src/main.cpp \
-    $$PWD/src/FirmwareUpgrader.cpp \
-    $$PWD/src/FirmwareUpgraderWatcher.cpp \
-    $$PWD/src/Flasher.cpp \
-    $$PWD/src/ChecksumCalculator.cc
+debug {
+    DESTDIR = $${OUT_PWD}/debug
+} else {
+    DESTDIR = $${OUT_PWD}/release
+}
 
-HEADERS += \
-    $$PWD/src/FirmwareUpgrader.h \
-    $$PWD/src/FirmwareUpgraderWatcher.h \
-    $$PWD/src/Flasher.h \
-    $$PWD/src/ChecksumCalculator.h \
-    $$PWD/src/shared/States.h
+include(common.pri)
 
-REPC_SOURCE = $$PWD/src/shared/FirmwareUpgraderWatcher.rep
-
-include(src/devapi/devapi.pri)
-
+contains(CONFIG, DISABLE_BUILD_WITH_LIBS) {
+    message("Skip building with libs")
+} else {
+    include(libs.pri)
+}
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
