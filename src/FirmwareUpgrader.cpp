@@ -32,8 +32,7 @@ bool FirmwareUpgrader::runRpiBootStep(void)
 
     RpiBoot rpiboot(_vid, _pids);
 
-    emit rpibootStateChanged(states::RpiBootState::RpiBootStarted,
-                             states::StateType::Info);
+    emit rpibootStateChanged(states::RpiBootState::RpiBootStarted);
 
     auto successful = rpiboot.rpiDevicesCount() > 0
             && rpiboot.bootAsMassStorage() == 0;
@@ -47,8 +46,7 @@ bool FirmwareUpgrader::runRpiBootStep(void)
         return false;
     }
 
-    emit rpibootStateChanged(states::RpiBootState::RpiBootFinished,
-                             states::StateType::Info);
+    emit rpibootStateChanged(states::RpiBootState::RpiBootFinished);
 
     return true;
 }
@@ -188,11 +186,17 @@ void FirmwareUpgrader::_cancellationPoint(void) {
 
 bool FirmwareUpgrader::_checkCorrectness(QFile& image, QFile& device)
 {
-    ChecksumCalculator calc;
+    using CSCalc = ChecksumCalculator;
 
-    connect(&calc, &ChecksumCalculator::progressChanged, this, &FirmwareUpgrader::flashingProgressChanged);
+    CSCalc calc;
 
-    auto imgChecksum = calc.calculate(image, image.size());
+    connect(&calc, &CSCalc::progressChanged, this, &FirmwareUpgrader::flashingProgressChanged);
+    connect(&calc, &CSCalc::fileReadError,
+            [this] () { emit flasherStateChanged(states::FlasherState::FlasherFailed,
+                                                 states::StateType::Error); }
+    );
+
+    auto imgChecksum = calc.calculate(image,  image.size());
     auto devChecksum = calc.calculate(device, image.size());
 
     return imgChecksum == devChecksum;
