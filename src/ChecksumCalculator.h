@@ -14,7 +14,7 @@ public:
 
 signals:
     void progressChanged(int value);
-    void errorOcurred();
+    void fileReadError(void);
 
 private:
     QCryptographicHash _hash;
