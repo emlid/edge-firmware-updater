@@ -60,17 +60,20 @@ bool FirmwareUpgrader::
     qInfo() << "Device detecting...";
 
     auto const sleepTime = 600;
-    auto const maxPollingTime = 5000;
+    auto const maxPollingTime = 10000;
 
     auto manager = StorageDeviceManager::instance();
     auto totalSleepTime = 0;
+
+    // We need to wait while OS detect our device, which was booted as mass storage
+    // Consequently, we need to wait while OS auto-mount device partitions
 
     do {
         QThread::msleep(sleepTime);
         _cancellationPoint();
         auto drives = manager->physicalDrives(_vid, _pids.at(0));
 
-        if (drives.size() > 0) {
+        if (drives.size() > 0 && drives[0]->mountpoints().size() != 0) {
             _physicalDrives = std::move(drives);
             break;
         }
@@ -159,8 +162,10 @@ bool FirmwareUpgrader::
                 qWarning("image uncorrectly wrote.");
                 emit flasherStateChanged(states::FlasherState::FlasherImageUncorrectlyWrote,
                                          states::StateType::Warning);
+            } else {
+                qInfo() << "image correctly wrote.";
+                emit flasherStateChanged(states::FlasherState::FlasherImageCorrectlyWrote);
             }
-            emit flasherStateChanged(states::FlasherState::FlasherImageCorrectlyWrote);
         }
 
         emit flasherStateChanged(states::FlasherState::FlasherFinished);
