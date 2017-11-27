@@ -90,7 +90,10 @@ void FirmwareUpgraderWatcher::setVidPid(int vid, QList<int> pids)
 
 void FirmwareUpgraderWatcher::finish(void)
 {
-    emit _stop();
+    /* tmp solution. need to fix it */
+    std::exit(EXIT_SUCCESS);
+
+    /*emit _stop();
     if (!_thread.wait(1)) {
         qWarning() << "thread didn't stop";
         _thread.terminate();
@@ -98,7 +101,7 @@ void FirmwareUpgraderWatcher::finish(void)
 
     emit finished();
     qInfo() << "firmware upgrader finished";
-    QCoreApplication::quit();
+    QCoreApplication::quit();*/
 }
 
 
