@@ -10,8 +10,8 @@ unix {
         libicui18n.so.56 \
         libicuuc.so.56
 
-    DEST_LIBDIR    = $$DESTDIR/lib
-    QT_DEST_LIBDIR = $$DEST_LIBDIR/Qt
+    DEST_LIBDIR    = $$DESTDIR
+    QT_DEST_LIBDIR = $$DEST_LIBDIR
 
     QMAKE_POST_LINK += @echo "Copy libraries."
     QMAKE_POST_LINK += && mkdir -p $$QT_DEST_LIBDIR
@@ -28,4 +28,16 @@ unix {
     } else {
         error($$LIBUSB_LIB doesnt exist)
     }
+}
+
+win32 {
+   # First. Copy libusb
+   LIBUSB_PATH = $$shell_path($$[QT_INSTALL_LIBS]/libusb-1.0.dll)
+   QMAKE_POST_LINK += @echo "Copy related libraries." \
+       && $$QMAKE_COPY $$LIBUSB_PATH $$shell_path($$DESTDIR)
+
+   # Second. Copy all needed Qt libraries with 'windeployqt' command
+   QT_BIN_DIR       = $$dirname(QMAKE_QMAKE)
+   DEPLOY_TARGET    = $$shell_quote($$shell_path($$DESTDIR/$${TARGET}.exe))
+   QMAKE_POST_LINK += && $$QT_BIN_DIR/windeployqt --no-compiler-runtime $${DEPLOY_TARGET}
 }
