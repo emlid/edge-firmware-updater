@@ -7,9 +7,9 @@
 FirmwareUpgraderWatcher::FirmwareUpgraderWatcher(QObject *parent)
     : FirmwareUpgraderWatcherSimpleSource(parent)
 {
-    auto fwUpgrader = new FirmwareUpgrader();
-    fwUpgrader->moveToThread(&_thread);
-    _initConnections(fwUpgrader);
+    _fwUpgrader = new FirmwareUpgrader();
+    _fwUpgrader->moveToThread(&_thread);
+    _initConnections(_fwUpgrader);
     _thread.start();
 }
 
@@ -91,10 +91,9 @@ void FirmwareUpgraderWatcher::setVidPid(int vid, QList<int> pids)
 void FirmwareUpgraderWatcher::finish(void)
 {
     /* tmp solution. need to fix it */
-    std::exit(EXIT_SUCCESS);
+    _fwUpgrader->stop();
 
-    /*emit _stop();
-    if (!_thread.wait(1)) {
+    /*if (!_thread.wait(1)) {
         qWarning() << "thread didn't stop";
         _thread.terminate();
     }

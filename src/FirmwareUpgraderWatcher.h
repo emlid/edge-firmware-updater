@@ -39,6 +39,7 @@ private:
     void _initConnections(FirmwareUpgrader*);
 
     QThread _thread;
+    FirmwareUpgrader* _fwUpgrader;
 };
 
 

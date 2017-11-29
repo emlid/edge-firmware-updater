@@ -54,7 +54,7 @@ private:
     int _vid;
     QList<int> _pids;
     QVector<std::shared_ptr<StorageDevice>> _physicalDrives;
-    bool _stopThread; // flag
+    volatile bool _stopThread; // flag
 };
 
 #endif // FIRMWAREUPGRADER_H
