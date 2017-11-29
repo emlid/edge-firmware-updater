@@ -8,27 +8,35 @@ equals(QT_MAJOR_VERSION, 5) : lessThan(QT_MINOR_VERSION, 9) {
 
 message(Qt version: $$[QT_VERSION])
 
+CONFIG(debug,   debug|release) {
+    message(Debug build)
+    DESTDIR = $${OUT_PWD}/debug
+}
+
+CONFIG(release, debug|release) {
+    message(Release build)
+    DESTDIR = $${OUT_PWD}/release
+}
+
+win32:message(Windows build)
+unix :message(Linux build)
+
+!unix:!win32:error(Unsupported OS)
 
 QT += core testlib remoteobjects
 QT -= gui
 
 CONFIG += c++14
 
-TARGET = fwupgrader
+TARGET =  fwupgrader
 CONFIG += console
 CONFIG -= app_bundle
 
 TEMPLATE = app
 
-OBJECTS_DIR = obj
-MOC_DIR     = moc
-RCC_DIR     = resources
-
-debug {
-    DESTDIR = $${OUT_PWD}/debug
-} else {
-    DESTDIR = $${OUT_PWD}/release
-}
+OBJECTS_DIR = .obj
+MOC_DIR     = .moc
+RCC_DIR     = .resources
 
 include(common.pri)
 
