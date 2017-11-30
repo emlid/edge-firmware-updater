@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtCore>
 #include <functional>
+#include <memory>
 
 class Flasher : public QObject
 {
@@ -18,8 +19,8 @@ public:
     Flasher(QObject *parent = nullptr);
 
     bool flash(
-        QFile& src,
-        QFile& dest,
+        std::shared_ptr<QFile> src,
+        std::shared_ptr<QFile> dest,
         int blockSize  = DEFAULT_BLOCK_SIZE
     );
 

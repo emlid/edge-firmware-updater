@@ -2,7 +2,7 @@
 #include "components/Flasher.h"
 
 
-FlasherSubtask::FlasherSubtask(QFile& src, QFile& dest, QObject *parent)
+FlasherSubtask::FlasherSubtask(std::shared_ptr<QFile> src, std::shared_ptr<QFile> dest, QObject *parent)
     : AbstractSubtask("FlasherSubtask", parent), _src(src), _dest(dest)
 { }
 

@@ -2,7 +2,9 @@
 #include "components/ChecksumCalculator.h"
 
 
-ChecksumSubtask::ChecksumSubtask(QFile* image, QFile* device, QObject *parent)
+ChecksumSubtask::ChecksumSubtask(std::shared_ptr<QFile> image,
+                                 std::shared_ptr<QFile> device,
+                                 QObject *parent)
     : AbstractSubtask("ChecksumSubtask", parent), _image(image), _device(device)
 { }
 
@@ -39,6 +41,7 @@ void ChecksumSubtask::run(void)
 
     if (_stopRequested()) {
         qInfo() << _subtaskMsg("stopped.");
+        emit finished();
         return;
     }
 
@@ -47,12 +50,17 @@ void ChecksumSubtask::run(void)
 
     if (_stopRequested()) {
         qInfo() << _subtaskMsg("stopped.");
+        emit finished();
         return;
     }
 
     if (imgChecksum != deviceChecksum) {
-        emit stateChanged(CsState::ImageUncorrectlyWrote, StType::Error);
+        qWarning() << _subtaskMsg("Image incorrectly wrote.");
+        emit stateChanged(CsState::ImageUncorrectlyWrote, StType::Warning);
+        emit finished(false);
     } else {
+        qInfo() << _subtaskMsg("Image correctly wrote.");
         emit stateChanged(CsState::ImageCorrectlyWrote);
+        emit finished();
     }
 }

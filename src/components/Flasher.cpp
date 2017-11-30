@@ -10,23 +10,24 @@ Flasher::Flasher(QObject *parent)
 { }
 
 
-bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
+bool Flasher::flash(std::shared_ptr<QFile> src, std::shared_ptr<QFile> dest, int blockSize)
+{
     emit flashStarted();
 
-    auto srcSize  = src.size();
+    auto srcSize  = src->size();
     auto buffer   = std::unique_ptr<char[]>(new char[blockSize]);
 
     auto savedProgress = 0;
 
     for (qint64 wroteBytes = 0; wroteBytes != srcSize;) {
 
-        auto readed = src.read(buffer.get(), blockSize);
+        auto readed = src->read(buffer.get(), blockSize);
         if (readed != blockSize && readed != srcSize - wroteBytes) {
             emit flashFailed(FlashingStatus::READ_FAILED);
             return false;
         }
 
-        auto wrote = dest.write(buffer.get(), readed);
+        auto wrote = dest->write(buffer.get(), readed);
         if (wrote != readed) {
             emit flashFailed(FlashingStatus::WRITE_FAILED);
             return false;

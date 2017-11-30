@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QFile>
+#include <memory>
 
 #include "AbstractSubtask.h"
 #include "shared/States.h"
@@ -11,7 +12,10 @@ class ChecksumSubtask : public AbstractSubtask
 {
     Q_OBJECT
 public:
-    explicit ChecksumSubtask(QFile* image, QFile* device, QObject *parent = nullptr);
+    explicit ChecksumSubtask(std::shared_ptr<QFile> image,
+                             std::shared_ptr<QFile> device,
+                             QObject *parent = nullptr);
+
     virtual ~ChecksumSubtask(void) override;
 
     virtual void run(void) override;
@@ -22,8 +26,8 @@ signals:
                       states::StateType                type = states::StateType::Info);
 
 private:
-    QFile*   _image;
-    QFile*   _device;
+    std::shared_ptr<QFile>   _image;
+    std::shared_ptr<QFile>   _device;
 };
 
 #endif // CHECKSUMSUBTASK_H

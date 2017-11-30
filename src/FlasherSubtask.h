@@ -5,12 +5,16 @@
 #include "shared/States.h"
 
 #include <QtCore>
+#include <memory>
 
 class FlasherSubtask : public AbstractSubtask
 {
     Q_OBJECT
 public:
-    explicit FlasherSubtask(QFile& src, QFile& dest, QObject *parent = nullptr);
+    explicit FlasherSubtask(std::shared_ptr<QFile> src,
+                            std::shared_ptr<QFile> dest,
+                            QObject *parent = nullptr);
+
     virtual ~FlasherSubtask(void) override;
 
     virtual void run(void) override;
@@ -21,8 +25,8 @@ signals:
                       states::StateType    type = states::StateType::Info);
 
 private:
-    QFile& _src;
-    QFile& _dest;
+    std::shared_ptr<QFile> _src;
+    std::shared_ptr<QFile> _dest;
 };
 
 #endif // FLASHERSUBTASK_H

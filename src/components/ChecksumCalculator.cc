@@ -6,7 +6,7 @@ ChecksumCalculator::ChecksumCalculator(QCryptographicHash::Algorithm algo)
 {  }
 
 
-QByteArray ChecksumCalculator::calculate(QFile* file, qint64 length, int ioBlockSize)
+QByteArray ChecksumCalculator::calculate(std::shared_ptr<QFile> file, qint64 length, int ioBlockSize)
 {
     Q_ASSERT(file != nullptr);
     Q_ASSERT(length > 0);

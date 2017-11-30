@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <functional>
+#include <memory>
 
 class ChecksumCalculator : public QObject
 {
@@ -11,7 +12,7 @@ public:
     explicit ChecksumCalculator(QCryptographicHash::Algorithm algo =
             QCryptographicHash::Algorithm::Md5);
 
-    QByteArray calculate(QFile* file, qint64 length, int ioBlockSize = 4096);
+    QByteArray calculate(std::shared_ptr<QFile> file, qint64 length, int ioBlockSize = 4096);
 
     void setStopCondition(std::function<bool(void)> condition) {
         _stopCondition = condition;
