@@ -2,10 +2,13 @@
 #define REMOTEFLASHERWATCHER_H
 
 #include <QtCore>
+#include <memory>
 
 #include "rep_FirmwareUpgraderWatcher_source.h"
-#include "FirmwareUpgrader.h"
+#include "SubtaskManager.h"
+#include "shared/States.h"
 
+class StorageDevice;
 
 class FirmwareUpgraderWatcher : public FirmwareUpgraderWatcherSimpleSource
 {
@@ -16,30 +19,33 @@ public:
 public slots:
     void setVidPid(int vid, QList<int> pids);
 
-    void runRpiBootStep       (void) override;
-    void runDeviceScannerStep (void) override;
-    void runFlasherStep       (QString firmwareFilename, bool checksumEnabled) override;
+    void runRpiBootStep             (void) override;
+    void runDeviceScannerStep       (void) override;
+    void runFlasherStep             (QString firmwareFilename) override;
+    void runCheckingCorrectnessStep (void) override;
 
     void finish(void) override;
 
 signals:
-    void _setVidPid(int vid, QList<int> pids);
-
     void _stop                  (void);
-    void _execRpiBoot           (void);
-    void _execDeviceScannerStep (void);
-    void _execFlasher           (QString const& firmwareFilename, bool checksumEnabled);
 
 private slots:
-    void _onRpiBootStateChanged       (states::RpiBootState state, states::StateType type);
-    void _onDeviceScannerStateChanged (states::DeviceScannerState state, states::StateType type);
-    void _onFlasherStateChanged       (states::FlasherState state, states::StateType type);
+    void _exit(void);
+
+    void _onRpiBootStateChanged       (states::RpiBootState             state, states::StateType type);
+    void _onDeviceScannerStateChanged (states::DeviceScannerState       state, states::StateType type);
+    void _onFlasherStateChanged       (states::FlasherState             state, states::StateType type);
+    void _onChecksumCalcStateChanged  (states::CheckingCorrectnessState state, states::StateType type);
 
 private:
-    void _initConnections(FirmwareUpgrader*);
+    int        _vid;
+    QList<int> _pids;
 
-    QThread _thread;
-    FirmwareUpgrader* _fwUpgrader;
+    std::shared_ptr<QFile> _image;
+    std::shared_ptr<QFile> _device;
+
+    SubtaskManager _taskManager;
+    QVector<std::shared_ptr<StorageDevice>> _devices;
 };
 
 

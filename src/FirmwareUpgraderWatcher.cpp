@@ -1,39 +1,20 @@
 ﻿#include <memory>
 
-#include "FirmwareUpgraderWatcher.h"
-#include "FirmwareUpgrader.h"
 #include "shared/States.h"
+#include "FirmwareUpgraderWatcher.h"
+#include "RpiBootSubtask.h"
+#include "DeviceScannerSubtask.h"
+#include "FlasherSubtask.h"
+#include "ChecksumSubtask.h"
+
 
 FirmwareUpgraderWatcher::FirmwareUpgraderWatcher(QObject *parent)
-    : FirmwareUpgraderWatcherSimpleSource(parent)
+    : FirmwareUpgraderWatcherSimpleSource(parent),
+      _image(nullptr),
+      _device(nullptr)
 {
-    _fwUpgrader = new FirmwareUpgrader();
-    _fwUpgrader->moveToThread(&_thread);
-    _initConnections(_fwUpgrader);
-    _thread.start();
-}
-
-
-void FirmwareUpgraderWatcher::_initConnections(FirmwareUpgrader* fwUpgrader)
-{
-    using Watcher = FirmwareUpgraderWatcher;
-    using FwUpgrader = FirmwareUpgrader;
-
-    QObject::connect(&_thread, &QThread::finished, fwUpgrader, &FwUpgrader::deleteLater);
-
-    QObject::connect(fwUpgrader, &FwUpgrader::flashingProgressChanged,   this, &Watcher::flasherProgressChanged);
-    QObject::connect(fwUpgrader, &FwUpgrader::deviceMountpoints,         this, &Watcher::deviceMountpoints);
-
-    QObject::connect(fwUpgrader, &FwUpgrader::flasherStateChanged,       this, &Watcher::_onFlasherStateChanged);
-    QObject::connect(fwUpgrader, &FwUpgrader::deviceScannerStateChanged, this, &Watcher::_onDeviceScannerStateChanged);
-    QObject::connect(fwUpgrader, &FwUpgrader::rpibootStateChanged,       this, &Watcher::_onRpiBootStateChanged);
-
-    QObject::connect(this, &Watcher::_execRpiBoot,           fwUpgrader, &FwUpgrader::runRpiBootStep);
-    QObject::connect(this, &Watcher::_execDeviceScannerStep, fwUpgrader, &FwUpgrader::runDeviceScannerStep);
-    QObject::connect(this, &Watcher::_execFlasher,           fwUpgrader, &FwUpgrader::runFlashingDeviceStep);
-    QObject::connect(this, &Watcher::_setVidPid,             fwUpgrader, &FwUpgrader::setVidPid);
-    QObject::connect(this, &Watcher::_stop,                  fwUpgrader, &FwUpgrader::stop);
-
+    QObject::connect(this,          &FirmwareUpgraderWatcher::_stop,
+                     &_taskManager, &SubtaskManager::stopTask);
 }
 
 
@@ -41,14 +22,6 @@ void FirmwareUpgraderWatcher::
     _onRpiBootStateChanged(states::RpiBootState state, states::StateType type)
 {
     emit rpiBootStateChanged(static_cast<uint>(state), static_cast<uint>(type));
-
-    using RBState = states::RpiBootState;
-
-    if (state == RBState::RpiBootFinished) {
-        emit rpiBootFinished(true);
-    } else if (state == RBState::RpiBootFailed) {
-        emit rpiBootFinished(false);
-    }
 }
 
 
@@ -56,14 +29,6 @@ void FirmwareUpgraderWatcher::
     _onDeviceScannerStateChanged(states::DeviceScannerState state, states::StateType type)
 {
     emit deviceScannerStateChanged(static_cast<uint>(state), static_cast<uint>(type));
-
-    using DevState = states::DeviceScannerState;
-
-    if (state == DevState::ScannerFinished) {
-        emit deviceScannerFinished(true);
-    } else if (state == DevState::ScannerFailed) {
-        emit deviceScannerFinished(false);
-    }
 }
 
 
@@ -71,53 +36,128 @@ void FirmwareUpgraderWatcher::
     _onFlasherStateChanged(states::FlasherState state, states::StateType type)
 {
     emit flasherStateChanged(static_cast<uint>(state), static_cast<uint>(type));
+}
 
-    using FlashState = states::FlasherState;
-
-    if (state == FlashState::FlasherFinished) {
-        emit flasherFinished(true);
-    } else if (state == FlashState::FlasherFailed) {
-        emit flasherFinished(false);
-    }
+void FirmwareUpgraderWatcher::
+    _onChecksumCalcStateChanged(states::CheckingCorrectnessState state, states::StateType type)
+{
+    emit checkingCorrectnessStateChanged(static_cast<uint>(state), static_cast<uint>(type));
 }
 
 
 void FirmwareUpgraderWatcher::setVidPid(int vid, QList<int> pids)
 {
-    emit _setVidPid(vid, pids);
+    _vid  = vid;
+    _pids = pids;
 }
 
 
 void FirmwareUpgraderWatcher::finish(void)
 {
-    /* tmp solution. need to fix it */
-    _fwUpgrader->stop();
-
-    /*if (!_thread.wait(1)) {
-        qWarning() << "thread didn't stop";
-        _thread.terminate();
+    if (_taskManager.hasActiveSubtasks()) {
+        qInfo() << "The process has active tasks. Wait for finished.";
+        QObject::connect(&_taskManager, &SubtaskManager::noActiveSubtasks,
+                         this,          &FirmwareUpgraderWatcher::_exit);
+        emit _stop();
+    } else {
+        qInfo() << "The process has no active tasks. Exit.";
+        _exit();
     }
+}
 
-    emit finished();
-    qInfo() << "firmware upgrader finished";
-    QCoreApplication::quit();*/
+
+void FirmwareUpgraderWatcher::_exit(void)
+{
+    std::exit(EXIT_SUCCESS);
 }
 
 
 void FirmwareUpgraderWatcher::runRpiBootStep(void)
 {
-    emit _execRpiBoot();
+    using RBoot   = RpiBootSubtask;
+    using Watcher = FirmwareUpgraderWatcher;
+
+    auto rbSubtask = new RBoot(_vid, _pids);
+    QObject::connect(rbSubtask, &RBoot::stateChanged, this, &Watcher::_onRpiBootStateChanged);
+    QObject::connect(rbSubtask, &RBoot::finished,     this, &Watcher::rpiBootFinished);
+
+    _taskManager.run(rbSubtask);
 }
 
 
 void FirmwareUpgraderWatcher::runDeviceScannerStep(void)
 {
-    emit _execDeviceScannerStep();
+    using DScanner = DeviceScannerSubtask;
+    using Watcher  = FirmwareUpgraderWatcher;
+
+    auto dsSubtask = new DScanner(_vid, _pids);
+    QObject::connect(dsSubtask, &DScanner::stateChanged, this, &Watcher::_onDeviceScannerStateChanged);
+    QObject::connect(dsSubtask, &DScanner::finished,     this, &Watcher::deviceScannerFinished);
+    QObject::connect(dsSubtask, &DScanner::finished,
+        [dsSubtask, this] () { _devices = dsSubtask->result(); });
+
+    _taskManager.run(dsSubtask);
 }
 
 
-void FirmwareUpgraderWatcher::runFlasherStep(QString firmwareFilename, bool checksumEnabled)
+void FirmwareUpgraderWatcher::runCheckingCorrectnessStep(void)
 {
-    qInfo() << "Firmware image filename: " << firmwareFilename;
-    emit _execFlasher(firmwareFilename, checksumEnabled);
+    using CsSubtask = ChecksumSubtask;
+    using Watcher   = FirmwareUpgraderWatcher;
+
+    auto csSubtask = new CsSubtask(_image, _device);
+    QObject::connect(csSubtask, &CsSubtask::stateChanged,
+                     this,      &Watcher::_onChecksumCalcStateChanged);
+    QObject::connect(csSubtask, &CsSubtask::progressChanged,
+                     this,      &Watcher::checkingCorrectnessProgressChanged);
+    QObject::connect(csSubtask, &CsSubtask::finished,
+                     this,      &Watcher::checkingCorrectnessFinished);
+
+    _taskManager.run(csSubtask);
+}
+
+
+void FirmwareUpgraderWatcher::runFlasherStep(QString firmwareFilename)
+{
+    using FlasherTask = FlasherSubtask;
+    using Watcher     = FirmwareUpgraderWatcher;
+    using FlState     = states::FlasherState;
+    using StType      = states::StateType;
+
+    auto device = _devices[0];
+
+    _image.reset(new QFile(firmwareFilename));
+    _device.reset(new QFile());
+
+    qInfo() << "About Device\n" << device-> toString();
+
+    // First: unmount all mountpoints (it's required for windows and optional for linux)
+    if (device->unmountAllMountpoints().failed()) {
+        qWarning() << "Unmounting related mountpoints failed.";
+    }
+
+    // Try to open file with Image
+    auto successful = _image->open(QIODevice::ReadOnly);
+
+    if (!successful) {
+        emit flasherStateChanged(FlState::FlasherOpenImageFailed, StType::Error);
+        qCritical() << "Failed to open image.";
+        return;
+    }
+
+    // Try to open file, which represent rpi device in filesystem
+    auto status = device->openAsQFile(_device.get());
+
+    if (status.failed()) {
+        emit flasherStateChanged(FlState::FlasherDeviceWritingFailed, StType::Error);
+        qCritical() << "Failed to open as qfile.";
+        return;
+    }
+
+    auto flasherSubtask = new FlasherTask(_image, _device);
+    QObject::connect(flasherSubtask, &FlasherTask::stateChanged,    this, &Watcher::_onFlasherStateChanged);
+    QObject::connect(flasherSubtask, &FlasherTask::finished,        this, &Watcher::flasherFinished);
+    QObject::connect(flasherSubtask, &FlasherTask::progressChanged, this, &Watcher::flasherProgressChanged);
+
+    _taskManager.run(flasherSubtask);
 }
