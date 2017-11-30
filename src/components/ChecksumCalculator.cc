@@ -6,18 +6,19 @@ ChecksumCalculator::ChecksumCalculator(QCryptographicHash::Algorithm algo)
 {  }
 
 
-QByteArray ChecksumCalculator::calculate(QFile &file, qint64 length, int ioBlockSize)
+QByteArray ChecksumCalculator::calculate(QFile* file, qint64 length, int ioBlockSize)
 {
-    assert(length > 0);
-    assert(ioBlockSize >= 0);
+    Q_ASSERT(file != nullptr);
+    Q_ASSERT(length > 0);
+    Q_ASSERT(ioBlockSize >= 0);
 
-    if (!file.isReadable() || !file.isOpen()) {
+    if (!file->isReadable() || !file->isOpen()) {
         qCritical() << "File not readeble or not opened.";
         emit fileReadError();
         return QByteArray();
     }
 
-    file.seek(0);
+    file->seek(0);
 
     auto fileSize = length;
     auto progress = 0;
@@ -29,7 +30,7 @@ QByteArray ChecksumCalculator::calculate(QFile &file, qint64 length, int ioBlock
             ioBlockSize = fileSize - readed;
         }
 
-        auto data = file.read(ioBlockSize);
+        auto data = file->read(ioBlockSize);
 
         if (data.size() != ioBlockSize) {
             emit fileReadError();
@@ -45,11 +46,15 @@ QByteArray ChecksumCalculator::calculate(QFile &file, qint64 length, int ioBlock
             progress = currProgress;
             emit progressChanged(progress);
         }
+
+        if (_stopRequested()) {
+            return QByteArray();
+        }
     }
 
     auto checksum = _hash.result();
 
-    file.seek(0);
+    file->seek(0);
     _hash.reset();
 
     return checksum;

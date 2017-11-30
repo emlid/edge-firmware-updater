@@ -4,7 +4,10 @@
 #include <QtConcurrent/QtConcurrent>
 
 
-Flasher::Flasher(QObject *parent) : QObject(parent) { }
+Flasher::Flasher(QObject *parent)
+    : QObject(parent),
+      _stopCondition([](){return false;})
+{ }
 
 
 bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
@@ -35,6 +38,10 @@ bool Flasher::flash(QFile& src, QFile& dest, int blockSize) {
         if (progress != savedProgress) {
             savedProgress = progress;
             emit progressChanged(progress);
+        }
+
+        if (_stopRequested()) {
+            return true;
         }
     }
 

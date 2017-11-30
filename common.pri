@@ -1,15 +1,24 @@
 SOURCES += $$PWD/src/main.cpp \
-    $$PWD/src/FirmwareUpgrader.cpp \
     $$PWD/src/FirmwareUpgraderWatcher.cpp \
-    $$PWD/src/Flasher.cpp \
-    $$PWD/src/ChecksumCalculator.cc
+    $$PWD/src/components/Flasher.cpp \
+    $$PWD/src/components/ChecksumCalculator.cc \
+    $$PWD/src/RpiBootSubtask.cpp \
+    $$PWD/src/DeviceScannerSubtask.cpp \
+    $$PWD/src/FlasherSubtask.cpp \
+    $$PWD/src/SubtaskManager.cpp \
+    $$PWD/src/ChecksumSubtask.cpp
 
 HEADERS += \
-    $$PWD/src/FirmwareUpgrader.h \
     $$PWD/src/FirmwareUpgraderWatcher.h \
-    $$PWD/src/Flasher.h \
-    $$PWD/src/ChecksumCalculator.h \
-    $$PWD/src/shared/States.h
+    $$PWD/src/components/Flasher.h \
+    $$PWD/src/components/ChecksumCalculator.h \
+    $$PWD/src/shared/States.h \
+    $$PWD/src/AbstractSubtask.h \
+    $$PWD/src/RpiBootSubtask.h \
+    $$PWD/src/DeviceScannerSubtask.h \
+    $$PWD/src/FlasherSubtask.h \
+    $$PWD/src/SubtaskManager.h \
+    $$PWD/src/ChecksumSubtask.h
 
 REPC_SOURCE = $$PWD/src/shared/FirmwareUpgraderWatcher.rep
 
