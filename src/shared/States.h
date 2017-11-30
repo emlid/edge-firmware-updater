@@ -14,6 +14,7 @@ enum RpiBootState {
     RpiBootDeviceFound = 0,
     RpiBootDeviceNotFound,
     RpiBootStarted,
+    RpiBootCancelled,
     RpiBootFinished,
     RpiBootFailed
 };
@@ -23,6 +24,7 @@ enum DeviceScannerState {
     ScannerDeviceFound = 0,
     ScannerDeviceNotFound,
     ScannerStarted,
+    ScannerCancelled,
     ScannerFinished,
     ScannerFailed
 };
@@ -34,11 +36,20 @@ enum FlasherState {
     FlasherOpenImageFailed,
     FlasherOpenDeviceFailed,
     FlasherStarted,
+    FlasherCancelled,
     FlasherFinished,
-    FlasherFailed,
-    FlasherCheckingCorrectnessStarted,
-    FlasherImageCorrectlyWrote,
-    FlasherImageUncorrectlyWrote
+    FlasherFailed
+};
+
+
+enum CheckingCorrectnessState {
+    CheckingCorrectnessStarted,
+    ComputeImageChecksum,
+    ComputeDeviceChecksum,
+    ReadingFailed,
+    ImageCorrectlyWrote,
+    CheckingCancelled,
+    ImageUncorrectlyWrote
 };
 
 }
