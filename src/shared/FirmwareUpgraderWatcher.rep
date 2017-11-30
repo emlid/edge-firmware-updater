@@ -13,10 +13,15 @@ class FirmwareUpgraderWatcher
     SIGNAL(deviceMountpoints(QStringList list));
     SIGNAL(deviceScannerFinished(bool status));
 
-    SLOT(void runFlasherStep(QString firmwareUpgrader, bool checksumEnabled));
+    SLOT(void runFlasherStep(QString firmwareUpgrader));
     SIGNAL(flasherStateChanged(uint state, uint type));
     SIGNAL(flasherProgressChanged(uint value));
     SIGNAL(flasherFinished(bool status));
+
+    SLOT(void runCheckingCorrectnessStep());
+    SIGNAL(checkingCorrectnessStateChanged(uint state, uint type));
+    SIGNAL(checkingCorrectnessProgressChanged(uint value));
+    SIGNAL(checkingCorrectnessFinished(bool status))
 
     SLOT(void finish());
     SIGNAL(finished());
