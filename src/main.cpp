@@ -16,8 +16,8 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
 {
     Q_UNUSED(context);
 
-    static auto  logFilename =
-            QCoreApplication::applicationDirPath() + "/fwupgrader.log";
+    static auto  logFilename = QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+            + "/.fwupgrader.log";
     static QFile logFile(logFilename);
 
     if (!logFile.isOpen()) {
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<states::RpiBootState>("states::RpiBootState");
     qRegisterMetaType<states::FlasherState>("states::FlasherState");
     qRegisterMetaType<states::StateType>("states::StateType");
-    qRegisterMetaType<states::CheckingCorrectnessState>("states::StateType");
+    qRegisterMetaType<states::CheckingCorrectnessState>("states::CheckingCorrectnessState");
 
     QCoreApplication a(argc, argv);
     qInstallMessageHandler(::messageHandler);
