@@ -25,4 +25,7 @@ class FirmwareUpgraderWatcher
 
     SLOT(void finish());
     SIGNAL(finished());
+
+    SLOT(void cancel())
+    SIGNAL(cancelled());
 };

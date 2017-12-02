@@ -7,17 +7,17 @@
 class Cancellable
 {
 public:
-    using CancelCodition_t = std::function<bool(void)>;
+    using CancelCondition_t = std::function<bool(void)>;
 
     explicit Cancellable()
         : _cancelCondition([](){return false;}), _wasCancelled(false)
     { }
 
-    void setCancelCondition(CancelCodition_t condition) {
+    void setCancelCondition(CancelCondition_t condition) {
         _cancelCondition = condition;
     }
 
-    CancelCodition_t cancelCodition(void) const {
+    CancelCondition_t cancelCondition(void) const {
         return _cancelCondition;
     }
 
@@ -35,8 +35,8 @@ protected:
     }
 
 private:
-    CancelCodition_t _cancelCondition;
-    bool             _wasCancelled;
+    CancelCondition_t _cancelCondition;
+    bool              _wasCancelled;
 };
 
 #endif // CANCELLABLE_H
