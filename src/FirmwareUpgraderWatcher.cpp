@@ -13,7 +13,7 @@ FirmwareUpgraderWatcher::FirmwareUpgraderWatcher(QObject *parent)
       _image(nullptr),
       _device(nullptr)
 {
-    QObject::connect(this,          &FirmwareUpgraderWatcher::_stop,
+    QObject::connect(this,          &FirmwareUpgraderWatcher::_cancel,
                      &_taskManager, &SubtaskManager::stopTask);
 }
 
@@ -52,13 +52,27 @@ void FirmwareUpgraderWatcher::setVidPid(int vid, QList<int> pids)
 }
 
 
+void FirmwareUpgraderWatcher::cancel(void)
+{
+    if (_taskManager.hasActiveSubtasks()) {
+        qInfo() << "The process has active tasks. Wait for finished.";
+        QObject::connect(&_taskManager, &SubtaskManager::noActiveSubtasks,
+                         this,          &FirmwareUpgraderWatcher::_onNoActiveTasks);
+        emit _cancel();
+    } else {
+        qInfo() << "The process has no active tasks. Cancellation.";
+        emit cancelled();
+    }
+}
+
+
 void FirmwareUpgraderWatcher::finish(void)
 {
     if (_taskManager.hasActiveSubtasks()) {
         qInfo() << "The process has active tasks. Wait for finished.";
         QObject::connect(&_taskManager, &SubtaskManager::noActiveSubtasks,
                          this,          &FirmwareUpgraderWatcher::_exit);
-        emit _stop();
+        emit _cancel();
     } else {
         qInfo() << "The process has no active tasks. Exit.";
         _exit();
@@ -69,6 +83,13 @@ void FirmwareUpgraderWatcher::finish(void)
 void FirmwareUpgraderWatcher::_exit(void)
 {
     std::exit(EXIT_SUCCESS);
+}
+
+
+void FirmwareUpgraderWatcher::_onNoActiveTasks() {
+    QObject::disconnect(&_taskManager, &SubtaskManager::noActiveSubtasks,
+                        this,          &FirmwareUpgraderWatcher::_onNoActiveTasks);
+    emit cancelled();
 }
 
 

@@ -25,12 +25,14 @@ public slots:
     void runCheckingCorrectnessStep (void) override;
 
     void finish(void) override;
+    void cancel(void) override;
 
 signals:
-    void _stop                  (void);
+    void _cancel(void);
 
 private slots:
     void _exit(void);
+    void _onNoActiveTasks(void);
 
     void _onRpiBootStateChanged       (states::RpiBootState             state, states::StateType type);
     void _onDeviceScannerStateChanged (states::DeviceScannerState       state, states::StateType type);
