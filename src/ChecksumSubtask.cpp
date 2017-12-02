@@ -27,7 +27,7 @@ void ChecksumSubtask::run(void)
 
     ChecksumCalculator calc;
 
-    calc.setStopCondition([this](){ return _stopRequested(); });
+    calc.setCancelCondition([this](){ return _stopRequested(); });
 
     QObject::connect(&calc, &Calculator::progressChanged, this,  &CsSubtask::progressChanged);
     QObject::connect(&calc, &Calculator::fileReadError,
@@ -39,18 +39,18 @@ void ChecksumSubtask::run(void)
     emit stateChanged(CsState::ComputeImageChecksum);
     auto imgChecksum = calc.calculate(_image, _image->size());
 
-    if (_stopRequested()) {
-        qInfo() << _subtaskMsg("stopped.");
-        emit finished();
+    if (calc.wasCancelled()) {
+        emit stateChanged(CsState::CheckingCancelled);
+        emit finished(false);
         return;
     }
 
     emit stateChanged(CsState::ComputeDeviceChecksum);
     auto deviceChecksum = calc.calculate(_device, _image->size());
 
-    if (_stopRequested()) {
-        qInfo() << _subtaskMsg("stopped.");
-        emit finished();
+    if (calc.wasCancelled()) {
+        emit stateChanged(CsState::CheckingCancelled);
+        emit finished(false);
         return;
     }
 

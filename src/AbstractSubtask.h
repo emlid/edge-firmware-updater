@@ -13,7 +13,7 @@ class AbstractSubtask : public QObject, public QRunnable
     Q_OBJECT
 public:
     explicit AbstractSubtask(QString subtaskName = "Unknown", QObject *parent = nullptr)
-        : QObject(parent), _subtaskName(subtaskName), _needToStop(false) { }
+        : QObject(parent), _subtaskName(subtaskName), _needToCancel(false) { }
 
     virtual ~AbstractSubtask(void) { }
 
@@ -21,8 +21,8 @@ signals:
     void finished(bool status = true);
 
 public slots:
-    void stop(void) {
-        _needToStop = true;
+    void cancel(void) {
+        _needToCancel = true;
     }
 
 protected:
@@ -31,13 +31,13 @@ protected:
     }
 
     bool _stopRequested(void) const {
-        return _needToStop;
+        return _needToCancel;
     }
 
     QString _subtaskName;
 
 private:
-    volatile bool _needToStop;
+    volatile bool _needToCancel;
 };
 
 #endif // ABSTRACTSUBTASK_H

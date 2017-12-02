@@ -24,7 +24,7 @@ bool SubtaskManager::run(AbstractSubtask* subtask)
     subtask->setAutoDelete(true);
 
     QObject::connect(this, &SubtaskManager::_stopTask,
-                     subtask, &AbstractSubtask::stop);
+                     subtask, &AbstractSubtask::cancel);
 
     auto future = QtConcurrent::run([subtask] (void) { subtask->run(); });
     _watcher.setFuture(future);

@@ -6,7 +6,9 @@
 #include <functional>
 #include <memory>
 
-class Flasher : public QObject
+#include "Cancellable.h"
+
+class Flasher : public QObject, public Cancellable
 {
     Q_OBJECT
 public:
@@ -16,7 +18,7 @@ public:
        READ_FAILED, WRITE_FAILED
     };
 
-    Flasher(QObject *parent = nullptr);
+    explicit Flasher(QObject *parent = nullptr);
 
     bool flash(
         std::shared_ptr<QFile> src,
@@ -24,22 +26,11 @@ public:
         int blockSize  = DEFAULT_BLOCK_SIZE
     );
 
-    void setStopCondition(std::function<bool(void)> condition) {
-        _stopCondition = condition;
-    }
-
 signals:
     void flashStarted(void);
     void flashCompleted(void);
     void progressChanged(uint progress);
     void flashFailed(FlashingStatus status);
-
-private:
-    bool _stopRequested(void) {
-        return _stopCondition();
-    }
-
-    std::function<bool(void)> _stopCondition;
 };
 
 #endif // QIOFLASHER_H

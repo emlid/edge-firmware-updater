@@ -42,7 +42,8 @@ void DeviceScannerSubtask::run(void)
         totalSleepTime += sleepTime;
 
         if (_stopRequested()) {
-            emit finished();
+            emit stateChanged(DsState::ScannerCancelled);
+            emit finished(false);
             return;
         }
 

@@ -18,11 +18,6 @@ void RpiBootSubtask::run(void)
     using RBState = states::RpiBootState;
     using StType  = states::StateType;
 
-    if (_stopRequested()) {
-        emit finished();
-        return;
-    }
-
     RpiBoot rpiboot(_vid, _pids);
 
     emit stateChanged(RBState::RpiBootStarted);

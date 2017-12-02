@@ -35,7 +35,7 @@ void FlasherSubtask::run(void)
 
     connect(&flasher, &Flasher::progressChanged, this, &FlasherSubtask::progressChanged);
 
-    flasher.setStopCondition([this](){ return _stopRequested(); });
+    flasher.setCancelCondition([this](){ return _stopRequested(); });
 
     // Lets flash our rpi device
     auto ioBlockSize = 1 << 16; // 64kb
@@ -48,6 +48,11 @@ void FlasherSubtask::run(void)
         return;
     }
 
-    emit stateChanged(FlState::FlasherFinished);
-    emit finished();
+    if (flasher.wasCancelled()) {
+        emit stateChanged(FlState::FlasherCancelled);
+        emit finished(false);
+    } else {
+        emit stateChanged(FlState::FlasherFinished);
+        emit finished();
+    }
 }

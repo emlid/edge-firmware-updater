@@ -5,8 +5,7 @@
 
 
 Flasher::Flasher(QObject *parent)
-    : QObject(parent),
-      _stopCondition([](){return false;})
+    : QObject(parent), Cancellable()
 { }
 
 
@@ -41,7 +40,8 @@ bool Flasher::flash(std::shared_ptr<QFile> src, std::shared_ptr<QFile> dest, int
             emit progressChanged(progress);
         }
 
-        if (_stopRequested()) {
+        if (_cancelRequested()) {
+            _informAboutCancel();
             return true;
         }
     }

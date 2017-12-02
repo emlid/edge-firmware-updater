@@ -5,7 +5,10 @@
 #include <functional>
 #include <memory>
 
-class ChecksumCalculator : public QObject
+#include "Cancellable.h"
+
+class ChecksumCalculator
+        : public QObject, public Cancellable
 {
     Q_OBJECT
 public:
@@ -14,21 +17,12 @@ public:
 
     QByteArray calculate(std::shared_ptr<QFile> file, qint64 length, int ioBlockSize = 4096);
 
-    void setStopCondition(std::function<bool(void)> condition) {
-        _stopCondition = condition;
-    }
-
 signals:
     void progressChanged(int value);
     void fileReadError(void);
 
 private:
-    bool _stopRequested(void) {
-        return _stopCondition();
-    }
-
     QCryptographicHash        _hash;
-    std::function<bool(void)> _stopCondition;
 };
 
 #endif // CHECKSUMCALCULATOR_H

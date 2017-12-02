@@ -47,7 +47,10 @@ QByteArray ChecksumCalculator::calculate(std::shared_ptr<QFile> file, qint64 len
             emit progressChanged(progress);
         }
 
-        if (_stopRequested()) {
+        if (_cancelRequested()) {
+            file->seek(0);
+            _hash.reset();
+            _informAboutCancel();
             return QByteArray();
         }
     }
