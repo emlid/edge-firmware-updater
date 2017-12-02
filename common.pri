@@ -18,7 +18,8 @@ HEADERS += \
     $$PWD/src/DeviceScannerSubtask.h \
     $$PWD/src/FlasherSubtask.h \
     $$PWD/src/SubtaskManager.h \
-    $$PWD/src/ChecksumSubtask.h
+    $$PWD/src/ChecksumSubtask.h \
+    $$PWD/src/components/Cancellable.h
 
 REPC_SOURCE = $$PWD/src/shared/FirmwareUpgraderWatcher.rep
 
