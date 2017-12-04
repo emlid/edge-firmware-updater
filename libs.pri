@@ -20,6 +20,11 @@ unix {
         QMAKE_POST_LINK += && $$QMAKE_COPY --dereference $$[QT_INSTALL_LIBS]/$$QT_LIB $$QT_DEST_LIBDIR
     }
 
+    # copy boot script
+
+    BOOT_SCRIPT_PATH = $$PWD/fwupgrader-start.sh
+    QMAKE_POST_LINK += && $$QMAKE_COPY $$BOOT_SCRIPT_PATH $$DESTDIR
+
     # libusb
 
     LIBUSB_LIB = /usr/lib/x86_64-linux-gnu/libusb-1.0.so
