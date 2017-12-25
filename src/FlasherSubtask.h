@@ -2,7 +2,6 @@
 #define FLASHERSUBTASK_H
 
 #include "AbstractSubtask.h"
-#include "shared/States.h"
 
 #include <QtCore>
 #include <memory>
@@ -19,10 +18,12 @@ public:
 
     virtual void run(void) override;
 
+    static QString name(void) {
+        return QString("Flasher");
+    }
+
 signals:
     void progressChanged(uint value);
-    void stateChanged(states::FlasherState state,
-                      states::StateType    type = states::StateType::Info);
 
 private:
     std::shared_ptr<QFile> _src;

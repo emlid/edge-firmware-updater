@@ -12,13 +12,28 @@ class AbstractSubtask : public QObject, public QRunnable
 {
     Q_OBJECT
 public:
+    enum ExitStatus {
+        Succeed = 1,
+        Cancelled = 0,
+        Failed = -1
+    };
+
+    enum LogMessageType {
+        Info = 0,
+        Warning,
+        Error
+    };
+
     explicit AbstractSubtask(QString subtaskName = "Unknown", QObject *parent = nullptr)
         : QObject(parent), _subtaskName(subtaskName), _needToCancel(false) { }
 
     virtual ~AbstractSubtask(void) { }
 
+    QString subtaskName(void) const { return subtaskName(); }
+
 signals:
-    void finished(bool status = true);
+    void finished(ExitStatus status = Succeed);
+    void logMessage(QString msg, LogMessageType type);
 
 public slots:
     void cancel(void) {
@@ -26,11 +41,11 @@ public slots:
     }
 
 protected:
-    QString _subtaskMsg(QString const& msg) {
-        return _subtaskName + ": " + msg;
+    void sendLogMessage(QString const& msg, LogMessageType type = Info) {
+        emit logMessage(_subtaskName + ": " + msg, type);
     }
 
-    bool _stopRequested(void) const {
+    bool stopRequested(void) const {
         return _needToCancel;
     }
 
