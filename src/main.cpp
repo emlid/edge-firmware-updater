@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #endif
 
-#include "FirmwareUpgraderWatcher.h"
+#include "EdgeFirmwareUpdater.h"
 
 
 void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QString const& msg)
@@ -77,11 +77,8 @@ void reducePriviledge(void) {
 
 int main(int argc, char *argv[])
 {
-    qRegisterMetaType<states::DeviceScannerState>("states::DeviceScannerState");
-    qRegisterMetaType<states::RpiBootState>("states::RpiBootState");
-    qRegisterMetaType<states::FlasherState>("states::FlasherState");
-    qRegisterMetaType<states::StateType>("states::StateType");
-    qRegisterMetaType<states::CheckingCorrectnessState>("states::CheckingCorrectnessState");
+    qRegisterMetaType<AbstractSubtask::LogMessageType>("AbstractSubtask::LogMessageType");
+    qRegisterMetaType<AbstractSubtask::ExitStatus>("AbstractSubtask::ExitStatus");
 
     QCoreApplication a(argc, argv);
     qInstallMessageHandler(::messageHandler);
@@ -92,7 +89,7 @@ int main(int argc, char *argv[])
     QRemoteObjectHost serverNode(serverUrl);
 
     // Remote our watcher to other processes
-    FirmwareUpgraderWatcher watcher;
+    EdgeFirmwareUpdater watcher;
     auto successful = serverNode.enableRemoting(&watcher);
 
     if (successful) {
