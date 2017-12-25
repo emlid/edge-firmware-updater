@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>usbboot_files/start.elf</file>
+    <file>usbboot_files/bootcode.bin</file>
+</qresource>
+</RCC>
