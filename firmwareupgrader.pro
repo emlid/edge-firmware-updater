@@ -38,7 +38,7 @@ OBJECTS_DIR = .obj
 MOC_DIR     = .moc
 RCC_DIR     = .resources
 
-include(common.pri)
+include(src/common.pri)
 
 contains(CONFIG, DISABLE_BUILD_WITH_LIBS) {
     message("Skip building with libs")
