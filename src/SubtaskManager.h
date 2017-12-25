@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QFutureWatcher>
+#include <memory>
 
 #include "AbstractSubtask.h"
 
@@ -12,18 +13,23 @@ class SubtaskManager : public QObject
 public:
     explicit SubtaskManager(QObject *parent = nullptr);
 
-    bool run               (AbstractSubtask* subtask);
+    bool run               (std::unique_ptr<AbstractSubtask>&& subtask);
     bool hasActiveSubtasks (void) const;
 
+    AbstractSubtask* currentSubtask(void) {
+        return _subtask.get();
+    }
+
 signals:
-    void noActiveSubtasks(void);
-    void _stopTask(void);
+    void noActiveSubtasks (void);
+    void _stopTask        (void);
 
 public slots:
     void stopTask(void);
 
 private:
-    QFutureWatcher<void> _watcher;
+    std::unique_ptr<AbstractSubtask> _subtask;
+    QFutureWatcher<void>             _watcher;
 };
 
 #endif // SUBTASKMANAGER_H

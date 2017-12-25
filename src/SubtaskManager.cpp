@@ -4,7 +4,7 @@
 
 
 SubtaskManager::SubtaskManager(QObject *parent)
-    : QObject(parent)
+    : QObject(parent), _subtask(nullptr)
 {
     QThreadPool::globalInstance()->reserveThread();
     QObject::connect(&_watcher, &QFutureWatcher<void>::finished,
@@ -12,21 +12,20 @@ SubtaskManager::SubtaskManager(QObject *parent)
 }
 
 
-bool SubtaskManager::run(AbstractSubtask* subtask)
+bool SubtaskManager::run(std::unique_ptr<AbstractSubtask>&& subtask)
 {
     Q_ASSERT(subtask != nullptr);
 
     if (_watcher.isRunning()) {
-        qCritical("Task Manager is busy");
+        qWarning("Task Manager is busy");
         return false;
     }
 
-    subtask->setAutoDelete(true);
-
     QObject::connect(this, &SubtaskManager::_stopTask,
-                     subtask, &AbstractSubtask::cancel);
+                     subtask.get(), &AbstractSubtask::cancel);
 
-    auto future = QtConcurrent::run([subtask] (void) { subtask->run(); });
+    _subtask = std::move(subtask);
+    auto future = QtConcurrent::run([this] (void) { _subtask->run(); });
     _watcher.setFuture(future);
 
     return future.isRunning();
