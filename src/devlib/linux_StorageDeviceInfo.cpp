@@ -44,8 +44,8 @@ StorageDeviceInfo::StorageDeviceInfo(int vid, int pid, QString const& devFilePat
 { }
 
 
-StorageDeviceInfo::StorageDeviceInfo(StorageDeviceInfo&& info)
-    : _pimpl(new impl::StorageDeviceInfo_Private(std::move(*info._pimpl)))
+StorageDeviceInfo::StorageDeviceInfo(StorageDeviceInfo&& info) noexcept
+    : _pimpl(std::move(info._pimpl))
 { }
 
 
@@ -54,15 +54,18 @@ StorageDeviceInfo::StorageDeviceInfo(StorageDeviceInfo const& info)
 { }
 
 
-StorageDeviceInfo StorageDeviceInfo::operator =(StorageDeviceInfo&& info)
+StorageDeviceInfo& StorageDeviceInfo::operator =(StorageDeviceInfo&& info) noexcept
 {
-    return StorageDeviceInfo(std::move(info));
+    _pimpl = std::move(info._pimpl);
+    return *this;
 }
 
 
-StorageDeviceInfo StorageDeviceInfo::operator =(StorageDeviceInfo const& info)
+StorageDeviceInfo& StorageDeviceInfo::
+    operator =(StorageDeviceInfo const& info)
 {
-    return StorageDeviceInfo(info);
+    _pimpl.reset(new impl::StorageDeviceInfo_Private(*info._pimpl));
+    return *this;
 }
 
 
@@ -72,18 +75,21 @@ StorageDeviceInfo::~StorageDeviceInfo(void)
 
 int StorageDeviceInfo::vid(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     return _pimpl->_vid;
 }
 
 
 int StorageDeviceInfo::pid(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     return _pimpl->_pid;
 }
 
 
 QString StorageDeviceInfo::info(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     auto info = QString();
     QTextStream infoStream(&info);
 
@@ -115,12 +121,14 @@ QString StorageDeviceInfo::info(void) const noexcept
 
 QString StorageDeviceInfo::filePath(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     return _pimpl->_deviceFilePath;
 }
 
 
 QList<Partition> StorageDeviceInfo::partitions(void) const
 {
+    Q_ASSERT(_pimpl);
     auto partitions = QList<Partition>();
     auto partsCount = _pimpl->partitionsCount();
 
@@ -172,6 +180,7 @@ QList<Partition> StorageDeviceInfo::partitions(void) const
 
 QList<Mountpoint> StorageDeviceInfo::mountpoints(void) const
 {
+    Q_ASSERT(_pimpl);
     QList<Mountpoint> neededMountpoints;
     auto mountedVolumes = QStorageInfo::mountedVolumes();
 

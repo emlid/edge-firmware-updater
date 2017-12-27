@@ -7,6 +7,7 @@
 #include "Partition.h"
 #include "Mountpoint.h"
 #include "util.h"
+#include "error.h"
 
 using namespace devlib;
 
@@ -29,7 +30,7 @@ Partition::Partition(QString const& filePath, QString const& fstype, QString con
 { }
 
 
-Partition::Partition(Partition&& part)
+Partition::Partition(Partition&& part) noexcept
     : _pimpl(new impl::Partition_Private(std::move(*part._pimpl)))
 { }
 
@@ -39,15 +40,17 @@ Partition::Partition(Partition const& part)
 { }
 
 
-Partition Partition::operator =(Partition&& part)
+Partition& Partition::operator =(Partition&& part) noexcept
 {
-    return Partition(std::move(part));
+    _pimpl.reset(new impl::Partition_Private(std::move(*part._pimpl)));
+    return *this;
 }
 
 
-Partition Partition::operator =(Partition const& part)
+Partition& Partition::operator =(Partition const& part)
 {
-    return Partition(part);
+    _pimpl.reset(new impl::Partition_Private(*part._pimpl));
+    return *this;
 }
 
 
@@ -57,6 +60,7 @@ Partition::~Partition(void)
 
 QString Partition::info(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     auto info = QString();
 
     QTextStream(&info)
@@ -71,18 +75,22 @@ QString Partition::info(void) const noexcept
 
 QString Partition::filePath(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     return _pimpl->_filePath;
 }
 
 
 QString Partition::label(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     return _pimpl->_label;
 }
 
 
 Mountpoint Partition::mount(QString const& path)
 {
+    Q_ASSERT(_pimpl);
+
     auto partition = _pimpl->_filePath.toStdString();
     auto dest      = path.toStdString();
     auto fstype    = _pimpl->_fstype.toStdString();
@@ -90,7 +98,8 @@ Mountpoint Partition::mount(QString const& path)
     auto result = ::mount(partition.data(), dest.data(), fstype.data(), 0, nullptr);
 
     if (result != 0) {
-        dbg::qLinuxCritical() << "can not mount " << partition.data() << " to " << dest.data();
+        qDebug() << "can not mount " << _pimpl->_filePath << " to " << path;
+        dbg::debugLinuxError();
         return Mountpoint("");
     }
 
@@ -100,6 +109,8 @@ Mountpoint Partition::mount(QString const& path)
 
 QList<Mountpoint> Partition::mountpoints(void) const
 {
+    Q_ASSERT(_pimpl);
+
     auto mntpts = QStorageInfo::mountedVolumes();
     auto partMntpts = QList<Mountpoint>();
 

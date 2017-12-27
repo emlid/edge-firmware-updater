@@ -23,7 +23,8 @@ public:
         auto mntptName = mntpt.toStdString();
 
         if (::umount2(mntptName.data(), 0) != 0) {
-            dbg::qLinuxCritical() << mntpt << " - unmounting failed." ;
+            qWarning() << "can not unmount: " << mntpt;
+            dbg::debugLinuxError();
             return false;
         }
 
@@ -41,7 +42,7 @@ Mountpoint::Mountpoint(QString const& filePath)
 { }
 
 
-Mountpoint::Mountpoint(Mountpoint&& mntpt)
+Mountpoint::Mountpoint(Mountpoint&& mntpt) noexcept
     : _pimpl(new impl::Mountpoint_Private(std::move(*mntpt._pimpl)))
 { }
 
@@ -51,15 +52,17 @@ Mountpoint::Mountpoint(Mountpoint const& mntpt)
 { }
 
 
-Mountpoint Mountpoint::operator =(Mountpoint&& mntpt)
+Mountpoint& Mountpoint::operator =(Mountpoint&& mntpt) noexcept
 {
-    return Mountpoint(std::move(mntpt));
+    _pimpl.reset(new impl::Mountpoint_Private(std::move(*mntpt._pimpl)));
+    return *this;
 }
 
 
-Mountpoint Mountpoint::operator =(Mountpoint const& mntpt)
+Mountpoint& Mountpoint::operator =(Mountpoint const& mntpt)
 {
-    return Mountpoint(mntpt);
+    _pimpl.reset(new impl::Mountpoint_Private(*mntpt._pimpl));
+    return *this;
 }
 
 
@@ -69,6 +72,7 @@ Mountpoint::~Mountpoint(void)
 
 QString Mountpoint::info(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     auto info = QString();
 
     QTextStream(&info)
@@ -80,6 +84,7 @@ QString Mountpoint::info(void) const noexcept
 
 bool Mountpoint::isValid(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     auto mntpts = QStorageInfo::mountedVolumes();
 
     auto predicate = [this] (auto& arg) {
@@ -92,12 +97,15 @@ bool Mountpoint::isValid(void) const noexcept
 
 QString Mountpoint::filePath(void) const noexcept
 {
+    Q_ASSERT(_pimpl);
     return _pimpl->_filePath;
 }
 
 
 MntptLock Mountpoint::umount(bool autoRemount)
 {
+    Q_ASSERT(_pimpl);
+
     impl::Mountpoint_Private::genericUmount(_pimpl->_filePath);
     return MntptLock(_pimpl->_filePath, autoRemount);
 }
@@ -140,6 +148,7 @@ MntptLock MntptLock::operator =(MntptLock&& lock)
 
 MntptLock::~MntptLock(void)
 {
+    Q_ASSERT(_pimpl);
     if (_pimpl->_autoRemount) {
         release();
     }
@@ -148,6 +157,7 @@ MntptLock::~MntptLock(void)
 
 bool MntptLock::release(void)
 {
+    Q_ASSERT(_pimpl);
     // stub
     return true;
 }
