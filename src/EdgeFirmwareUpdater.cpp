@@ -20,12 +20,19 @@ void EdgeFirmwareUpdater::initializeEdgeDevice(void)
     using Initializer = DeviceInitializerSubtask;
 
     auto initSubtask = std::unique_ptr<Initializer>(new Initializer());
+    QObject::connect(initSubtask.get(), &Initializer::edgeVersion,
+                     this,              &Upgrader::firmwareVersion);
     QObject::connect(initSubtask.get(), &Initializer::logMessage,
                      this,              &Upgrader::_onLogMessageReceived);
     QObject::connect(initSubtask.get(), &Initializer::finished,
                      this,              &Upgrader::initializingFinished);
     QObject::connect(initSubtask.get(), &Initializer::deviceAvailable,
-                    [this] (auto device) { _edgeDevice = util::make_optional(device); });
+        [this] (auto device) {
+             qInfo() << "received";
+             _edgeDevice.reset(device);
+             qInfo() << _edgeDevice.present();
+         }
+    );
 
     _taskManager.run(std::move(initSubtask));
 }
@@ -40,18 +47,32 @@ void EdgeFirmwareUpdater::flash(QString firmwareFilename)
         QCoreApplication::processEvents();
     }
 
+    if (!_edgeDevice.get().stillAvailable()) {
+        emit logMessage(FlasherTask::name() + ": edge disconnected",
+                        AbstractSubtask::Error);
+        emit flashingFinished(AbstractSubtask::Failed);
+        return;
+    }
+
+    qInfo() << "Start flashing";
+
     if (!_edgeDevice.present()) {
         qFatal("edge device not present, but flasher executed.");
+        emit flashingFinished(AbstractSubtask::Failed);
         return;
     }
 
     auto edgeAsStorage = _edgeDevice.get().asStorageDevice();
+
+    qInfo() << "unmounting mountpoints";
 
     // First: unmount all mountpoints (it's required for windows and optional for linux)
     auto edgeMntpts = edgeAsStorage.mountpoints();
     for (auto& mntpt : edgeMntpts) {
         mntpt.umount();
     }
+
+    qInfo() << "set flasher data";
 
     auto succeed = _flasherData.reset(firmwareFilename, edgeAsStorage);
     if (!succeed) {
@@ -64,22 +85,31 @@ void EdgeFirmwareUpdater::flash(QString firmwareFilename)
             ->open(QIODevice::ReadOnly);
 
     if (!succeed) {
-        emit logMessage("can not open image file", AbstractSubtask::Error);
+        emit logMessage(FlasherTask::name() + ": can not open image file",
+                        AbstractSubtask::Error);
+        qCritical() << "failed to open image. QFile code: "
+                    <<  _flasherData.image()->error();
+        emit flashingFinished(AbstractSubtask::Failed);
         return;
     }
+
+    qInfo() << "image " << _flasherData.image()->fileName() << " successfully opened";
 
     // Try to open file, which represent rpi device in filesystem
     succeed = _flasherData.device()
             ->open(QIODevice::ReadWrite | QIODevice::Unbuffered);
 
     if (!succeed) {
-        emit logMessage("can not open device file", AbstractSubtask::Error);
-        if (_edgeDevice.get().stillAvailable()) {
-             emit logMessage("edge device currently unavailable", AbstractSubtask::Error);
+        emit logMessage("can not open device", AbstractSubtask::Error);
+        if (!_edgeDevice.get().stillAvailable()) {
+            emit logMessage(FlasherTask::name() + ": edge device disconnected", QtCriticalMsg);
+            emit flashingFinished(AbstractSubtask::Failed);
         }
-        qCritical() << "Failed to open as qfile.";
+
         return;
     }
+
+    qInfo() << "device" << _flasherData.device()->fileName() << " successfully opened";
 
     auto flasherSubtask = std::unique_ptr<FlasherTask>
             (new FlasherTask(_flasherData.image(), _flasherData.device()));
