@@ -19,10 +19,10 @@ class devlib::Partition
     friend class devlib::StorageDeviceInfo;
     friend class devlib::Mountpoint;
 public:
-    Partition(Partition&&);
+    Partition(Partition&&) noexcept;
     Partition(Partition const&);
-    Partition operator =(Partition&&);
-    Partition operator =(Partition const&);
+    Partition& operator =(Partition&&) noexcept;
+    Partition& operator =(Partition const&);
     ~Partition(void);
 
     QString info(void) const noexcept;
