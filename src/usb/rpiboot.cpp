@@ -448,8 +448,8 @@ int RpiBootPrivate::boot(void)
 
     do {
         int last_serial = -1;
-        auto const maxPollingTime = 10000;
-        auto const sleepTime  = 600;
+        auto const maxPollingTime = 5000;
+        auto const sleepTime  = 10;
         auto totalPollingTime = 0;
 
         qInfo() << "Waiting for BCM2835/6/7";
@@ -478,7 +478,7 @@ int RpiBootPrivate::boot(void)
                     qWarning() << "rpiboot timed out";
                     return -1;
                 } else {
-                    QThread::usleep(sleepTime);
+                    QThread::msleep(sleepTime);
                     totalPollingTime += sleepTime;
                 }
             }
