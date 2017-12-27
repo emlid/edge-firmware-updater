@@ -37,13 +37,21 @@ TEMPLATE = app
 OBJECTS_DIR = .obj
 MOC_DIR     = .moc
 RCC_DIR     = .resources
+PROJECT_DIR = $$PWD
 
 include(src/common.pri)
+
+# copy boot script
+
+BOOT_SCRIPT_PATH = $$PWD/fwupgrader-start.sh
+QMAKE_POST_LINK += $$QMAKE_COPY $$BOOT_SCRIPT_PATH $$DESTDIR
+
+# build with libs
 
 contains(CONFIG, NO_LIBS) {
     message("Skip building with libs")
 } else {
-    include(libs.pri)
+    include(libs/libs.pri)
 }
 
 # The following define makes your compiler emit warnings if you use
