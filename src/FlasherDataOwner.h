@@ -19,35 +19,36 @@ public:
     { }
 
     ~FlasherDataOwner() {
-        Q_ASSERT(_device.use_count() <= 1);
-        Q_ASSERT(_image.use_count() <= 1);
+        Q_ASSERT_X(_device.unique(), "~FlasherDataOwner()", "device not unique");
+        Q_ASSERT_X(_image.unique(),  "~FlasherDataOwner()", "image not unique");
     }
 
-    std::shared_ptr<QFile> image(void) const {
-        Q_ASSERT(_image != nullptr);
+    std::shared_ptr<QFile> image(void) {
+        Q_ASSERT(_image);
         return _image;
     }
 
-    std::shared_ptr<devlib::StorageDeviceFile> device(void) const {
-        Q_ASSERT(_device != nullptr);
+    std::shared_ptr<devlib::StorageDeviceFile> device(void) {
+        Q_ASSERT(_device);
         return _device;
     }
 
     bool reset(QString const& filename,
                devlib::StorageDeviceInfo const& info)
     {
-        if (_image.use_count() > 1 || _device.use_count() > 1) {
+        if (_image.unique() || _device.unique()) {
+            qWarning() << "Trying to reset FlasherDataOwner with not unique ptrs";
             return false;
         }
 
-        _image  = std::make_shared<QFile>(filename);
-        _device = std::make_shared<devlib::StorageDeviceFile>(info);
+        _image.reset(new QFile(filename));
+        _device.reset(new devlib::StorageDeviceFile(info));
 
         return true;
     }
 
 private:
-    std::shared_ptr<QFile> _image;
+    std::shared_ptr<QFile>                     _image;
     std::shared_ptr<devlib::StorageDeviceFile> _device;
 };
 
