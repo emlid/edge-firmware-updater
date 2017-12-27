@@ -5,7 +5,9 @@ SOURCES += $$PWD/rpiboot.cpp \
     $$PWD/usbutils.cpp
 
 unix {
-    LIBS += -lusb-1.0
+    LIBUSB_HOME = "libs/libusb/g++64"
+    INCLUDEPATH += "$$LIBUSB_HOME/include"
+    LIBS += -L"$$LIBUSB_HOME/lib/" -lusb-1.0
 }
 
 win32 {
