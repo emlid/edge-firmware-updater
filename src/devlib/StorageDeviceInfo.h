@@ -19,10 +19,10 @@ class devlib::StorageDeviceInfo
     friend class devlib::Mountpoint;
     friend class devlib::Partition;
 public:
-    StorageDeviceInfo(StorageDeviceInfo&&);
+    StorageDeviceInfo(StorageDeviceInfo&&) noexcept;
     StorageDeviceInfo(StorageDeviceInfo const&);
-    StorageDeviceInfo operator =(StorageDeviceInfo&& );
-    StorageDeviceInfo operator =(StorageDeviceInfo const& );
+    StorageDeviceInfo& operator =(StorageDeviceInfo&& ) noexcept;
+    StorageDeviceInfo& operator =(StorageDeviceInfo const&);
     ~StorageDeviceInfo(void);
 
     int vid(void) const noexcept;
