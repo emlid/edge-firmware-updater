@@ -20,7 +20,7 @@ util::Optional<edge::Initializer> edge::connect(void)
     if (edge::available()) {
         auto function = std::function<decltype(edge::impl::initialize)>
                 (edge::impl::initialize);
-        return util::make_optional(function);
+        return function;
     }
 
     return {};
@@ -54,7 +54,7 @@ util::Optional<edge::Device> edge::impl::initialize(void)
                                            edge::isEdgeAsMassStorage);
 
         if (edgePtr != storageDevices.cend()) {
-            return util::make_optional(edge::Device(*edgePtr));
+            return edge::Device(*edgePtr);
         }
 
         totalPollingTime += sleepTime;
@@ -172,7 +172,7 @@ util::Optional<devlib::Partition> edge::Device::_bootPartition(void)
     auto bootPart = std::find_if(edgeParts.begin(), edgeParts.end(), partsFilter);
 
     if (bootPart != edgeParts.end()) {
-        return util::make_optional(*bootPart);
+        return *bootPart;
     }
 
     return {};
@@ -186,7 +186,7 @@ util::Optional<devlib::Mountpoint> edge::Device::
     auto bootPartMntpts = bootPart.mountpoints();
 
     if (!bootPartMntpts.empty()) {
-        return util::make_optional(bootPartMntpts.first());
+        return bootPartMntpts.first();
     }
 
     auto dirManager = QDir();

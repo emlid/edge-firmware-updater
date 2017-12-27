@@ -10,10 +10,6 @@
 
 namespace util {
     template<typename T> class Optional;
-
-    template<typename M> Optional<typename std::decay<M>::type> make_optional(M&& value) {
-        return {std::forward<M>(value)};
-    }
 }
 
 
