@@ -22,10 +22,10 @@ class devlib::Mountpoint
     friend class devlib::StorageDeviceInfo;
     friend class devlib::MntptLock;
 public:
-    Mountpoint(Mountpoint&&);
+    Mountpoint(Mountpoint&&) noexcept;
     Mountpoint(Mountpoint const&);
-    Mountpoint operator =(Mountpoint&&);
-    Mountpoint operator =(Mountpoint const&);
+    Mountpoint& operator =(Mountpoint&&) noexcept;
+    Mountpoint& operator =(Mountpoint const&);
     ~Mountpoint(void);
 
     QString info(void) const noexcept;
