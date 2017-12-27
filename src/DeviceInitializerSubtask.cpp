@@ -36,7 +36,9 @@ void DeviceInitializerSubtask::run(void)
     }
 
     auto edgeDevice = optEdgeDevice.get();
+    auto version = edgeDevice.firmwareVersion();
 
+    sendLogMessage("Firmware version: " + version);
 
     emit edgeVersion(edgeDevice.firmwareVersion());
     emit deviceAvailable(edgeDevice);
