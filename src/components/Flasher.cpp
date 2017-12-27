@@ -22,13 +22,13 @@ bool Flasher::flash(std::shared_ptr<QFile> src, std::shared_ptr<QFile> dest, int
 
         auto readed = src->read(buffer.get(), blockSize);
         if (readed != blockSize && readed != srcSize - wroteBytes) {
-            emit flashFailed(FlashingStatus::READ_FAILED);
+            emit flashFailed(FlashingStatus::ReadFailed);
             return false;
         }
 
         auto wrote = dest->write(buffer.get(), readed);
         if (wrote != readed) {
-            emit flashFailed(FlashingStatus::WRITE_FAILED);
+            emit flashFailed(FlashingStatus::WriteFailed);
             return false;
         }
 

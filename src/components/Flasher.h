@@ -15,7 +15,7 @@ public:
     static const int DEFAULT_BLOCK_SIZE = 512;
 
     enum class FlashingStatus {
-       READ_FAILED, WRITE_FAILED
+       ReadFailed, WriteFailed
     };
 
     explicit Flasher(QObject *parent = nullptr);
