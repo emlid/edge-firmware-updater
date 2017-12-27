@@ -5,8 +5,14 @@
 #include <unistd.h>
 
 namespace dbg {
-    inline QDebug qLinuxCritical(void) {
-        return qCritical() << " (errno: " << ::strerror(errno) << ") ";
+    inline void debugLinuxError(void) {
+        int cache = errno;
+        qWarning() << "\n!!! (linux) errno code: " << cache << "\n"
+               << "!!! (linux) error description: " << strerror(cache);
+    }
+
+    template<typename T> QString qEnumValueToString(T const enumValue) {
+        return QMetaEnum::fromType<T>().valueToKey(enumValue);
     }
 }
 
