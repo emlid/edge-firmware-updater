@@ -19,7 +19,7 @@ void FlasherSubtask::run(void)
 
     connect(&flasher, &Flasher::flashFailed,
         [this] (Flasher::FlashingStatus status) {
-            if (status == Flasher::FlashingStatus::READ_FAILED) {
+            if (status == Flasher::FlashingStatus::ReadFailed) {
                 sendLogMessage("image reading failed", Error);
             } else {
                 sendLogMessage("writing to the device failed", Error);
