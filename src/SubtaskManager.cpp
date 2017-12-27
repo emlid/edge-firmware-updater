@@ -9,12 +9,14 @@ SubtaskManager::SubtaskManager(QObject *parent)
     QThreadPool::globalInstance()->reserveThread();
     QObject::connect(&_watcher, &QFutureWatcher<void>::finished,
                      this, &SubtaskManager::noActiveSubtasks);
+    QObject::connect(&_watcher, &QFutureWatcher<void>::finished,
+                     [this] () { _subtask.release(); });
 }
 
 
 bool SubtaskManager::run(std::unique_ptr<AbstractSubtask>&& subtask)
 {
-    Q_ASSERT(subtask != nullptr);
+    Q_ASSERT(subtask);
 
     if (_watcher.isRunning()) {
         qWarning("Task Manager is busy");
