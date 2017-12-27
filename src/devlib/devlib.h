@@ -5,5 +5,6 @@
 #include "Partition.h"
 #include "StorageDeviceFile.h"
 #include "StorageDeviceInfo.h"
+#include "error.h"
 
 #endif // DEVLIB_H
