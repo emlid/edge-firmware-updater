@@ -9,18 +9,6 @@ bool edge::available(void)
 }
 
 
-int edge::vid(void) {
-    return 0x0a5c;
-}
-
-int edge::pid(void) {
-    return 0x2764;
-}
-
-int edge::pidAsMassStorage(void) {
-    return 0x0001;
-}
-
 bool edge::isEdgeAsMassStorage(devlib::StorageDeviceInfo const& device) {
     return device.vid() == vid()
         && device.pid() == pidAsMassStorage();
@@ -51,8 +39,8 @@ util::Optional<edge::Device> edge::impl::initialize(void)
         return {};
     }
 
-    auto const maxPollingTime = 10000;
-    auto const sleepTime      = 600;
+    auto const maxPollingTime = 5000;
+    auto const sleepTime      = 10;
     auto totalPollingTime     = 0;
 
     // We need to wait until OS detect our device, which was booted as mass storage
@@ -89,36 +77,33 @@ edge::Device::Device(void)
 { }
 
 
-edge::Device::Device(Device&& device)
+edge::Device::Device(Device&& device) noexcept
     : _deviceInfo(std::move(device._deviceInfo))
 { }
 
 
 edge::Device::Device(Device const& device)
+    : _deviceInfo(new devlib::StorageDeviceInfo(*device._deviceInfo))
+{ }
+
+
+edge::Device& edge::Device::operator =(Device&& device) noexcept
 {
-    if (device._deviceInfo != nullptr) {
-        auto const& ptr = *(device._deviceInfo);
-        _deviceInfo.reset(new devlib::StorageDeviceInfo(ptr));
-    } else {
-        _deviceInfo.reset(nullptr);
-    }
+    _deviceInfo = std::move(device._deviceInfo);
+    return *this;
 }
 
 
-edge::Device edge::Device::operator =(Device&& device)
+edge::Device& edge::Device::operator =(Device const& device)
 {
-    return Device(std::move(device));
-}
-
-
-edge::Device edge::Device::operator =(Device const& device)
-{
-    return Device(device);
+    _deviceInfo.reset(new devlib::StorageDeviceInfo(*device._deviceInfo));
+    return *this;
 }
 
 
 bool edge::Device::stillAvailable(void) const
 {
+    Q_ASSERT(_deviceInfo);
     auto devices = devlib::StorageDeviceInfo::availableDevices();
     return std::any_of(devices.cbegin(), devices.cend(), edge::isEdgeAsMassStorage);
 }
@@ -126,7 +111,7 @@ bool edge::Device::stillAvailable(void) const
 
 QString edge::Device::firmwareVersion(void)
 {
-
+    Q_ASSERT(_deviceInfo);
     auto fwVersion = QString();
 
     /// get boot partition
@@ -163,11 +148,13 @@ QString edge::Device::firmwareVersion(void)
         auto pos = 0;
 
         if (regexp.indexIn(line, pos) != -1) {
+             qInfo() << "Edge version: " << fwVersion;
              fwVersion = regexp.capturedTexts().at(0);
              break;
         }
     }
 
+    issueFile.close();
     bootPartMntpt.umount();
 
     return fwVersion;
@@ -176,6 +163,7 @@ QString edge::Device::firmwareVersion(void)
 
 util::Optional<devlib::Partition> edge::Device::_bootPartition(void)
 {
+    Q_ASSERT(_deviceInfo);
     auto partsFilter = [] (auto const& part) {
         return part.label() == "boot";
     };
@@ -194,6 +182,7 @@ util::Optional<devlib::Partition> edge::Device::_bootPartition(void)
 util::Optional<devlib::Mountpoint> edge::Device::
     _bootPartMountpoint(devlib::Partition& bootPart)
 {
+    Q_ASSERT(_deviceInfo);
     auto bootPartMntpts = bootPart.mountpoints();
 
     if (!bootPartMntpts.empty()) {

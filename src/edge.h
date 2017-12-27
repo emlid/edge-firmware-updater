@@ -11,9 +11,9 @@ namespace edge {
     bool available(void);
     util::Optional<Initializer> connect(void);
 
-    int vid(void);
-    int pid(void);
-    int pidAsMassStorage(void);
+    constexpr int vid(void) { return 0x0a5c; }
+    constexpr int pid(void) { return 0x2764; }
+    constexpr int pidAsMassStorage(void) { return 0x0001; }
 
     bool isEdgeAsMassStorage(devlib::StorageDeviceInfo const& device);
 
@@ -27,17 +27,17 @@ class edge::Device
 {
     friend util::Optional<Device> impl::initialize(void);
 public:
-    Device(Device&&);
+    Device(Device&&) noexcept;
     Device(Device const&);
-    Device operator =(Device&&);
-    Device operator =(Device const&);
+    Device& operator =(Device&&) noexcept;
+    Device& operator =(Device const&);
     ~Device(void) {}
 
     bool    stillAvailable(void)  const;
     QString firmwareVersion(void);
 
     devlib::StorageDeviceInfo& asStorageDevice(void) {
-        return *_deviceInfo;
+        return *(_deviceInfo.get());
     }
 
 private:
