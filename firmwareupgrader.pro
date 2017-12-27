@@ -40,7 +40,7 @@ RCC_DIR     = .resources
 
 include(src/common.pri)
 
-contains(CONFIG, DISABLE_BUILD_WITH_LIBS) {
+contains(CONFIG, NO_LIBS) {
     message("Skip building with libs")
 } else {
     include(libs.pri)
