@@ -15,7 +15,7 @@ public:
     explicit ChecksumCalculator(QCryptographicHash::Algorithm algo =
             QCryptographicHash::Algorithm::Md5);
 
-    QByteArray calculate(std::shared_ptr<QFile> file, qint64 length, int ioBlockSize = 4096);
+    QByteArray calculate(std::shared_ptr<QFile> file, qint64 length, int ioBlockSize = 65536);
 
 signals:
     void progressChanged(int value);
