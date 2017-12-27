@@ -32,8 +32,8 @@ public:
     QString subtaskName(void) const { return subtaskName(); }
 
 signals:
-    void finished(ExitStatus status = Succeed);
-    void logMessage(QString msg, LogMessageType type);
+    void finished(AbstractSubtask::ExitStatus status = Succeed);
+    void logMessage(QString msg, AbstractSubtask::LogMessageType type);
 
 public slots:
     void cancel(void) {
@@ -41,7 +41,7 @@ public slots:
     }
 
 protected:
-    void sendLogMessage(QString const& msg, LogMessageType type = Info) {
+    void sendLogMessage(QString const& msg, AbstractSubtask::LogMessageType type = Info) {
         emit logMessage(_subtaskName + ": " + msg, type);
     }
 
