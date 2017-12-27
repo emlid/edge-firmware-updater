@@ -23,6 +23,9 @@ void ChecksumSubtask::run(void)
     using CsSubtask  = ChecksumSubtask;
     using Calculator = ChecksumCalculator;
 
+    using stopwatch = std::chrono::high_resolution_clock;
+    auto startTime = stopwatch::now();
+
     ChecksumCalculator calc;
 
     calc.setCancelCondition([this](){ return stopRequested(); });
@@ -51,6 +54,24 @@ void ChecksumSubtask::run(void)
         sendLogMessage("Image incorrectly wrote.", Warning);
         emit finished(Failed);
     } else {
+        auto finishTime = stopwatch::now();
+        auto workingTime = finishTime - startTime;
+
+        auto chronoSeconds = std::chrono::
+                duration_cast<std::chrono::seconds>(workingTime);
+
+        auto mins = chronoSeconds.count() / 60;
+        auto secs = chronoSeconds.count() - mins * 60;
+
+        auto leadSymbol = QChar('0');
+        auto leadCount  = 2;
+        auto base       = 10;
+        auto profilingData = QString("time elapsed: %1:%2 minutes")
+                                 .arg(mins, leadCount, base, leadSymbol)
+                                 .arg(secs, leadCount, base, leadSymbol);
+
+        sendLogMessage(profilingData);
+
         sendLogMessage("Image correctly wrote.");
         emit finished(Succeed);
     }
