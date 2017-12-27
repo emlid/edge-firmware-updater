@@ -16,4 +16,8 @@ HEADERS += \
     $$PWD/Partition.h \
     $$PWD/StorageDeviceInfo.h \
     $$PWD/StorageDeviceFile.h \
-    $$PWD/util.h
+    $$PWD/util.h \
+    $$PWD/error.h
+
+SOURCES += \
+    $$PWD/error.cc
