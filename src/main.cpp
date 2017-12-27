@@ -37,6 +37,8 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
                 auto mess = QTime::currentTime().toString() + ": " + prefix + msg + '\n';
                 logDataStream << mess;
                 errDataStream << mess;
+                logDataStream.flush();
+                errDataStream.flush();
             };
 
     switch (msgType) {
@@ -50,7 +52,7 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
 
         case QtFatalMsg:
             sendlog("fatal: ");
-            std::exit(1);
+            std::abort();
             break;
 
         case QtWarningMsg:
@@ -63,8 +65,6 @@ void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QStrin
         default:
             break;
     }
-
-    logDataStream.flush();
 }
 
 
