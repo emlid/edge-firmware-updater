@@ -44,7 +44,7 @@ include(src/common.pri)
 # copy boot script
 
 BOOT_SCRIPT_PATH = $$PWD/fwupgrader-start.sh
-QMAKE_POST_LINK += $$QMAKE_COPY $$BOOT_SCRIPT_PATH $$DESTDIR
+!win32:QMAKE_POST_LINK += $$QMAKE_COPY $$BOOT_SCRIPT_PATH $$DESTDIR
 
 # build with libs
 
