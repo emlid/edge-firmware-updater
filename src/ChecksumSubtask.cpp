@@ -1,5 +1,6 @@
 #include "ChecksumSubtask.h"
 #include "components/ChecksumCalculator.h"
+#include "util/Stopwatch.h"
 
 
 ChecksumSubtask::ChecksumSubtask(std::shared_ptr<QFile> image,
@@ -23,10 +24,10 @@ void ChecksumSubtask::run(void)
     using CsSubtask  = ChecksumSubtask;
     using Calculator = ChecksumCalculator;
 
-    using stopwatch = std::chrono::high_resolution_clock;
-    auto startTime = stopwatch::now();
-
+    util::Stopwatch    stopwatch;
     ChecksumCalculator calc;
+
+    stopwatch.start();
 
     calc.setCancelCondition([this](){ return stopRequested(); });
     QObject::connect(&calc, &Calculator::progressChanged, this,  &CsSubtask::progressChanged);
@@ -48,31 +49,17 @@ void ChecksumSubtask::run(void)
         sendLogMessage("cancelled");
         emit finished(Cancelled);
         return;
-    }
 
-    if (imgChecksum != deviceChecksum) {
+    } else if (imgChecksum != deviceChecksum) {
         sendLogMessage("Image incorrectly wrote.", Warning);
         emit finished(Failed);
+
     } else {
-        auto finishTime = stopwatch::now();
-        auto workingTime = finishTime - startTime;
+        auto timeElapsed = stopwatch.elapsed().asQString();
+        auto profilingData =
+               QString("Time elapsed: ") + timeElapsed + " minutes.";
 
-        auto chronoSeconds = std::chrono::
-                duration_cast<std::chrono::seconds>(workingTime);
-
-        auto mins = chronoSeconds.count() / 60;
-        auto secs = chronoSeconds.count() - mins * 60;
-
-        auto leadSymbol = QChar('0');
-        auto leadCount  = 2;
-        auto base       = 10;
-        auto profilingData = QString("time elapsed: %1:%2 minutes")
-                                 .arg(mins, leadCount, base, leadSymbol)
-                                 .arg(secs, leadCount, base, leadSymbol);
-
-        sendLogMessage(profilingData);
-
-        sendLogMessage("Image correctly wrote.");
+        sendLogMessage(QString("Image correctly wrote. ") + profilingData);
         emit finished(Succeed);
     }
 }
