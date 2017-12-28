@@ -1,7 +1,6 @@
 #include "FlasherSubtask.h"
 #include "components/Flasher.h"
-
-#include <chrono>
+#include "util/Stopwatch.h"
 
 
 FlasherSubtask::FlasherSubtask(std::shared_ptr<QFile> src, std::shared_ptr<QFile> dest, QObject *parent)
@@ -17,10 +16,10 @@ FlasherSubtask::~FlasherSubtask(void)
 
 void FlasherSubtask::run(void)
 {
-    Flasher flasher;
+    util::Stopwatch stopwatch;
+    Flasher         flasher;
 
-    using stopwatch = std::chrono::high_resolution_clock;
-    auto startTime = stopwatch::now();
+    stopwatch.start();
 
     connect(&flasher, &Flasher::flashFailed,
         [this] (Flasher::FlashingStatus status) {
@@ -45,31 +44,17 @@ void FlasherSubtask::run(void)
         sendLogMessage("flashing failed", Error);
         emit finished(Failed);
         return;
-    }
 
-    if (flasher.wasCancelled()) {
+    } else if (flasher.wasCancelled()) {
         sendLogMessage("flashing cancelled");
         emit finished(Cancelled);
+
     } else {
-        auto finishTime = stopwatch::now();
-        auto workingTime = finishTime - startTime;
+        auto timeElapsed   = stopwatch.elapsed().asQString();
+        auto profilingData =
+                QString("Time elapsed: ") + timeElapsed + " minutes.";
 
-        auto chronoSeconds = std::chrono::
-                duration_cast<std::chrono::seconds>(workingTime);
-
-        auto mins = chronoSeconds.count() / 60;
-        auto secs = chronoSeconds.count() - mins * 60;
-
-        auto leadSymbol = QChar('0');
-        auto leadCount  = 2;
-        auto base       = 10;
-        auto profilingData = QString("time elapsed: %1:%2 minutes")
-                                 .arg(mins, leadCount, base, leadSymbol)
-                                 .arg(secs, leadCount, base, leadSymbol);
-
-        sendLogMessage(profilingData);
-
-        sendLogMessage("flashing successfully finished");
+        sendLogMessage(QString("flashing successfully finished. ") + profilingData);
         emit finished(Succeed);
     }
 }
