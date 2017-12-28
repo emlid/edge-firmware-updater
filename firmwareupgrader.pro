@@ -39,7 +39,7 @@ MOC_DIR     = .moc
 RCC_DIR     = .resources
 PROJECT_DIR = $$PWD
 
-include(src/common.pri)
+include(src/src.pri)
 
 # copy boot script
 
