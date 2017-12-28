@@ -8,6 +8,8 @@
 #include <QtCore>
 #include <type_traits>
 
+#include "Stopwatch.h"
+
 namespace util {
     template<typename T> class Optional;
 }
