@@ -36,6 +36,8 @@ void FlasherSubtask::run(void)
 
     flasher.setCancelCondition([this](){ return stopRequested(); });
 
+    sendLogMessage("writing new firmware...");
+
     // Lets flash our rpi device
     auto ioBlockSize = 1 << 16; // 64kb
     auto successful = flasher.flash(_src, _dest, ioBlockSize);
