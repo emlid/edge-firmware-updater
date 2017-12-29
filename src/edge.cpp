@@ -112,8 +112,35 @@ bool edge::Device::stillAvailable(void) const
 QString edge::Device::firmwareVersion(void)
 {
     Q_ASSERT(_deviceInfo);
-    auto fwVersion = QString();
+    auto fwVersion = QString("Undefined");
+#ifdef Q_OS_WIN
+    qInfo() << "Extract edge version";
+    qInfo() << "Search volumes";
+    auto deviceMntpts = _deviceInfo->mountpoints();
+    auto deviceVolumesNames = QList<QString>();
 
+    for (auto const& mntpt : deviceMntpts) {
+        deviceVolumesNames.push_back(mntpt.filePath().replace("\\\\.\\",""));
+    }
+
+    auto mountedVolumes = QStorageInfo::mountedVolumes();
+    auto bootVolume = QString();
+
+    for (auto const& volume : mountedVolumes) {
+        for (auto const& devVolName : deviceVolumesNames) {
+            if (volume.rootPath().startsWith(devVolName) && volume.name() == "boot") {
+                bootVolume = devVolName;
+            }
+        }
+    }
+
+    if (bootVolume.isEmpty()) {
+        return fwVersion;
+    }
+
+    auto issuePath = bootVolume + _fwVersionFilename();
+    qInfo() << "Search version in " << issuePath;
+#else
     /// get boot partition
     auto optBootPartition = _bootPartition();
     if (!optBootPartition.present()) {
@@ -132,6 +159,7 @@ QString edge::Device::firmwareVersion(void)
 
     /// get version
     auto issuePath = bootPartMntpt.filePath() + _fwVersionFilename();
+#endif
     QFile issueFile(issuePath);
 
     auto succeed = issueFile.open(QIODevice::ReadOnly);
@@ -148,14 +176,16 @@ QString edge::Device::firmwareVersion(void)
         auto pos = 0;
 
         if (regexp.indexIn(line, pos) != -1) {
-             qInfo() << "Edge version: " << fwVersion;
              fwVersion = regexp.capturedTexts().at(0);
+             qInfo() << "Edge version: " << fwVersion;
              break;
         }
     }
 
     issueFile.close();
+#ifndef Q_OS_WIN
     bootPartMntpt.umount();
+#endif
 
     return fwVersion;
 }
