@@ -46,7 +46,7 @@ class devlib::MntptLock
     friend class devlib::Mountpoint;
 public:
     MntptLock(MntptLock&&);
-    MntptLock operator =(MntptLock&&);
+    MntptLock& operator =(MntptLock&&);
     ~MntptLock(void);
 
     bool release(void);

@@ -58,7 +58,7 @@ StorageDeviceFile::StorageDeviceFile(StorageDeviceInfo const& info)
 
 StorageDeviceFile::~StorageDeviceFile(void)
 {
-    this->close();
+    if (_pimpl) this->close();
 }
 
 

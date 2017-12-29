@@ -31,7 +31,7 @@ Partition::Partition(QString const& filePath, QString const& fstype, QString con
 
 
 Partition::Partition(Partition&& part) noexcept
-    : _pimpl(new impl::Partition_Private(std::move(*part._pimpl)))
+    : _pimpl(std::move(part._pimpl))
 { }
 
 
@@ -42,7 +42,7 @@ Partition::Partition(Partition const& part)
 
 Partition& Partition::operator =(Partition&& part) noexcept
 {
-    _pimpl.reset(new impl::Partition_Private(std::move(*part._pimpl)));
+    _pimpl = std::move(part._pimpl);
     return *this;
 }
 

@@ -43,7 +43,7 @@ Mountpoint::Mountpoint(QString const& filePath)
 
 
 Mountpoint::Mountpoint(Mountpoint&& mntpt) noexcept
-    : _pimpl(new impl::Mountpoint_Private(std::move(*mntpt._pimpl)))
+    : _pimpl(std::move(mntpt._pimpl))
 { }
 
 
@@ -54,7 +54,7 @@ Mountpoint::Mountpoint(Mountpoint const& mntpt)
 
 Mountpoint& Mountpoint::operator =(Mountpoint&& mntpt) noexcept
 {
-    _pimpl.reset(new impl::Mountpoint_Private(std::move(*mntpt._pimpl)));
+    _pimpl = std::move(mntpt._pimpl);
     return *this;
 }
 
@@ -136,20 +136,20 @@ MntptLock::MntptLock(QString const& mntptName, bool autoRemount)
 
 
 MntptLock::MntptLock(MntptLock&& lock)
-    : _pimpl(new impl::MntptLock_Private(std::move(*lock._pimpl)))
+    : _pimpl((std::move(lock._pimpl)))
 { }
 
 
-MntptLock MntptLock::operator =(MntptLock&& lock)
+MntptLock& MntptLock::operator =(MntptLock&& lock)
 {
-    return MntptLock(std::move(lock));
+    _pimpl = std::move(lock._pimpl);
+    return *this;
 }
 
 
 MntptLock::~MntptLock(void)
 {
-    Q_ASSERT(_pimpl);
-    if (_pimpl->_autoRemount) {
+    if (_pimpl && _pimpl->_autoRemount) {
         release();
     }
 }
