@@ -64,14 +64,6 @@ void EdgeFirmwareUpdater::flash(QString firmwareFilename)
 
     auto edgeAsStorage = _edgeDevice.get().asStorageDevice();
 
-    qInfo() << "unmounting mountpoints";
-
-    // First: unmount all mountpoints (it's required for windows and optional for linux)
-    auto edgeMntpts = edgeAsStorage.mountpoints();
-    for (auto& mntpt : edgeMntpts) {
-        mntpt.umount();
-    }
-
     qInfo() << "set flasher data";
 
     auto succeed = _flasherData.reset(firmwareFilename, edgeAsStorage);
