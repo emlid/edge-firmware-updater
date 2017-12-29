@@ -11,7 +11,9 @@ unix {
 }
 
 win32 {
-    LIBS += -llibusb-1.0
+    LIBUSB_HOME = "libs/libusb/msvc2015_32"
+    INCLUDEPATH += "$$LIBUSB_HOME/include"
+    LIBS += -L"$$LIBUSB_HOME/lib/" -llibusb-1.0
 }
 
 RESOURCES += $$PWD/usbboot_files.qrc
