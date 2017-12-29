@@ -3,23 +3,20 @@
 
 #include <QtCore>
 
+namespace usb {
+    class RpiBoot;
+}
 
 class RpiBootPrivate;
 
-
-class RpiBoot
+class usb::RpiBoot
 {
 public:
     RpiBoot(int vid, QList<int> const& pid);
-
-    int rpiDevicesCount(void) const;
-
-    int bootAsMassStorage(void);
-
     ~RpiBoot(void);
 
+    int bootAsMassStorage(void);
 private:
-    /* Pointer to implementation */
     RpiBootPrivate* _pimpl;
 };
 

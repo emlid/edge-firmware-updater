@@ -60,49 +60,18 @@ private:
 };
 
 
-RpiBoot::RpiBoot(int vid, QList<int> const& pids)
+usb::RpiBoot::RpiBoot(int vid, QList<int> const& pids)
     : _pimpl(new RpiBootPrivate(vid, pids))
 { }
 
 
-int RpiBoot::bootAsMassStorage(void)
+int usb::RpiBoot::bootAsMassStorage(void)
 {
     return _pimpl->boot();
 }
 
 
-int RpiBoot::rpiDevicesCount(void) const
-{
-    libusb_context *context = 0;
-    libusb_device **list = 0;
-    int ret = 0;
-    ssize_t count = 0;
-    int bootable = 0;
-
-    ret = libusb_init(&context);
-    Q_ASSERT(ret == 0);
-
-    count = libusb_get_device_list(context, &list);
-    Q_ASSERT(count > 0);
-
-    for (ssize_t idx = 0; idx < count; ++idx) {
-        libusb_device *device = list[idx];
-        struct libusb_device_descriptor desc;
-
-        ret = libusb_get_device_descriptor(device, &desc);
-        Q_ASSERT(ret == 0);
-
-        if (desc.idVendor == _pimpl->vid() && _pimpl->pids().contains(desc.idProduct)) {
-           bootable++;
-        }
-    }
-
-    libusb_exit(context);
-    return bootable;
-}
-
-
-RpiBoot::~RpiBoot(void)
+usb::RpiBoot::~RpiBoot(void)
 {
    delete _pimpl;
 }
@@ -479,6 +448,9 @@ int RpiBootPrivate::boot(void)
 
     do {
         int last_serial = -1;
+        auto const maxPollingTime = 5000;
+        auto const sleepTime  = 10;
+        auto totalPollingTime = 0;
 
         qInfo() << "Waiting for BCM2835/6/7";
 
@@ -502,7 +474,13 @@ int RpiBootPrivate::boot(void)
             }
 
             if (ret) {
-                QThread::usleep(500);
+                if (totalPollingTime >= maxPollingTime) {
+                    qWarning() << "rpiboot timed out";
+                    return -1;
+                } else {
+                    QThread::msleep(sleepTime);
+                    totalPollingTime += sleepTime;
+                }
             }
         }
         while (ret);

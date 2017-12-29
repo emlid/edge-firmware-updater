@@ -26,13 +26,13 @@ QByteArray ChecksumCalculator::calculate(std::shared_ptr<QFile> file, qint64 len
     qint64 readed = 0l;
 
     while (readed < fileSize) {
-        if (readed + ioBlockSize > fileSize) {
-            ioBlockSize = fileSize - readed;
-        }
-
         auto data = file->read(ioBlockSize);
 
-        if (data.size() != ioBlockSize) {
+        if (readed + ioBlockSize > fileSize) {
+            auto truncSize = fileSize - readed;
+            data.resize(truncSize);
+
+        } else if (data.size() != ioBlockSize) {
             emit fileReadError();
             return QByteArray();
         }

@@ -8,6 +8,8 @@ equals(QT_MAJOR_VERSION, 5) : lessThan(QT_MINOR_VERSION, 9) {
 
 message(Qt version: $$[QT_VERSION])
 
+CONFIG -= debug_and_release
+
 CONFIG(debug,   debug|release) {
     message(Debug build)
     DESTDIR = $${OUT_PWD}/debug
@@ -37,13 +39,23 @@ TEMPLATE = app
 OBJECTS_DIR = .obj
 MOC_DIR     = .moc
 RCC_DIR     = .resources
+PROJECT_DIR = $$PWD
 
-include(common.pri)
+include(src/src.pri)
 
-contains(CONFIG, DISABLE_BUILD_WITH_LIBS) {
+# copy boot script
+
+BOOT_SCRIPT_PATH = $$PWD/fwupgrader-start.sh
+!win32:QMAKE_POST_LINK += $$QMAKE_COPY $$BOOT_SCRIPT_PATH $$DESTDIR
+
+win32:QMAKE_LFLAGS += '\"/MANIFESTUAC:level=\'highestAvailable\' uiAccess=\'false\'\"'
+
+# build with libs
+
+contains(CONFIG, NO_LIBS) {
     message("Skip building with libs")
 } else {
-    include(libs.pri)
+    include(libs/libs.pri)
 }
 
 # The following define makes your compiler emit warnings if you use

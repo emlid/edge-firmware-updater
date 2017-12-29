@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "AbstractSubtask.h"
-#include "shared/States.h"
 
 class ChecksumSubtask : public AbstractSubtask
 {
@@ -20,10 +19,12 @@ public:
 
     virtual void run(void) override;
 
+    static QString name(void) {
+        return QString("Checksum");
+    }
+
 signals:
     void progressChanged(uint value);
-    void stateChanged(states::CheckingCorrectnessState state,
-                      states::StateType                type = states::StateType::Info);
 
 private:
     std::shared_ptr<QFile>   _image;
