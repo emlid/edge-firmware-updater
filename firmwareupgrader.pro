@@ -8,6 +8,8 @@ equals(QT_MAJOR_VERSION, 5) : lessThan(QT_MINOR_VERSION, 9) {
 
 message(Qt version: $$[QT_VERSION])
 
+CONFIG -= debug_and_release
+
 CONFIG(debug,   debug|release) {
     message(Debug build)
     DESTDIR = $${OUT_PWD}/debug
@@ -45,6 +47,8 @@ include(src/src.pri)
 
 BOOT_SCRIPT_PATH = $$PWD/fwupgrader-start.sh
 !win32:QMAKE_POST_LINK += $$QMAKE_COPY $$BOOT_SCRIPT_PATH $$DESTDIR
+
+win32:QMAKE_LFLAGS += '\"/MANIFESTUAC:level=\'highestAvailable\' uiAccess=\'false\'\"'
 
 # build with libs
 
