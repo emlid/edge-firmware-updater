@@ -1,6 +1,7 @@
+DEST_LIBDIR    = $$shell_path($$DESTDIR)
+
 unix {
     # Qt libs
-    DEST_LIBDIR    = $$DESTDIR
     QT_DEST_LIBDIR = $$DEST_LIBDIR
 
     QT_LIB_LIST = \
@@ -38,13 +39,21 @@ unix {
 }
 
 win32 {
-   # First. Copy libusb
-   LIBUSB_PATH = $$shell_path($$[QT_INSTALL_LIBS]/libusb-1.0.dll)
-   QMAKE_POST_LINK += @echo "Copy related libraries." \
-       && $$QMAKE_COPY $$LIBUSB_PATH $$shell_path($$DESTDIR)
+    # First. Copy libusb
+    LIBUSB_LIB_NAME = "libusb-1.0.dll"
+    LIBUSB_LIB_HOME = "$$PWD/libusb/msvc2015_32/lib"
 
-   # Second. Copy all needed Qt libraries with 'windeployqt' command
-   QT_BIN_DIR       = $$dirname(QMAKE_QMAKE)
-   DEPLOY_TARGET    = $$shell_quote($$shell_path($$DESTDIR/$${TARGET}.exe))
-   QMAKE_POST_LINK += && $$QT_BIN_DIR/windeployqt --no-compiler-runtime $${DEPLOY_TARGET}
+    LIBUSB_LIB_BUILD_TARGET = $$shell_path("$${DEST_LIBDIR}/$${LIBUSB_LIB_NAME}")
+    copy_libusb.target   = $$LIBUSB_LIB_BUILD_TARGET
+    copy_libusb.commands = \
+        @echo Copy $$LIBUSB_LIB_NAME  \
+        && $$QMAKE_COPY $$shell_path($$LIBUSB_LIB_HOME/$$LIBUSB_LIB_NAME) $$shell_path($$DEST_LIBDIR) \
+
+    QMAKE_EXTRA_TARGETS += copy_libusb
+    POST_TARGETDEPS     += $$LIBUSB_LIB_BUILD_TARGET
+
+    # Second. Copy all needed Qt libraries with 'windeployqt' command
+    QT_BIN_DIR       = $$dirname(QMAKE_QMAKE)
+    DEPLOY_TARGET    = $$shell_quote($$shell_path($$DESTDIR/$${TARGET}.exe))
+    QMAKE_POST_LINK += $$QT_BIN_DIR/windeployqt --no-compiler-runtime $${DEPLOY_TARGET}
 }
