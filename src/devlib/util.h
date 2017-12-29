@@ -2,14 +2,25 @@
 #define UTIL_H
 
 #include <QtCore>
+#if defined(Q_OS_WIN)
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 namespace dbg {
+#if defined(Q_OS_WIN)
+    inline void debugWindowsError(void) {
+        int cache = ::GetLastError();
+        qWarning() << "\n!!! (win) GetLastError code: " << cache << "\n";
+    }
+#else
     inline void debugLinuxError(void) {
         int cache = errno;
         qWarning() << "\n!!! (linux) errno code: " << cache << "\n"
                << "!!! (linux) error description: " << strerror(cache);
     }
+#endif
 
     template<typename T> QString qEnumValueToString(T const enumValue) {
         return QMetaEnum::fromType<T>().valueToKey(enumValue);
