@@ -18,15 +18,21 @@ public:
 
     int partitionsCount(void) const
     {
-        auto probe = ::blkid_new_probe_from_filename(_deviceFilePath.toStdString().data());
+        auto asStdString = _deviceFilePath.toStdString();
+        auto probe = ::blkid_new_probe_from_filename(asStdString.data());
 
         if (!probe) {
             qCritical() << "Failed to create blkid probe for device: " << _deviceFilePath;
-            ::blkid_free_probe(probe);
             return -1;
         }
 
         auto partlist = ::blkid_probe_get_partitions(probe);
+
+        if (!partlist) {
+            qWarning() << "Device doesn't have any partitions.";
+            return 0;
+        }
+
         auto partCount = ::blkid_partlist_numof_partitions(partlist);
 
         ::blkid_free_probe(probe);
@@ -129,6 +135,7 @@ QString StorageDeviceInfo::filePath(void) const noexcept
 QList<Partition> StorageDeviceInfo::partitions(void) const
 {
     Q_ASSERT(_pimpl);
+
     auto partitions = QList<Partition>();
     auto partsCount = _pimpl->partitionsCount();
 
