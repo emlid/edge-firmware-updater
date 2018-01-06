@@ -62,7 +62,7 @@ public:
     }
 
     T release(void) {
-        Q_CHECK_PTR(_objptr.get());
+        Q_ASSERT(_objptr);
         _handleCopy();
 
         auto obj = T(std::move(*_objptr));
@@ -84,7 +84,8 @@ public:
 
 private:
     void _handleCopy(void) {
-        if (_objptr.unique()) {
+        // if objptr not unique, make copy of data
+        if (!_objptr.unique()) {
             _objptr.reset(new T(*_objptr));
         }
     }
