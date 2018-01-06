@@ -194,17 +194,22 @@ QString edge::Device::firmwareVersion(void)
 util::Optional<devlib::Partition> edge::Device::_bootPartition(void)
 {
     Q_ASSERT(_deviceInfo);
+
     auto partsFilter = [] (auto const& part) {
         return part.label() == "boot";
     };
 
     auto edgeParts = _deviceInfo->partitions();
+
+    qInfo() << "Search partition with boot label.";
     auto bootPart = std::find_if(edgeParts.begin(), edgeParts.end(), partsFilter);
 
     if (bootPart != edgeParts.end()) {
+        qInfo() << "Partition with boot label found: " << bootPart->filePath();
         return *bootPart;
     }
 
+    qWarning() << "Partition with boot label not found.";
     return {};
 }
 
@@ -213,11 +218,17 @@ util::Optional<devlib::Mountpoint> edge::Device::
     _bootPartMountpoint(devlib::Partition& bootPart)
 {
     Q_ASSERT(_deviceInfo);
+    qInfo() << "Search mountpoint of boot partition";
     auto bootPartMntpts = bootPart.mountpoints();
 
     if (!bootPartMntpts.empty()) {
+        qInfo() << "Mountpoint of boot partition found: "
+                << bootPartMntpts.first().filePath();
         return bootPartMntpts.first();
     }
+
+    qInfo() << "Mountpoint of boot partition not found. "
+               "Trying to mount manually.";
 
     auto dirManager = QDir();
     auto mntptName = _bootMountpointPath();
@@ -228,7 +239,7 @@ util::Optional<devlib::Mountpoint> edge::Device::
 
     auto mntpt = bootPart.mount(mntptName);
     if (!mntpt.isValid()) {
-        qCritical() << "can not mount " << mntptName;
+        qWarning() << "can not mount " << mntptName;
         return {};
     }
 
