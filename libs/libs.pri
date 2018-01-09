@@ -22,20 +22,6 @@ unix {
         QMAKE_EXTRA_TARGETS += copy_$${QT_LIB}
         POST_TARGETDEPS     += $$QT_DEST_LIBDIR/$$QT_LIB
     }
-
-    # libusb
-
-    LIBUSB_LIB_NAME = "libusb-1.0.so"
-    LIBUSB_LIB_HOME = "$$PWD/libusb/g++64/lib"
-    LIBUSB_LIB_BUILD_TARGET = "$${DEST_LIBDIR}/$${LIBUSB_LIB_NAME}"
-
-    copy_libusb.target   = $$LIBUSB_LIB_BUILD_TARGET
-    copy_libusb.commands = \
-        @echo Copy $$LIBUSB_LIB_NAME  \
-        && $$QMAKE_COPY $$LIBUSB_LIB_HOME/$$LIBUSB_LIB_NAME $$DEST_LIBDIR \
-
-    QMAKE_EXTRA_TARGETS += copy_libusb
-    POST_TARGETDEPS     += $$LIBUSB_LIB_BUILD_TARGET
 }
 
 win32 {
