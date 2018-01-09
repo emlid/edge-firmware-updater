@@ -8,9 +8,7 @@ SOURCES += \
     $$PWD/usbutils.cpp \
 
 unix {
-    LIBUSB_HOME = "$$PROJECT_DIR/libs/libusb/g++64"
-    INCLUDEPATH += "$$LIBUSB_HOME/include"
-    LIBS += -L"$$LIBUSB_HOME/lib/" -lusb-1.0
+    LIBS += -lusb-1.0
 }
 
 win32 {
