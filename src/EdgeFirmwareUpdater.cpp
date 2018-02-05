@@ -72,34 +72,6 @@ void EdgeFirmwareUpdater::flash(QString firmwareFilename)
         return;
     }
 
-    // Try to open file with Image
-    succeed = _flasherData.image()
-            ->open(QIODevice::ReadOnly);
-
-    if (!succeed) {
-        emit logMessage(FlasherTask::name() + ": can not open image file",
-                        AbstractSubtask::Error);
-        qCritical() << "failed to open image. QFile code: "
-                    <<  _flasherData.image()->error();
-        emit flashingFinished(AbstractSubtask::Failed);
-        return;
-    }
-
-    qInfo() << "image " << _flasherData.image()->fileName() << " successfully opened";
-
-    // Try to open file, which represent rpi device in filesystem
-    succeed = _flasherData.device()
-            ->open(QIODevice::ReadWrite | QIODevice::Unbuffered);
-
-    if (!succeed) {
-        emit logMessage("can not open device", AbstractSubtask::Error);
-        if (!_edgeDevice.get().stillAvailable()) {
-            emit logMessage(FlasherTask::name() + ": edge device disconnected", QtCriticalMsg);
-            emit flashingFinished(AbstractSubtask::Failed);
-        }
-
-        return;
-    }
 
     qInfo() << "device" << _flasherData.device()->fileName() << " successfully opened";
 
