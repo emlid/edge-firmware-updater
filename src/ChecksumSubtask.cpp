@@ -27,6 +27,14 @@ void ChecksumSubtask::run(void)
     util::Stopwatch    stopwatch;
     ChecksumCalculator calc;
 
+    auto succeed = _image->open(QIODevice::ReadOnly);
+
+    if (!succeed) {
+        sendLogMessage(": can not open image file", Error);
+        emit finished(Failed);
+        return;
+    }
+
     stopwatch.start();
 
     calc.setCancelCondition([this](){ return stopRequested(); });
@@ -45,6 +53,7 @@ void ChecksumSubtask::run(void)
     sendLogMessage("compute device checksum...");
     auto deviceChecksum = calc.calculate(_device, _image->size());
 
+    _image->close();
     if (calc.wasCancelled()) {
         sendLogMessage("cancelled");
         emit finished(Cancelled);
