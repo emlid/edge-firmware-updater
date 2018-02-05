@@ -12,9 +12,15 @@ unix {
 }
 
 win32 {
-    LIBUSB_HOME = "libs/libusb/msvc2015_32"
-    INCLUDEPATH += "$$LIBUSB_HOME/include"
-    LIBS += -L"$$LIBUSB_HOME/lib/" -llibusb-1.0
+    WIN_LIBRARY_ROOT_PATH = "C:"
+
+    LIBUSB_PATH =  $$shell_path("$${WIN_LIBRARY_ROOT_PATH}/libusb")
+    !exists("$$LIBUSB_PATH") {
+        error("libusb not found. Check README.md for installation steps")
+    } else {
+        INCLUDEPATH += $$shell_path("$${LIBUSB_PATH}/include")
+        LIBS +=      -L$$shell_path("$${LIBUSB_PATH}/MS32/dll/") -llibusb-1.0
+    }
 }
 
 RESOURCES += $$PWD/usbboot_files.qrc
