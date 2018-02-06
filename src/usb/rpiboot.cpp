@@ -1,9 +1,17 @@
-#include <libusb-1.0/libusb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "rpiboot.h"
+
+#if defined(Q_OS_WIN)
+#pragma warning(push)
+#pragma warning(disable:4200)
+#include <libusb-1.0/libusb.h>
+#pragma warning(pop)
+#else
+#include <libusb-1.0/libusb.h>
+#endif
+
 
 
 typedef struct MESSAGE_S
