@@ -72,8 +72,10 @@ QString Partition::label(void) const noexcept
 }
 
 
+// stub
 Mountpoint Partition::mount(QString const& path)
 {
+    Q_UNUSED(path);
     return Mountpoint("");
 }
 
