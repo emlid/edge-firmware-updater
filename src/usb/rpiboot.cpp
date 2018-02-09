@@ -28,7 +28,7 @@ public:
         : _vid(vid),
           _pids(pids),
           _signed_boot(0),
-          _verbose(0),
+          _verbose(1),
           _loop(0),
           _directory(":/usbboot_files/") { }
 
