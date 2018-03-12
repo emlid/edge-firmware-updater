@@ -1,0 +1,27 @@
+#include <QtCore>
+
+class EdgeFirmwareUpdaterIPC
+{
+    SLOT(void openSession());
+    SLOT(void closeSession());
+
+    SLOT(void initializeEdgeDevice());
+    SIGNAL(initializingFinished(int status));
+
+    SLOT(void flash(QString firmwareUpgrader));
+    SIGNAL(flashingFinished(int status));
+
+    SLOT(void checkOnCorrectness());
+    SIGNAL(checkOnCorrectnessFinished(int status));
+
+    SIGNAL(logMessage(QString msg, int type));
+    SIGNAL(firmwareVersion(QString version));
+
+    SIGNAL(progressChanged(int progress))
+
+    SLOT(void finish());
+    SIGNAL(finished());
+
+    SLOT(void cancel())
+    SIGNAL(cancelled());
+};
