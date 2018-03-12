@@ -1,31 +1,53 @@
 # Edge Firmware Updater
-> Flash firmare images
+> Flash firmware images
 
 ***
 ## Overview
 This application was designed for flashing usb devices. General purpose - raspberry device (**Emlid Edge**). 
-Firmware updater generally runs as subprocess of any applications. Interprocess communication realized via **QtRemoteObjects**.
-For use Firmware Updater from your project you should copy ```src/shared``` path.
+Firmware updater generally runs as subprocess of any applications. Interprocess communication implemented via **QtRemoteObjects**.
+For use Firmware Updater from your project you should include ```main/shared/shared.pri```.
 
 ### General functions
-+ find Edge device in the system
-+ boot Edge as mass storage (via rpiboot)
-+ get the verision of current firmware
-+ flash image
-+ validate writing (via CRC)
++ Find Edge device in the system
++ Boot Edge as mass storage (via rpiboot)
++ Get the verision of current firmware
++ Flash image
++ Validate writing (via CRC)
 
 ## Supported Operating Systems
 - Linux (most distros)
 - Microsoft Windows 7 and later
+- MacOSX
 
 ## Build
 
-### Native Builds
-* **Linux**: 64 bit, gcc compiler
-* **Windows**: 32 bit, [Visual Studio 2015 compiler](http://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop)
-### Qt
+### Compiler
+* **Linux**: ``g++``, 64 bit
+* **Windows**: [msvc2015](http://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop), 32 bit
+* **OSX**: ``clang++``, 64 bit
+
+### Dependencies
+#### Qt
 * Download the [Qt installer](http://www.qt.io/download-open-source)
-    * Make sure to install Qt version **5.9.1 with QtRemoteObjects**. 
-    * **Linux**: Set the downloaded file to executable using:`chmod +x`.
-### Additional packages
+* You need to install ``Core`` and ``QtRemoteObjects`` frameworks
+* **Note**: Select build for your compiler
+
+#### Additional packages
 - **Linux**: ```sudo apt-get install libusb-1.0-0-dev libblkid-dev libudev-dev```
+- **Windows**: Download [libusb](https://github.com/libusb/libusb/releases/download/v1.0.21/libusb-1.0.21.7z):  extract it into the `C:\libusb` directory
+- **OSX**: ```brew install libusb```
+
+### Make
+- From directory with project (use shadow build)
+```
+$ cd ..
+$ mkdir fwupdater-build
+$ cd fwupdater-build
+$ /path/to/qmake ../edge-firmware-updater/fwupdater.pro
+$ make
+```
+* **Note**: By default ``qmake`` locates in ``[QTPATH]/[QTVERSION]/[COMPILER]/bin``. For example ```~/Qt/5.9.1/clang_64/bin/qmake```. On Windows instead of make you can use ```jom.exe``` which installs with
+msvc compiler.
+
+
+
