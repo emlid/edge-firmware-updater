@@ -21,6 +21,8 @@ macx :message(OSX build)
 
 TEMPLATE = subdirs
 
+!NO_LIBS:include(libs/libs.pri)
+
 SUBDIRS += \
     devlib \
     rpi \
