@@ -210,7 +210,7 @@ namespace winutil {
         HANDLE handle;
 
         WinHandle(HANDLE in_handle) : handle(in_handle) { }
-        virtual ~WinHandle() { ::CloseHandle(handle); }
+        virtual ~WinHandle() { ::FlushFileBuffers(handle); ::CloseHandle(handle); }
     };
 
 
