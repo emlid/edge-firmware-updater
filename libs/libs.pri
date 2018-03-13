@@ -1,6 +1,6 @@
-DEST_LIBDIR    = $$shell_path($$DESTDIR)
+DEST_LIBDIR    = $$shell_path($$DESTDIR/main/)
 
-unix {
+macx {
     # Qt libs
     QT_DEST_LIBDIR = $$DEST_LIBDIR
 
