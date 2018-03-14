@@ -77,6 +77,7 @@ auto updater::FirmwareUpdateSession::
 auto updater::FirmwareUpdateSession::_flash(QString const& firmwareFilePath)
     -> shared::OperationStatus
 {
+    _sessionData.edgeDevice->lock();
     sendLogMessage("Flasher: flashing...");
     QFile imageFile(firmwareFilePath);
     auto  iodevice = _sessionData.edgeDevice->asIODevice();
