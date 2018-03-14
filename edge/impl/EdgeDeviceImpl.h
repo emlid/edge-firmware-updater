@@ -35,11 +35,15 @@ private:
     virtual auto isEdgeStillAvailable_core(void) const -> bool override;
     virtual auto firmwareVersion_core(void) const -> QString override;
     virtual auto asIODevice_core(void) const -> std::unique_ptr<QIODevice> override;
+    virtual auto lock_core(void) -> bool override;
 
     edge::EdgeConfig _config;
     std::shared_ptr<devlib::IStorageDeviceInfo> _storageDeviceInfo;
     FileFactoryFunction_t _fileFactory;
     DirFactoryFunction_t  _dirFactory;
+    std::list<
+        std::unique_ptr<devlib::IMountpointLock>
+    > _mntptLocks;
 };
 
 #endif // EDGEDEVICEIMPL_H
