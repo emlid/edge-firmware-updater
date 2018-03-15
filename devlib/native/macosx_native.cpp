@@ -22,7 +22,7 @@ namespace macxutil {
     struct MacxFileHandle : public devlib::native::io::FileHandle {
         int fd;
         constexpr MacxFileHandle(int in_fd) : fd(in_fd) {}
-        virtual ~MacxFileHandle(void) { ::close(fd); }
+        virtual ~MacxFileHandle(void) { ::fsync(fd); ::close(fd); }
     };
 
 
