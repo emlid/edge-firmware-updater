@@ -369,3 +369,7 @@ bool devlib::native::io::seek(FileHandle* handle, qint64 pos)
     auto macxHandle = macxutil::asMacxFileHandle(handle);
     return ::lseek(macxHandle->fd, pos, SEEK_SET) != -1;
 }
+
+
+void devlib::native::io::sync(FileHandle* handle)
+{ Q_UNUSED(handle); /* temporary stub */ }

@@ -452,3 +452,7 @@ bool devlib::native::io::seek(FileHandle* handle, qint64 pos)
     auto result = ::SetFilePointer(winHandle, (LONG)pos, nullptr, FILE_BEGIN);
     return result == INVALID_SET_FILE_POINTER;
 }
+
+
+void devlib::native::io::sync(FileHandle* handle)
+{ Q_UNUSED(handle); /* temporary stub */ }
