@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/mount.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 #include <libudev.h>
@@ -44,6 +45,7 @@ namespace linutil {
         int fd;
         LinFileHandle(int in_fd) : fd(in_fd) {}
         ~LinFileHandle(void) {
+            fsync(fd);
             if (::close(fd) == -1) {
                 auto errnoCache = errno;
                 linutil::errnoWarning(__PRETTY_FUNCTION__,
@@ -262,6 +264,7 @@ auto devlib::native::io::open(char const* filename)
                       QString("can not open file ").append(filename),
                       errnoCache);
     }
+
     return linutil::makeFileHandle(fd);
 }
 
@@ -272,4 +275,17 @@ auto devlib::native::io::seek(FileHandle* handle, qint64 pos)
     Q_ASSERT(handle);
     auto linHandle = linutil::asLinFileHandle(handle);
     return ::lseek(linHandle->fd, pos, SEEK_SET) != -1;
+}
+
+
+void devlib::native::io::sync(FileHandle* handle)
+{
+    Q_ASSERT(handle);
+    auto linHandle = linutil::asLinFileHandle(handle);
+    if (::ioctl(linHandle->fd, BLKFLSBUF) != 0) {
+        auto errnoCache = errno;
+        linutil::errnoWarning(__PRETTY_FUNCTION__,
+                      QString("ioctl fails"),
+                      errnoCache);
+    }
 }
