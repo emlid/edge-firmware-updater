@@ -171,15 +171,3 @@ auto edge::EdgeDeviceImpl::asIODevice_core(void) const
                                          _storageDeviceInfo)
     );
 }
-
-
-auto edge::EdgeDeviceImpl::lock_core(void)
-    -> bool
-{
-    auto mntpts = _storageDeviceInfo->mountpoints();
-    for (auto const& mntpt : mntpts) {
-        _mntptLocks.push_back(mntpt->umount());
-    }
-
-    return true;
-}
