@@ -70,3 +70,9 @@ bool devlib::impl::StorageDeviceFileImpl::seek_core(qint64 pos)
         return false;
     }
 }
+
+
+void devlib::impl::StorageDeviceFileImpl::sync_core(void)
+{
+    devlib::native::io::sync(_fileHandle.get());
+}
