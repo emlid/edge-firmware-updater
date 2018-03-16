@@ -42,6 +42,8 @@ namespace devlib {
                 -> std::unique_ptr<FileHandle>;
 
             bool seek(FileHandle*, qint64 pos);
+
+            void sync(FileHandle* handle);
         }
     }
 }
