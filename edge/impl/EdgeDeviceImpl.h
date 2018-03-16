@@ -34,7 +34,7 @@ public:
 private:
     virtual auto isEdgeStillAvailable_core(void) const -> bool override;
     virtual auto firmwareVersion_core(void) const -> QString override;
-    virtual auto asIODevice_core(void) const -> std::unique_ptr<QIODevice> override;
+    virtual auto asIODevice_core(void) const -> std::unique_ptr<devlib::IStorageDeviceFile> override;
 
     edge::EdgeConfig _config;
     std::shared_ptr<devlib::IStorageDeviceInfo> _storageDeviceInfo;
