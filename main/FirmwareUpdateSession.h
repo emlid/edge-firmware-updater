@@ -6,6 +6,7 @@
 #include "util.h"
 #include "shared/shared.h"
 #include "edge.h"
+#include "devlib.h"
 
 namespace updater {
     class FirmwareUpdateSession;
@@ -85,7 +86,7 @@ private:
 
         edge::EdgeConfig config;
         util::CancellationPoint cancellationPoint;
-        std::unique_ptr<QIODevice> edgeIODevice;
+        std::unique_ptr<devlib::IStorageDeviceFile> edgeIODevice;
         std::unique_ptr<edge::IEdgeDevice> edgeDevice;
     } _sessionData;
 

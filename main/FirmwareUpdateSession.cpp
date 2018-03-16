@@ -90,6 +90,8 @@ auto updater::FirmwareUpdateSession::_flash(QString const& firmwareFilePath)
     auto result = _flashDevice(&imageFile, iodevice.get());
     sendLogMessage("Flasher: elapsed time " + stopwatch.elapsed().asQString());
 
+    iodevice->sync();
+
     auto taskName = "Flasher";
     return _mapRetStatusToOpStatus(result,
         Tags::OnCancelMsg{": cancelled"}.prepend(taskName),
