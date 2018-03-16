@@ -77,10 +77,10 @@ auto updater::FirmwareUpdateSession::
 auto updater::FirmwareUpdateSession::_flash(QString const& firmwareFilePath)
     -> shared::OperationStatus
 {
-    _sessionData.edgeDevice->lock();
     sendLogMessage("Flasher: flashing...");
     QFile imageFile(firmwareFilePath);
-    auto  iodevice = _sessionData.edgeDevice->asIODevice();
+    _sessionData.edgeIODevice = _sessionData.edgeDevice->asIODevice();
+    auto& iodevice = _sessionData.edgeIODevice;
 
     imageFile.open(QIODevice::ReadOnly);
     iodevice->open(QIODevice::WriteOnly);
@@ -140,11 +140,7 @@ auto updater::FirmwareUpdateSession::_computeCRC(QString const& firmwareFilePath
         return opStatus;
     }
 
-    auto iodevice = _sessionData.edgeDevice->asIODevice();
-    if (!iodevice->open(QIODevice::ReadOnly)) {
-        sendLogMessage("Can not open device file", MsgType::Error);
-        return OpStatus::Failed;
-    }
+    auto& iodevice = _sessionData.edgeIODevice;
 
     sendLogMessage("Checksum: compute device crc");
     auto devResult = _calculateCrc(iodevice.get(), imageFile.size());

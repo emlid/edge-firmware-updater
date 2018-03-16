@@ -85,6 +85,7 @@ private:
 
         edge::EdgeConfig config;
         util::CancellationPoint cancellationPoint;
+        std::unique_ptr<QIODevice> edgeIODevice;
         std::unique_ptr<edge::IEdgeDevice> edgeDevice;
     } _sessionData;
 
