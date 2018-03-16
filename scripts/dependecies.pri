@@ -59,7 +59,6 @@ $$shell_path($$absolute_path($${PWD}/../tests/rpiboot_cli/rpiboot_cli.pro)) \
 $$shell_path($$absolute_path($${PWD}/../tests/rpiboot_cli/main.cpp)) \
 $$shell_path($$absolute_path($${PWD}/../tests/edge_tests/EdgeDeviceTest.cpp)) \
 $$shell_path($$absolute_path($${PWD}/../tests/edge_tests/edge_tests.pro)) \
-$$shell_path($$absolute_path($${PWD}/../tests/edge_cli/Makefile)) \
 $$shell_path($$absolute_path($${PWD}/../tests/edge_cli/main.cpp)) \
 $$shell_path($$absolute_path($${PWD}/../tests/edge_cli/edge_cli.pro)) \
 $$shell_path($$absolute_path($${PWD}/../tests/util_tests/PollTest.h)) \
