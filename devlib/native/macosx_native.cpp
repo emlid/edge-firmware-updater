@@ -269,7 +269,6 @@ auto devlib::native::mntptsForPartition(QString const& devFilePath)
 
     for (auto const& mntpt : mntptsInfo) {
         if (QString(mntpt.device()).startsWith(devFilePath)) {
-            qInfo() << mntpt.rootPath();
             mntpts.emplace_back(mntpt.rootPath(), mntpt.device());
         }
     }
