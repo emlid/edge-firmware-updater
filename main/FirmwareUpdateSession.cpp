@@ -83,7 +83,7 @@ auto updater::FirmwareUpdateSession::_flash(QString const& firmwareFilePath)
     auto& iodevice = _sessionData.edgeIODevice;
 
     imageFile.open(QIODevice::ReadOnly);
-    iodevice->open(QIODevice::WriteOnly);
+    iodevice->open(QIODevice::ReadWrite);
 
     auto stopwatch = util::Stopwatch();
     stopwatch.start();
@@ -141,6 +141,7 @@ auto updater::FirmwareUpdateSession::_computeCRC(QString const& firmwareFilePath
     }
 
     auto& iodevice = _sessionData.edgeIODevice;
+    iodevice->seek(0);
 
     sendLogMessage("Checksum: compute device crc");
     auto devResult = _calculateCrc(iodevice.get(), imageFile.size());
