@@ -38,6 +38,8 @@ private:
     virtual auto seek_core(qint64)
         -> bool override;
 
+    virtual void sync_core(void) override;
+
     QString _deviceFilename;
     std::shared_ptr<devlib::IStorageDeviceInfo> _deviceInfo;
     std::vector<std::unique_ptr<IMountpointLock>> _mntptsLocks;
