@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <QIODevice>
+#include "StorageDeviceFile.h"
 
 namespace edge {
     class IEdgeDevice;
@@ -20,7 +21,7 @@ public:
 private:
     virtual bool isEdgeStillAvailable_core(void) const = 0;
     virtual auto firmwareVersion_core(void) const -> QString = 0;
-    virtual auto asIODevice_core(void) const -> std::unique_ptr<QIODevice> = 0;
+    virtual auto asIODevice_core(void) const -> std::unique_ptr<devlib::IStorageDeviceFile> = 0;
 };
 
 #endif // EDGEDEVICE_H

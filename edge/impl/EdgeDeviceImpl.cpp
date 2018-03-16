@@ -162,11 +162,11 @@ auto edge::EdgeDeviceImpl::firmwareVersion_core(void) const
 
 
 auto edge::EdgeDeviceImpl::asIODevice_core(void) const
-    -> std::unique_ptr<QIODevice>
+    -> std::unique_ptr<devlib::IStorageDeviceFile>
 {
 
     auto sdService = devlib::StorageDeviceService::instance();
-    return std::unique_ptr<QIODevice>(
+    return std::unique_ptr<devlib::IStorageDeviceFile>(
         sdService->makeStorageDeviceFile(_storageDeviceInfo->filePath(),
                                          _storageDeviceInfo)
     );
