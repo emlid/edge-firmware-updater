@@ -40,35 +40,20 @@ void devlib::impl::StorageDeviceFileImpl::close_core(void)
 auto devlib::impl::StorageDeviceFileImpl::
     readData_core(char* data, qint64 len) -> qint64
 {
-    if (_fileHandle) {
-        return native::io::read(_fileHandle.get(), data, len);
-    } else {
-        qWarning() << "StorageDevice not open";
-        return 0;
-    }
+    return native::io::read(_fileHandle.get(), data, len);
 }
 
 
 auto devlib::impl::StorageDeviceFileImpl::
     writeData_core(const char *data, qint64 len) -> qint64
 {
-    if (_fileHandle) {
-        return native::io::write(_fileHandle.get(), data, len);
-    } else {
-        qWarning() << "StorageDevice not open";
-        return 0;
-    }
+    return native::io::write(_fileHandle.get(), data, len);
 }
 
 
 bool devlib::impl::StorageDeviceFileImpl::seek_core(qint64 pos)
 {
-    if (_fileHandle) {
-        return native::io::seek(_fileHandle.get(), pos);
-    } else {
-        qWarning() << "StorageDevice not open";
-        return false;
-    }
+    return native::io::seek(_fileHandle.get(), pos);
 }
 
 
