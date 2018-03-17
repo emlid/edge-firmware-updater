@@ -13,17 +13,6 @@ std::pair<QByteArray, util::CRCServiceImpl::RetStatus>
                                           ProgressReporter_t progressReporter,
                                           qint64 ioBlockSize)
 {
-    if (length <= 0) {
-        qWarning() << "length is less or equal to 0";
-        return {{}, RetStatus::ReadFail};
-    } else if (!source->isOpen() || !source->isReadable()) {
-        qWarning() << "source did not open as readable";
-        return {{}, RetStatus::ReadFail};
-    } else if (ioBlockSize <= 0) {
-        qWarning() << "ioBlockSize less or equal to 0";
-        return {{}, RetStatus::ReadFail};
-    }
-
     QCryptographicHash hash(QCryptographicHash::Md5);
 
     std::lldiv_t res = std::div(length, ioBlockSize);

@@ -12,17 +12,6 @@ util::IFlashingService::RetStatus
     auto srcSize  = src->size();
     auto totalWrote = 0LL;
 
-
-    if (!src->isOpen() || !src->isReadable()) {
-        qWarning() << "src did not open as readable device.";
-        return RetStatus::ReadFail;
-    }
-
-    if (!dest->isOpen() || !dest->isWritable()) {
-        qWarning() << "dest did not open as writable device.";
-        return RetStatus::WriteFail;
-    }
-
     auto prevProgress = 0LL;
 
     while (!src->atEnd()) {
