@@ -32,7 +32,7 @@ class devlib::IMountpointLock
 {
 public:
     auto locked(void) const { return locked_core(); }
-    auto release(void) { return release_core(); }
+    auto release(void) { if (locked()) release_core(); }
 
     virtual ~IMountpointLock(void) {}
 

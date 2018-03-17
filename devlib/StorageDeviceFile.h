@@ -2,6 +2,7 @@
 #define STORAGEDEVICEFILE_H
 
 #include <QtCore>
+#include <cassert>
 
 namespace devlib {
     class IStorageDeviceFile;
@@ -13,22 +14,44 @@ class devlib::IStorageDeviceFile : public QFile
 public:
     virtual ~IStorageDeviceFile(void) = default;
 
-    virtual bool open(OpenMode mode) override final { return open_core(mode); }
-    virtual void close(void) override final { close_core(); }
-    virtual auto fileName() const
+    bool open(OpenMode mode) override final {
+        Q_ASSERT(!isOpen());
+        return open_core(mode);
+    }
+
+    void close(void) override final { close_core(); }
+    auto fileName() const
         -> QString override final { return fileName_core(); }
 
-    virtual void sync() { return sync_core(); }
+    void sync() { return sync_core(); }
 
-    virtual auto seek(qint64 pos)
-        -> bool override final { return seek_core(pos); }
+    auto seek(qint64 pos) -> bool override final {
+        Q_ASSERT(pos >= 0);
+        Q_ASSERT(isOpen());
+
+        return seek_core(pos);
+    }
 
 protected:
     virtual auto readData(char* data, qint64 len)
-        -> qint64 override final { return readData_core(data, len);}
+        -> qint64 override final
+    {
+        Q_ASSERT(len > 0);
+        Q_ASSERT(data);
+        Q_ASSERT(isOpen() && isReadable());
+
+        return readData_core(data, len);
+    }
 
     virtual auto writeData(char const* data, qint64 len)
-        -> qint64 override final { return writeData_core(data, len); }
+        -> qint64 override final
+    {
+        Q_ASSERT(len > 0);
+        Q_ASSERT(data);
+        Q_ASSERT(isOpen() && isWritable());
+
+        return writeData_core(data, len);
+    }
 
 private:
     virtual bool open_core(OpenMode mode) = 0;
