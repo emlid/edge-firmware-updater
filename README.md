@@ -75,6 +75,7 @@ For use Firmware Updater from your project, you should include `main/shared/shar
 > **Note**: By default ``qmake`` locates in ``[QTPATH]/[QTVERSION]/[COMPILER]/bin``. For example ```~/Qt/5.9.1/clang_64/bin/qmake```. On Windows, instead of make you can use ```jom.exe``` which installs with
 msvc compiler.
 
-### Tests
+### See also
 
-See [tests](tests)
++ [Tests](tests)
++ [Architecture](docs/ARCHITECTURE.md)

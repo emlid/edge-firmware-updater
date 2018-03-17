@@ -20,5 +20,5 @@ The project contains several modules. Each module:
 * ```devlib``` - implements **API** for cross-platform interaction with devices.
 * ```util``` - contains utilities for **flashing**, **computing crc**, **polling**, etc.
 * ```rpi``` - cross-platform implementation of **rpiboot**.
-* ```edge``` - **high-level interface** for **Emlid Edge** device. Encapsulate ```rpi``` and ```util```.
+* ```edge``` - **high-level interface** for **Emlid Edge** device. Encapsulate ```rpi``` and ```devlib```.
 * ```main``` - main CLI application. Implements interprocess interaction via ```QtRemoteObjects``` (Sockets).
