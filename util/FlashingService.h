@@ -20,7 +20,14 @@ public:
                CancellationCondition_t cancellationCondition = defaultCancellationCondition(),
                ProgressReporter_t progressReport = defaultProgressReporter(),
                int blockSize = defaultBlockSize())
-    { return flash_core(src, dest, cancellationCondition, progressReport, blockSize); }
+    {
+        Q_ASSERT(src); Q_ASSERT(dest);
+        Q_ASSERT(src->isReadable());
+        Q_ASSERT(dest->isWritable());
+        Q_ASSERT(blockSize > 0);
+
+        return flash_core(src, dest, cancellationCondition, progressReport, blockSize);
+    }
 
 private:
     virtual RetStatus flash_core(QIODevice* src, QIODevice* dest,

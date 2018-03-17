@@ -16,7 +16,14 @@ public:
             CancellationCondition_t cancellationCondition = defaultCancellationCondition(),
             ProgressReporter_t progressReporter = defaultProgressReporter(),
             qint64 ioBlockSize = defaultBlockSize())
-    { return computeCRC_core(source, length, cancellationCondition, progressReporter, ioBlockSize); }
+    {
+        Q_ASSERT(source);
+        Q_ASSERT(length > 0);
+        Q_ASSERT(source->isReadable());
+        Q_ASSERT(ioBlockSize > 0);
+
+        return computeCRC_core(source, length, cancellationCondition, progressReporter, ioBlockSize);
+    }
 
     virtual ~ICRCService(void) = default;
 
