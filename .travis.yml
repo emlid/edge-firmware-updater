@@ -1,0 +1,159 @@
+language: cpp
+
+
+env:
+  global:
+    - CCACHE_CPP2=1
+    - JOBS=4
+    - SHADOW_BUILD_DIR=/tmp/shadow_build_dir
+
+    - QT_SHORT_VERSION=5.9
+    - QT_FULL_VERSION=${QT_SHORT_VERSION}.3
+
+    - LINUX_SPEC=linux-g++-64
+    - OSX_SPEC=macx-clang
+
+    - GCC_VERSION=7
+    - GXX_VERSION=${GCC_VERSION}
+
+    - MASTER_BRANCH=master
+
+
+matrix:
+    fast_finish: true
+    include:
+        # Release jobs
+        - os: linux
+          dist: trusty
+          env: SPEC="${LINUX_SPEC}" CONFIG=release
+          sudo: required
+          if: branch = ${MASTER_BRANCH} OR type = pull_request
+
+        - os: osx
+          osx_image: xcode9
+          env: SPEC="${OSX_SPEC}" CONFIG=release
+          sudo: required
+          if: branch = ${MASTER_BRANCH} OR type = pull_request
+
+        # Debug jobs
+        - os: linux
+          dist: trusty
+          env: SPEC="${LINUX_SPEC}" CONFIG=debug
+          sudo: required
+          if: branch =~ ^wip OR branch =~ ^pr- OR type = pull_request
+
+        - os: osx
+          osx_image: xcode9
+          env: SPEC="${OSX_SPEC}" CONFIG=debug
+          sudo: required
+          if: branch =~ ^wip OR branch =~ ^pr- OR type = pull_request
+
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+
+    packages:
+      - ccache
+      - libudev-dev
+      - wget
+      - libusb-1.0.0-dev
+      - libblkid-dev
+
+
+cache:
+  directories:
+    - $HOME/.ccache
+
+
+before_install:
+  # fetch entire git repo to properly determine the version
+  - if [ "${CONFIG}" = "installer" ]; then
+        cd ${TRAVIS_BUILD_DIR} && git fetch --unshallow && git fetch --all --tags;
+    fi
+
+  # compile threads
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+        export JOBS=$((`cat /proc/cpuinfo | grep -c ^processor`+1));
+    elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+        export JOBS=$((`sysctl -n hw.ncpu`+1));
+    fi
+
+  # clouds urls
+  - export BUCKET="test-vld-bucket"
+  - export QT_CLOUD="https://storage.googleapis.com/${BUCKET}"
+
+  # qt names
+  - export QT_FOLDER_NAME="Qt${QT_FULL_VERSION}-${SPEC}"
+  - export QT_PACKAGE_NAME="${QT_FOLDER_NAME}.tar.bz2"
+
+  - export QT_DIR="/tmp/${QT_FOLDER_NAME}/${SPEC}/"
+
+  # general paths
+  - export QT_QPA_PLATFORM_PLUGIN_PATH="${QT_DIR}/plugins"
+  - export QML2_IMPORT_PATH="${QT_DIR}/qml"
+  - export PATH="${QT_DIR}/bin:$PATH"
+
+
+install:
+  - wget "${QT_CLOUD}/${QT_PACKAGE_NAME}"
+  - tar -jxf "${QT_PACKAGE_NAME}" -C /tmp
+
+  # linux exports
+  - if [ "${SPEC}" = "${LINUX_SPEC}" ]; then
+        sudo apt-get update &&
+        sudo apt-get install g++-${GXX_VERSION} gcc-${GCC_VERSION} &&
+
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GXX_VERSION} 90 &&
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} 90 &&
+
+        export CXX=g++-${GXX_VERSION} &&
+        export CC=gcc-${GCC_VERSION} &&
+        export DISPLAY=:99.0
+        ;
+    fi
+
+  - if [ "${SPEC}" = "${OSX_SPEC}" ]; then
+        brew update && brew install ccache
+        ;
+    fi
+
+  # print ccache stats
+  - ccache -s
+
+
+script:
+  # run qmake
+  - mkdir "${SHADOW_BUILD_DIR}" && cd "${SHADOW_BUILD_DIR}"
+  - qmake -r "${TRAVIS_BUILD_DIR}/fwupdater.pro" CONFIG+="${CONFIG}" -spec "${SPEC}"
+
+  # compile
+  - make -j$JOBS;
+
+
+after_success:
+  # perform tests
+  - if [ "${CONFIG}" = "debug" ]; then
+      cd "${SHADOW_BUILD_DIR}/tests/util_tests" && ./util_tests &&
+      cd "${SHADOW_BUILD_DIR}/tests/edge_tests" && ./edge_tests
+      ;
+    fi
+
+  - if [ "${CONFIG}" = "release" ]; then
+      export DEPLOY_ARCHIVE_NAME = "edge-fwupdater-${SPEC}.tar.bz2"
+      export DEPLOY_DIR = "/tmp/deploy" &&
+      mkdir -p "${DEPLOY_DIR}" && cd "${DEPLOY_DIR}" &&
+      tar -cjvf "${DEPLOY_ARCHIVE_NAME}" "${SHADOW_BUILD_DIR}"
+      ;
+    fi
+
+
+deploy:
+  provider: releases
+  api_key:
+    secure: ZuhCUanBo1U1dHquQKu0MWgTPQByF9OHy96OfbtJYxBPguhfrv6u53hODyqr8eExHVC4D1iZwLnTi4xeAD2txfKqRfWWY0jIrUyXIGnG1oX/RhhHA7dBXhM2wb3PEoIUpb24OyMuAb1VYAr1K6Ax+qJ9mPprrBzbWHblQzWw1J5v7s3pJAgbHECWfELOwcAoa3l4ib/eXZE6PfCyzZY2VTX61fDSrQxkqsVpXkBB/dTzjbx4AO3FF1vdMElm9DBXgmYfAuyXUSkPpxB8sHIS4ONaDX6gDxXPwpzuONtOBD3zBn1mLZnjFVhbNP3ldDvvMqX5DjLSqZk594qSyWi5UPpa92Ki7mQABDci+iZtHPCOf6ZfiSXgWTURhMCPnNx9C/crcCS1jEyWzFgodc8Nlr2gfTrXFBGlJ8Apg6NqYpuz8QwGWVuIr5VMul6/qJnWL5YoZG3jGMJg7K58INN/WqeyxRMTZsUWLaYUUO+JoU9AmB1TqM+tCkalFuSYAaZrmYovwNbLkP4yfDrfd+CsFT+R6ReN1TER1MAMq0mPV44TRe0E5S2kdHzqqlnQVLvxi60gIbitqq4XE+Y/Mm1Aek2D1yOqQEFLYS5dbj3JlFGOMtAIz2Ms2cPVA4/Safmk+N/SWR+XMmxcCgM3/9b5mzU3qMp0pLwc9YFmbxyU0i4=
+  file: "${DEPLOY_DIR}/${DEPLOY_ARCHIVE_NAME}"
+  on:
+    tags: true
+    repo: emlid/edge-firmware-updater
