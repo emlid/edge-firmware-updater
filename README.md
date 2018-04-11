@@ -1,5 +1,8 @@
 # Edge Firmware Updater
 
+[![Releases](https://img.shields.io/github/release/emlid/edge-firmware-updater.svg)](https://github.com/emlid/QGroundControl/releases)
+[![Build Status](https://travis-ci.org/emlid/edge-firmware-updater.svg?branch=master)](https://travis-ci.org/emlid/edge-firmware-updater)
+
 > Flash firmware images
 
 ***
