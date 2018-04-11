@@ -1,0 +1,69 @@
+# Before read or modify this script, please check README.md
+# for understanding all build steps
+version: '{branch}-{build}'
+
+
+build:
+  verbosity: minimal
+
+
+environment:
+  matrix:
+  - Build: 'Release'
+    Config: release
+    ShadowBuildDir: C:\projects\edge-firmware-updater\build_windows_install
+    QtBinPath: C:\Qt\5.9\msvc2015\bin
+    VisualStudio: "Microsoft Visual Studio 14.0"
+
+
+install:
+  # Set Visual Studio build environment
+  - call "%ProgramFiles(x86)%\%VISUALSTUDIO%\VC\vcvarsall.bat" x86
+
+  - ps: |
+      # Set Path (Add Visual Studio and Qt)
+      $Env:Path = "C:\Qt\Tools\QtCreator\bin;${Env:QtBinPath};${Env:Path}"
+
+      # Set environment
+      function Print-Log { Write-Host "INFO: $args" -ForegroundColor Green }
+      $Downloader = New-Object Net.WebClient
+
+      $ToolsPath = "c:\DevTools"
+      $DownloadsPath = "c:\Downloads"
+
+      New-Item -ItemType directory -Path "${ToolsPath}" | out-null
+      New-Item -ItemType directory -Path "${DownloadsPath}" | out-null
+
+      # Download and install 7z
+      Print-Log "- Installing 7z"
+      $SevenZipUrl = "http://www.7-zip.org/a/7z1514-x64.exe"
+      $SevenZipInstallerDest = "${DownloadsPath}\7zip_installer.exe"
+
+      Print-Log "+- Downloading 7z..."
+      $Downloader.DownloadFile(${SevenZipUrl}, ${SevenZipInstallerDest})
+      Print-Log "+- Installing 7z..."
+      & "${SevenZipInstallerDest}" /S /D="${ToolsPath}\7zip_tool" | out-null
+      Print-Log "- Installed`n"
+
+      # Download and extract libusb
+      Print-Log "- Fetching libusb dev..."
+      $LibusbUrl = "http://github.com/libusb/libusb/releases/download/v1.0.21"
+      $LibusbPkgName = "libusb-1.0.21.7z"
+      $LibusbPath = "C:\libusb"
+
+      Print-Log "+- Downloading..."
+      $Downloader.Downloadfile("${LibusbUrl}/${LibusbPkgName}", "${DownloadsPath}\${LibusbPkgName}")
+      New-Item -ItemType directory -Path "${LibusbPath}" | out-null
+      Print-Log "+- Extracting..."
+      & "${ToolsPath}\7zip_tool\7z" x -y "${DownloadsPath}\${LibusbPkgName}" -o"${LibusbPath}" | out-null
+      Print-Log "- Fetched`n"
+
+
+build_script:
+  # Generate makefile
+  - mkdir "%SHADOWBUILDDIR%"
+  - cd "%SHADOWBUILDDIR%"
+  - qmake "%APPVEYOR_BUILD_FOLDER%\fwupdater.pro" CONFIG+=%CONFIG%
+
+  # Build
+  - jom -j%CORES%
