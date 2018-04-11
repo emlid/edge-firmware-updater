@@ -1,7 +1,9 @@
 # Edge Firmware Updater
 
+[![CodeFactor](https://www.codefactor.io/repository/github/emlid/edge-firmware-updater/badge)](https://www.codefactor.io/repository/github/emlid/edge-firmware-updater)
 [![Releases](https://img.shields.io/github/release/emlid/edge-firmware-updater.svg)](https://github.com/emlid/QGroundControl/releases)
 [![Build Status](https://travis-ci.org/emlid/edge-firmware-updater.svg?branch=master)](https://travis-ci.org/emlid/edge-firmware-updater)
+[![Build status](https://ci.appveyor.com/api/projects/status/gk7khg2xvgjj1911/branch/master?svg=true)](https://ci.appveyor.com/project/EmlidBuilderBot/edge-firmware-updater/branch/master)
 
 > Flash firmware images
 
