@@ -25,7 +25,7 @@ install:
       $Env:Path = "C:\Qt\Tools\QtCreator\bin;${Env:QtBinPath};${Env:Path}"
 
       # Set environment
-      function Print-Log { Write-Host "INFO: $args" -ForegroundColor Green }
+      function global:Print-Log { Write-Host "INFO: $args" -ForegroundColor Green }
       $Downloader = New-Object Net.WebClient
 
       $ToolsPath = "c:\DevTools"
@@ -60,6 +60,12 @@ install:
 
 
 build_script:
+  # Get logical cores count
+  - ps: |
+      $Env:Cores = Get-WmiObject -class Win32_Processor | `
+                      Select-Object -ExpandProperty NumberOfLogicalProcessors
+      Print-Log "Available threads count: ${Env:Cores}"
+
   # Generate makefile
   - mkdir "%SHADOWBUILDDIR%"
   - cd "%SHADOWBUILDDIR%"
