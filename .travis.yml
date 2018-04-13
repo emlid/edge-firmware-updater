@@ -126,7 +126,7 @@ install:
 script:
   # run qmake
   - mkdir "${SHADOW_BUILD_DIR}" && cd "${SHADOW_BUILD_DIR}"
-  - qmake -r "${TRAVIS_BUILD_DIR}/fwupdater.pro" CONFIG+="${CONFIG}" -spec "${SPEC}"
+  - qmake -r "${TRAVIS_BUILD_DIR}/fwupdater.pro" QMAKE_CXX='ccache $${QMAKE_CXX}' CONFIG+="${CONFIG}" -spec "${SPEC}"
 
   # compile
   - make -j$JOBS;
