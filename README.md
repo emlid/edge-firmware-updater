@@ -77,8 +77,9 @@ For use Firmware Updater from your project, you should include `main/shared/shar
     jom.exe
     ```
 
-> **Note**: By default ``qmake`` locates in ``[QTPATH]/[QTVERSION]/[COMPILER]/bin``. For example ```~/Qt/5.9.1/clang_64/bin/qmake```. On Windows, instead of make you can use ```jom.exe``` which installs with
-msvc compiler.
++ **Note**: By default ``qmake`` locates in ``[QTPATH]/[QTVERSION]/[COMPILER]/bin``. For example ```~/Qt/5.9.1/clang_64/bin/qmake```. On Windows, instead of make you can use ```jom.exe``` which installs with msvc compiler.
+
++ **ccache**: For building with ccache add `QMAKE_CXX='ccache $${QMAKE_CXX}'` to the end of qmake or QtCreator build kit
 
 ### Tests
 
