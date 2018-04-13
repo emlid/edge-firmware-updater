@@ -50,8 +50,9 @@ install:
 
       # Download and extract libusb
       Print-Log "- Fetching libusb dev..."
-      $LibusbUrl = "http://github.com/libusb/libusb/releases/download/v1.0.21"
-      $LibusbPkgName = "libusb-1.0.21.7z"
+      $LibusbVersion = "1.0.21"
+      $LibusbUrl = "http://github.com/libusb/libusb/releases/download/v${LibusbVersion}"
+      $LibusbPkgName = "libusb-${LibusbVersion}.7z"
       $LibusbPath = "C:\libusb"
 
       Print-Log "+- Downloading..."
