@@ -8,12 +8,15 @@ build:
 
 
 environment:
+  ShadowBuildDir: C:\projects\edge-firmware-updater\build_windows_install
+  QtBinPath: C:\Qt\5.9\msvc2015\bin
+  VisualStudio: "Microsoft Visual Studio 14.0"
+
   matrix:
-  - Build: 'Release'
-    Config: release
-    ShadowBuildDir: C:\projects\edge-firmware-updater\build_windows_install
-    QtBinPath: C:\Qt\5.9\msvc2015\bin
-    VisualStudio: "Microsoft Visual Studio 14.0"
+    - Build: 'Release'
+      Config: release
+    - Build: 'Debug'
+      Config: debug
 
 
 install:
