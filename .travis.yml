@@ -149,11 +149,11 @@ after_success:
     fi
 
 
-deploy:
-  provider: releases
-  api_key:
-    secure: ZuhCUanBo1U1dHquQKu0MWgTPQByF9OHy96OfbtJYxBPguhfrv6u53hODyqr8eExHVC4D1iZwLnTi4xeAD2txfKqRfWWY0jIrUyXIGnG1oX/RhhHA7dBXhM2wb3PEoIUpb24OyMuAb1VYAr1K6Ax+qJ9mPprrBzbWHblQzWw1J5v7s3pJAgbHECWfELOwcAoa3l4ib/eXZE6PfCyzZY2VTX61fDSrQxkqsVpXkBB/dTzjbx4AO3FF1vdMElm9DBXgmYfAuyXUSkPpxB8sHIS4ONaDX6gDxXPwpzuONtOBD3zBn1mLZnjFVhbNP3ldDvvMqX5DjLSqZk594qSyWi5UPpa92Ki7mQABDci+iZtHPCOf6ZfiSXgWTURhMCPnNx9C/crcCS1jEyWzFgodc8Nlr2gfTrXFBGlJ8Apg6NqYpuz8QwGWVuIr5VMul6/qJnWL5YoZG3jGMJg7K58INN/WqeyxRMTZsUWLaYUUO+JoU9AmB1TqM+tCkalFuSYAaZrmYovwNbLkP4yfDrfd+CsFT+R6ReN1TER1MAMq0mPV44TRe0E5S2kdHzqqlnQVLvxi60gIbitqq4XE+Y/Mm1Aek2D1yOqQEFLYS5dbj3JlFGOMtAIz2Ms2cPVA4/Safmk+N/SWR+XMmxcCgM3/9b5mzU3qMp0pLwc9YFmbxyU0i4=
-  file: "${DEPLOY_DIR}/${DEPLOY_ARCHIVE_NAME}"
-  on:
-    tags: true
-    repo: emlid/edge-firmware-updater
+# deploy:
+#   provider: releases
+#   api_key:
+#     secure: ZuhCUanBo1U1dHquQKu0MWgTPQByF9OHy96OfbtJYxBPguhfrv6u53hODyqr8eExHVC4D1iZwLnTi4xeAD2txfKqRfWWY0jIrUyXIGnG1oX/RhhHA7dBXhM2wb3PEoIUpb24OyMuAb1VYAr1K6Ax+qJ9mPprrBzbWHblQzWw1J5v7s3pJAgbHECWfELOwcAoa3l4ib/eXZE6PfCyzZY2VTX61fDSrQxkqsVpXkBB/dTzjbx4AO3FF1vdMElm9DBXgmYfAuyXUSkPpxB8sHIS4ONaDX6gDxXPwpzuONtOBD3zBn1mLZnjFVhbNP3ldDvvMqX5DjLSqZk594qSyWi5UPpa92Ki7mQABDci+iZtHPCOf6ZfiSXgWTURhMCPnNx9C/crcCS1jEyWzFgodc8Nlr2gfTrXFBGlJ8Apg6NqYpuz8QwGWVuIr5VMul6/qJnWL5YoZG3jGMJg7K58INN/WqeyxRMTZsUWLaYUUO+JoU9AmB1TqM+tCkalFuSYAaZrmYovwNbLkP4yfDrfd+CsFT+R6ReN1TER1MAMq0mPV44TRe0E5S2kdHzqqlnQVLvxi60gIbitqq4XE+Y/Mm1Aek2D1yOqQEFLYS5dbj3JlFGOMtAIz2Ms2cPVA4/Safmk+N/SWR+XMmxcCgM3/9b5mzU3qMp0pLwc9YFmbxyU0i4=
+#   file: "${DEPLOY_DIR}/${DEPLOY_ARCHIVE_NAME}"
+#   on:
+#     tags: true
+#     repo: emlid/edge-firmware-updater
