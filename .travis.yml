@@ -83,8 +83,7 @@ before_install:
     fi
 
   # clouds urls
-  - export BUCKET="test-vld-bucket"
-  - export QT_CLOUD="https://storage.googleapis.com/${BUCKET}"
+  - export QT_CLOUD="http://files.emlid.com/qgc/Qt"
 
   # qt names
   - export QT_FOLDER_NAME="Qt${QT_FULL_VERSION}-${SPEC}"
