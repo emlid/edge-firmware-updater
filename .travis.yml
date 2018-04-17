@@ -17,6 +17,7 @@ env:
     - GXX_VERSION=${GCC_VERSION}
 
     - MASTER_BRANCH=master
+    - CACHE_DIR=/tmp/qtcache
 
 
 matrix:
@@ -65,6 +66,7 @@ addons:
 cache:
   directories:
     - $HOME/.ccache
+    - ${CACHE_DIR}
 
 
 before_install:
@@ -97,8 +99,15 @@ before_install:
 
 
 install:
-  - wget "${QT_CLOUD}/${QT_PACKAGE_NAME}"
-  - tar -jxf "${QT_PACKAGE_NAME}" -C /tmp
+  # Check for Qt cache
+  - if [ -z "$(ls -A ${CACHE_DIR} 2>&-)" ]; then
+        echo "Qt cache not found. Downloading from cloud..." &&
+        mkdir -p "${CACHE_DIR}" && cd "${CACHE_DIR}" &&
+        wget "${QT_CLOUD}/${QT_PACKAGE_NAME}" &&
+        cd -
+        ;
+    fi
+  - tar -jxf "${CACHE_DIR}/${QT_PACKAGE_NAME}" -C /tmp
 
   # linux exports
   - if [ "${SPEC}" = "${LINUX_SPEC}" ]; then
