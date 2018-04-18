@@ -16,7 +16,6 @@ env:
     - GCC_VERSION=7
     - GXX_VERSION=${GCC_VERSION}
 
-    - MASTER_BRANCH=master
     - CACHE_DIR=/tmp/qtcache
 
 
@@ -28,13 +27,13 @@ matrix:
           dist: trusty
           env: SPEC="${LINUX_SPEC}" CONFIG=release
           sudo: required
-          if: branch = ${MASTER_BRANCH} OR type = pull_request
+          if: branch = master OR type = pull_request
 
         - os: osx
           osx_image: xcode9
           env: SPEC="${OSX_SPEC}" CONFIG=release
           sudo: required
-          if: branch = ${MASTER_BRANCH} OR type = pull_request
+          if: branch = master OR type = pull_request
 
         # Debug jobs
         - os: linux
