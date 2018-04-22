@@ -9,3 +9,5 @@ HEADERS += \
     $$PWD/UpdaterConnection.h \
     $$PWD/Updater.h
 
+include(../main/shared/shared.pri)
+include(impl/impl.pri)
