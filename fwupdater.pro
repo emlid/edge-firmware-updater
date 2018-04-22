@@ -34,3 +34,8 @@ SUBDIRS += \
 edge.depends = rpi util devlib
 main.depends = edge
 tests.depends = edge
+!EXCLUDE_CLIENT {
+    SUBDIRS += client
+    tests.depends += client
+}
+
