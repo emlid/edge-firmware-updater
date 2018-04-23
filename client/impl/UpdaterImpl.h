@@ -8,28 +8,17 @@
 
 class EdgeFirmwareUpdaterIPCReplica;
 
+namespace client {
+    class UpdaterImpl;
+};
+
 // The class has asynchronous API
-class UpdaterImpl : public Updater
+class client::UpdaterImpl : public Updater
 {
     Q_OBJECT
 public:
-
-    enum FinishStatus {
-        Succeed = 1,
-        Cancelled = 0,
-        Failed = -1
-    };
-    Q_ENUM(FinishStatus)
-
-    enum LogMsgType {
-        Info = 0,
-        Warning,
-        Error
-    };
-    Q_ENUM(LogMsgType)
-
     explicit UpdaterImpl(std::shared_ptr<EdgeFirmwareUpdaterIPCReplica> updaterReplica,
-                     QObject* parent = nullptr);
+                         QObject* parent = nullptr);
     virtual ~UpdaterImpl(void) override;
 
 private:
