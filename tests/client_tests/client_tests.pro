@@ -9,6 +9,8 @@ TEMPLATE = app
 SOURCES += \
     UpdaterConnection_test.cpp
 
+include(../../main/shared/shared.pri)
+
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../client/release/ -lclient
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../client/debug/ -lclient
 else:unix: LIBS += -L$$OUT_PWD/../../client/ -lclient
