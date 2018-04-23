@@ -1,7 +1,9 @@
 #include <QtTest>
 #include <QTest>
-#include "../../edge/edge.h"
-#include "../../edge/impl/EdgeDeviceImpl.h"
+
+#include "edge.h"
+#include "impl/EdgeDeviceImpl.h"
+#include "shared.h"
 #include "devlib.h"
 #include "rpi.h"
 
@@ -109,8 +111,8 @@ void EdgeDeviceTest::checkVersionParsing_testcase()
 {
     auto config = edge::EdgeConfig(
         0x0a5c, 0x0001,
-        0x0001, "issue.txt",
-        "/tmp", "boot"
+        0x0001, updater::shared::properties.heartbeatPeriod,
+        "issue.txt", "/tmp", "boot"
     );
 
     auto storageDeviceInfo = std::make_unique<StorageDeviceInfoMock>();
