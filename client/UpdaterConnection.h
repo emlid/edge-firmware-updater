@@ -7,7 +7,6 @@
 
 namespace client {
     class UpdaterConnection;
-
 }
 
 class client::UpdaterConnection : public QObject
