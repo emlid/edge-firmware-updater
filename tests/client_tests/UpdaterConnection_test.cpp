@@ -6,8 +6,8 @@
 // add necessary includes here
 
 namespace predefs {
-    constexpr auto serverNodeName = "local:/tmp/fwupg_socket";
-    constexpr auto binaryPath = "/Users/emlid/Documents/dev/builds/build-firmwareupgrader-Qt-5.9.3-debug/main/fwupgrader";
+    static const auto binaryPath = QCoreApplication::applicationDirPath()
+            + "../../main/fwupgrader";
 
     auto makeDefaultProcess(void)
         -> std::unique_ptr<UpdaterProcess>
@@ -43,6 +43,8 @@ private slots:
     void case_checkAsyncConnection(void);
     void case_checkAbort(void);
     void case_checkOnAsyncDisconnect(void);
+    void case_checkWithoutHeartbeat(void);
+    void case_checkWithHeartbeat(void);
 };
 
 
@@ -64,7 +66,7 @@ void UpdaterConnection_test::case_arguments(void)
 {
     auto connection = predefs::makeUpdaterConnection();
 
-    connection->establish("", "");
+    connection->establish("");
     QCOMPARE(connection->currentState(), UpdaterConnection::Disconneted);
 
     connection->sever();
@@ -79,7 +81,7 @@ void UpdaterConnection_test::case_connection(void)
     QSignalSpy checkConnection(connection.get(), &UpdaterConnection::established);
 
     qInfo() << "You will see window with username and passwd. Please, fill these fields";
-    connection->establish(predefs::serverNodeName, predefs::binaryPath);
+    connection->establish(predefs::binaryPath);
     qInfo() << "Connecting...";
 
     QCOMPARE(connection->currentState(), UpdaterConnection::Connecting);
@@ -127,7 +129,7 @@ void UpdaterConnection_test::case_checkAsyncConnection(void)
 
     auto connection = predefs::makeUpdaterConnection();
     QSignalSpy checkConnection(connection.get(), &UpdaterConnection::established);
-    connection->establish(predefs::serverNodeName, predefs::binaryPath);
+    connection->establish(predefs::binaryPath);
 
     QVERIFY(checkConnection.wait());
     connection.reset();
@@ -141,7 +143,7 @@ void UpdaterConnection_test::case_checkAbort(void)
         [proc] (void) { return std::unique_ptr<UpdaterProcess>(proc); };
     auto connection = predefs::makeUpdaterConnection(mocProcessFactory);
 
-    connection->establish(predefs::serverNodeName, predefs::binaryPath);
+    connection->establish(predefs::binaryPath);
     QCOMPARE(connection->currentState(), UpdaterConnection::Connecting);
 
     proc->kill();
@@ -159,11 +161,59 @@ void UpdaterConnection_test::case_checkOnAsyncDisconnect(void)
 
     auto connection = predefs::makeUpdaterConnection();
     QSignalSpy checkConnection(connection.get(), &UpdaterConnection::established);
-    connection->establish(predefs::serverNodeName, predefs::binaryPath);
+    connection->establish(predefs::binaryPath);
 
     QVERIFY(checkConnection.wait());
     connection->sever();
     connection.reset();
+}
+
+
+void UpdaterConnection_test::case_checkWithoutHeartbeat(void)
+{
+    // If we disable heartbeat, firmware updater should
+    // terminate yourself
+
+    qInfo() << "Make custom config without heartbeat";
+
+    auto config = UpdaterConnectionImpl::Config::defaultConfig();
+    config.enableHeartbeat = false;
+
+    auto connection = std::unique_ptr<UpdaterConnection>(
+        new UpdaterConnectionImpl(predefs::makeDefaultProcess, config)
+    );
+
+    qInfo() << "Waiting for connection...";
+
+    QSignalSpy checkConnection(connection.get(), &UpdaterConnection::established);
+    QSignalSpy checkDisconnection(connection.get(), &UpdaterConnection::stateChanged);
+
+    connection->establish(predefs::binaryPath);
+    QVERIFY(checkConnection.wait());
+    qInfo() << "Connected. Waiting for disconnection...";
+
+    QVERIFY(checkDisconnection.wait());
+    QCOMPARE(connection->currentState(), UpdaterConnection::Aborted);
+    qInfo() << "Disconnected.";
+}
+
+
+void UpdaterConnection_test::case_checkWithHeartbeat(void)
+{
+    qInfo() << "Waiting for connection...";
+
+    auto connection = predefs::makeUpdaterConnection();
+
+    QSignalSpy checkConnection(connection.get(), &UpdaterConnection::established);
+    QSignalSpy checkDisconnection(connection.get(), &UpdaterConnection::stateChanged);
+
+    connection->establish(predefs::binaryPath);
+    QVERIFY(checkConnection.wait());
+    qInfo() << "Connected.";
+
+    QVERIFY(!checkDisconnection.wait(10000));
+    QCOMPARE(connection->currentState(), UpdaterConnection::Established);
+    qInfo() << "Not disconnected.";
 }
 
 QTEST_MAIN(UpdaterConnection_test)
