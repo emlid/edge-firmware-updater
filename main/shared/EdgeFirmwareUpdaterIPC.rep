@@ -2,6 +2,8 @@
 
 class EdgeFirmwareUpdaterIPC
 {
+    SLOT(void heartbeat());
+
     SLOT(void openSession());
     SLOT(void closeSession());
 
