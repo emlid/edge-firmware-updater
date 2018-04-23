@@ -3,7 +3,11 @@
 
 #include <QtCore>
 
-class Updater : public QObject
+namespace client {
+    class Updater;
+}
+
+class client::Updater : public QObject
 {
     Q_OBJECT
 public:

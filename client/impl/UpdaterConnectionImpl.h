@@ -1,4 +1,4 @@
-#ifndef UPDATERCONNECTIONIMPL_H
+﻿#ifndef UPDATERCONNECTIONIMPL_H
 #define UPDATERCONNECTIONIMPL_H
 
 #include <QtCore>
@@ -12,12 +12,16 @@
 
 class EdgeFirmwareUpdaterIPCReplica;
 
-class UpdaterConnectionImpl : public UpdaterConnection
+namespace client {
+    class UpdaterConnectionImpl;
+}
+
+class client::UpdaterConnectionImpl : public UpdaterConnection
 {
     Q_OBJECT
 public:
     using ProcessFactory_t = std::function<
-        std::unique_ptr<UpdaterProcess>(void)
+        std::unique_ptr<client::UpdaterProcess>(void)
     >;
 
     struct Config {

@@ -2,7 +2,7 @@
 #include "unistd.h"
 
 
-UpdaterProcess::UpdaterProcess()
+client::UpdaterProcess::UpdaterProcess()
 { }
 
 
@@ -42,7 +42,7 @@ static void winStartRootProcess(QString const& program)
 }
 
 
-void UpdaterProcess::startAsAdmin(QString const& program,
+void client::UpdaterProcess::startAsAdmin(QString const& program,
                               QStringList const& args,
                               QProcess::OpenMode const& mode)
 {
