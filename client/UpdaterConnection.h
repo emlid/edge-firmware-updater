@@ -5,7 +5,12 @@
 
 #include "Updater.h"
 
-class UpdaterConnection : public QObject
+namespace client {
+    class UpdaterConnection;
+
+}
+
+class client::UpdaterConnection : public QObject
 {
     Q_OBJECT
 public:

@@ -11,12 +11,12 @@ static void registerMetatypes(void)
 {
     static auto registered = false;
     if (!registered) {
-        qRegisterMetaType<Updater::State>("UpdaterBase::State");
+        qRegisterMetaType<client::Updater::State>("UpdaterBase::State");
     }
 }
 
 
-Updater::Updater(QObject* parent)
+client::Updater::Updater(QObject* parent)
     : QObject(parent),
       _state(State::Invalid)
 {
@@ -24,19 +24,19 @@ Updater::Updater(QObject* parent)
 }
 
 
-bool Updater::isValid(void)
+bool client::Updater::isValid(void)
 {
     return _state != State::Invalid;
 }
 
 
-bool Updater::isIdle(void)
+bool client::Updater::isIdle(void)
 {
     return _state == State::Idle;
 }
 
 
-bool Updater::initializeDevice(void)
+bool client::Updater::initializeDevice(void)
 {
     // precheck
 
@@ -49,7 +49,7 @@ bool Updater::initializeDevice(void)
 }
 
 
-bool Updater::flash(QString const& firmwarePath, bool checksumEnabled)
+bool client::Updater::flash(QString const& firmwarePath, bool checksumEnabled)
 {
     // precheck
 
@@ -67,7 +67,7 @@ bool Updater::flash(QString const& firmwarePath, bool checksumEnabled)
 }
 
 
-bool Updater::cancel(void)
+bool client::Updater::cancel(void)
 {
     // precheck
 
@@ -80,7 +80,7 @@ bool Updater::cancel(void)
 }
 
 
-bool Updater::finish(void)
+bool client::Updater::finish(void)
 {
     if (!isValid()) {
         warn("Exiting");
@@ -91,7 +91,7 @@ bool Updater::finish(void)
 }
 
 
-void Updater::_changeState(State targetState)
+void client::Updater::_changeState(State targetState)
 {
     auto oldState = _state;
     _state = targetState;
