@@ -8,7 +8,7 @@
 
 #include "UpdaterConnection.h"
 #include "UpdaterProcess.h"
-#include "../../main/shared/shared.h"
+#include "shared.h"
 
 class EdgeFirmwareUpdaterIPCReplica;
 
