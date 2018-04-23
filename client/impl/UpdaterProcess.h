@@ -3,7 +3,11 @@
 
 #include <QtCore>
 
-class UpdaterProcess : public QProcess
+namespace client {
+    class UpdaterProcess;
+}
+
+class client::UpdaterProcess : public QProcess
 {
     Q_OBJECT
 public:

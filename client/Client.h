@@ -1,12 +1,13 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <memory>
 
-class Client
-{
+#include "UpdaterConnection.h"
+#include "shared.h"
 
-public:
-    Client();
-};
+namespace client {
+    std::unique_ptr<UpdaterConnection> makeConnection(void);
+}
 
 #endif // CLIENT_H

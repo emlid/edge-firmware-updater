@@ -3,20 +3,20 @@
 #include "UpdaterImpl.h"
 
 
-using Base = UpdaterConnection;
-using ProcessFinishedSignal_t = void(UpdaterProcess::*)(int, UpdaterProcess::ExitStatus);
+using Base = client::UpdaterConnection;
+using ProcessFinishedSignal_t = void(client::UpdaterProcess::*)(int, client::UpdaterProcess::ExitStatus);
 
 
 // Cast to finished signal (See Qt doc)
 constexpr auto finishedSignal(void)
     -> ProcessFinishedSignal_t
 {
-    return &UpdaterProcess::finished;
+    return &client::UpdaterProcess::finished;
 }
 
 
-UpdaterConnectionImpl::UpdaterConnectionImpl(
-        UpdaterConnectionImpl::ProcessFactory_t const& procFactory,
+client::UpdaterConnectionImpl::UpdaterConnectionImpl(
+        client::UpdaterConnectionImpl::ProcessFactory_t const& procFactory,
         Config const& config, QObject* parent
 )
     : Base(parent),
@@ -36,7 +36,7 @@ UpdaterConnectionImpl::UpdaterConnectionImpl(
 }
 
 
-UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
+client::UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
 {
     _disconnectTimer.blockSignals(true);
     _heartbeatTimer.blockSignals(true);
@@ -72,7 +72,7 @@ UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
 }
 
 
-void UpdaterConnectionImpl::_establish(QString const& updaterExeName)
+void client::UpdaterConnectionImpl::_establish(QString const& updaterExeName)
 {
     Q_ASSERT(!_proc.get());
 
@@ -95,7 +95,7 @@ void UpdaterConnectionImpl::_establish(QString const& updaterExeName)
 }
 
 
-void UpdaterConnectionImpl::
+void client::UpdaterConnectionImpl::
     _handleProcessFinished(int exitCode, UpdaterProcess::ExitStatus status)
 {
     Q_UNUSED(exitCode);
@@ -109,7 +109,7 @@ void UpdaterConnectionImpl::
 }
 
 
-void UpdaterConnectionImpl::_connectToUpdaterNode(void)
+void client::UpdaterConnectionImpl::_connectToUpdaterNode(void)
 {
     using Replica = EdgeFirmwareUpdaterIPCReplica;
 
@@ -150,7 +150,7 @@ void UpdaterConnectionImpl::_connectToUpdaterNode(void)
 }
 
 
-void UpdaterConnectionImpl::_sendHeartbeat(void)
+void client::UpdaterConnectionImpl::_sendHeartbeat(void)
 {
     _heartbeatTimer.start();
     emit _replica->heartbeat();
@@ -159,7 +159,7 @@ void UpdaterConnectionImpl::_sendHeartbeat(void)
 }
 
 
-void UpdaterConnectionImpl::_sever(void)
+void client::UpdaterConnectionImpl::_sever(void)
 {
     QObject::disconnect(_replicaStateConnection);
 
