@@ -9,9 +9,7 @@ namespace predefs {
     static const auto binaryPath = QCoreApplication::applicationDirPath()
             + "../../main/fwupgrader";
 
-    auto makeDefaultProcess(void)
-        -> std::unique_ptr<client::UpdaterProcess>
-    {
+    auto makeDefaultProcess(void) {
         return std::unique_ptr<client::UpdaterProcess> {
             new client::UpdaterProcess()
         };
@@ -19,7 +17,7 @@ namespace predefs {
 
     auto makeUpdaterConnection(
          client::UpdaterConnectionImpl::ProcessFactory_t procFactory = makeDefaultProcess
-    ) -> std::unique_ptr<client::UpdaterConnection>
+    )
     {
         return std::unique_ptr<client::UpdaterConnection>(
             new client::UpdaterConnectionImpl(procFactory)
@@ -211,7 +209,8 @@ void UpdaterConnection_test::case_checkWithHeartbeat(void)
     QVERIFY(checkConnection.wait());
     qInfo() << "Connected.";
 
-    QVERIFY(!checkDisconnection.wait(10000));
+    auto waitTime = updater::shared::properties.heartbeatPeriod * 5;
+    QVERIFY(!checkDisconnection.wait(waitTime));
     QCOMPARE(connection->currentState(), client::UpdaterConnection::Established);
     qInfo() << "Not disconnected.";
 }
