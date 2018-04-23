@@ -2,12 +2,13 @@
 #include <edge.h>
 #include <QtCore>
 
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
     auto config = edge::EdgeConfig(
-        0xa5c, 0x2764, 0x0001, "issue.txt", "temp_mnt", "boot"
+        0xa5c, 0x2764, 0x0001, 1000, "issue.txt", "temp_mnt", "boot"
     );
 
     auto edgeManager = edge::makeEdgeManager(config);

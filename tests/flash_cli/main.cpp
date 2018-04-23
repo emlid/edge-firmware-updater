@@ -4,6 +4,8 @@
 #include <edge.h>
 #include <util.h>
 
+#include "../../main/shared/shared.h"
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -34,7 +36,8 @@ int main(int argc, char *argv[])
     }
 
     auto config = edge::EdgeConfig(
-        0xa5c, 0x2764, 0x0001, "issue.txt", "temp_mnt", "boot"
+        0xa5c, 0x2764, 0x0001, updater::shared::properties.heartbeatPeriod,
+        "issue.txt", "temp_mnt", "boot"
     );
 
     auto edgeManager = edge::makeEdgeManager(config);
