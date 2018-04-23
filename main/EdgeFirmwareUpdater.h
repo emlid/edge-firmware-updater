@@ -14,10 +14,25 @@ class EdgeFirmwareUpdater : public EdgeFirmwareUpdaterIPCSimpleSource
 public:
     explicit EdgeFirmwareUpdater(QObject *parent = nullptr)
         : EdgeFirmwareUpdaterIPCSimpleSource(parent),
-          _config(0xa5c, 0x2764, 0x0001, "issue.txt", "temp_mnt", "boot"),
+          _config(0xa5c, 0x2764, 0x0001, 1000, "issue.txt", "temp_mnt", "boot"),
           _flashingService(util::makeFlashingService()),
           _crcService(util::makeCRCService())
-    { }
+    {
+        auto const heartbeatLatency = 1000;
+
+        _heartbeatTimer.setInterval(_config.heartbeatPeriod() + heartbeatLatency);
+        _heartbeatTimer.setSingleShot(true);
+
+        QObject::connect(&_heartbeatTimer, &QTimer::timeout,
+            [this] (void) {
+                qWarning() << "Timeout: updater didn't receive heartbeat over"
+                           << _heartbeatTimer.interval() << "ms";
+                finish();
+            }
+        );
+
+        _heartbeatTimer.start();
+    }
 
 public slots:
     void openSession(void) override {
@@ -74,6 +89,10 @@ public slots:
         emit _cancel();
     }
 
+    void heartbeat(void) override {
+        _heartbeatTimer.start();
+    }
+
 signals:
     void _cancel(void);
     void _initializeEdgeDevice(void);
@@ -117,9 +136,9 @@ private:
 
         QObject::connect(_updateSession.get(), &UpdaterSession::progressChanged,
                          this, &EdgeFwUpdater::progressChanged);
-
     }
 
+    QTimer           _heartbeatTimer;
     QString          _firmwareFilename;
     QThread          _sessionThread;
     edge::EdgeConfig _config;
