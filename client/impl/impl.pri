@@ -1,3 +1,4 @@
+
 HEADERS += \
     $$PWD/UpdaterProcess.h \
     $$PWD/UpdaterConnectionImpl.h \
@@ -7,3 +8,5 @@ SOURCES += \
     $$PWD/UpdaterProcess.cpp \
     $$PWD/UpdaterConnectionImpl.cpp \
     $$PWD/UpdaterImpl.cpp
+
+include(../../main/shared/shared.pri)
