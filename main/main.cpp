@@ -76,6 +76,11 @@ void reducePriviledge(void) {
 }
 
 
+QString updaterSocketName(void) {
+    return updater::shared::properties.updaterReplicaNodeName;
+}
+
+
 void chownSocket(void) {
 #ifdef Q_OS_MACX
     auto env = QProcessEnvironment::systemEnvironment();
@@ -92,18 +97,10 @@ void chownSocket(void) {
         gid = env.value("SUDO_GID").toInt();
     }
 
-    ::chown("/tmp/fwupg_socket", uid, gid);
+    auto socketPath = updaterSocketName().replace("local:", "");
+    ::chown(socketPath.toStdString().data(), uid, gid);
 
     qInfo() << "OSX: uid: " << uid << " euid:" << euid << "gid" << gid;
-#endif
-}
-
-
-QString updaterSocketName(void) {
-#ifdef Q_OS_MACX
-    return "local:/tmp/fwupg_socket";
-#else
-    return "local:fwupg_socket";
 #endif
 }
 
@@ -131,7 +128,7 @@ int main(int argc, char *argv[])
         std::exit(EXIT_FAILURE);
     }
 
-    chownSocket();
+    ::chownSocket();
 
     return a.exec();
 }
