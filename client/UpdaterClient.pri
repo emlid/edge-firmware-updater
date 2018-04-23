@@ -9,8 +9,4 @@ HEADERS += \
     $$PWD/UpdaterConnection.h \
     $$PWD/Updater.h
 
-SHARED_PATH = $$absolute_path(../main/shared)
-include($${SHARED_PATH}/shared.pri)
-INCLUDEPATH += $${SHARED_PATH}
-
 include(impl/impl.pri)
