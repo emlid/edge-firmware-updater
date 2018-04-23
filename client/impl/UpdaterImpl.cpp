@@ -139,6 +139,17 @@ void client::UpdaterImpl::_attachToUpdaterReplica(void)
     connect(updaterPtr, &Replica::cancelled,       this, &UpdaterImpl::cancelled);
     connect(updaterPtr, &Replica::firmwareVersion, this, &UpdaterImpl::firmwareVersion);
     connect(updaterPtr, &Replica::logMessage,      this, &UpdaterImpl::_handleReplicaLogMessage);
+    connect(updaterPtr, &Replica::initializingFinished,
+        [this] (int status) {
+            auto opStatus = static_cast<Shared::OperationStatus>(status);
+            if (opStatus == Shared::Succeed) {
+                emit deviceInitialized(true);
+            } else if (opStatus == Shared::Failed) {
+                emit deviceInitialized(false);
+            }
+            _changeState(State::Idle);
+        }
+    );
 }
 
 
