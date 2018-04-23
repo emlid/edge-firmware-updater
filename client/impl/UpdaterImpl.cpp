@@ -1,26 +1,16 @@
 #include "UpdaterImpl.h"
 #include "rep_EdgeFirmwareUpdaterIPC_replica.h"
+#include "shared.h"
+
+namespace Shared = updater::shared;
 
 
-static void registerMetatypes(void)
-{
-    static auto registered = false;
-    if (!registered) {
-        qRegisterMetaType<UpdaterImpl::LogMsgType>("Updater::LogMsgType");
-        qRegisterMetaType<UpdaterImpl::FinishStatus>("Updater::FinishStatus");
-        registered = true;
-    }
-}
-
-
-UpdaterImpl::UpdaterImpl(std::shared_ptr<EdgeFirmwareUpdaterIPCReplica> updaterReplica,
-                 QObject* parent)
-    : Updater(parent),
+client::UpdaterImpl::UpdaterImpl(std::shared_ptr<EdgeFirmwareUpdaterIPCReplica> updaterReplica,
+                                 QObject* parent)
+    : client::Updater(parent),
       _sessionOpened(false),
       _updaterReplica(updaterReplica)
 {
-    registerMetatypes();
-
     if (_updaterReplica && _updaterReplica->isReplicaValid()) {
         _attachToUpdaterReplica();
         _makeProxies();
@@ -29,7 +19,7 @@ UpdaterImpl::UpdaterImpl(std::shared_ptr<EdgeFirmwareUpdaterIPCReplica> updaterR
 }
 
 
-UpdaterImpl::~UpdaterImpl(void)
+client::UpdaterImpl::~UpdaterImpl(void)
 {
     if (isValid()) {
         _updaterReplica->finish();
@@ -37,7 +27,7 @@ UpdaterImpl::~UpdaterImpl(void)
 }
 
 
-bool UpdaterImpl::_initializeDevice(void)
+bool client::UpdaterImpl::_initializeDevice(void)
 {
     // Open new update session
     _closeUpdateSession();
@@ -49,7 +39,7 @@ bool UpdaterImpl::_initializeDevice(void)
 }
 
 
-bool UpdaterImpl::_flash(QString const& firmwarePath, bool checksumEnabled)
+bool client::UpdaterImpl::_flash(QString const& firmwarePath, bool checksumEnabled)
 {
     if (!_sessionOpened) {
         qWarning() << "Trying to flash without opened session";
@@ -70,11 +60,11 @@ bool UpdaterImpl::_flash(QString const& firmwarePath, bool checksumEnabled)
         auto onFlashingFinished =
             [this, lambdaCtx] (int stat) mutable {
                 lambdaCtx.reset();
-                if (stat == FinishStatus::Succeed) {
+                if (stat == Shared::OperationStatus::Succeed) {
                     _updaterReplica->checkOnCorrectness();
                     _changeState(State::ComputingChecksum);
 
-                } else if (stat == FinishStatus::Failed) {
+                } else if (stat == Shared::OperationStatus::Failed) {
                     emit deviceFlashed(false);
                     _changeState(State::Idle);
                 }
@@ -88,9 +78,9 @@ bool UpdaterImpl::_flash(QString const& firmwarePath, bool checksumEnabled)
     auto onUpdatingFinished =
         [this, lambdaCtx] (int stat) mutable {
             lambdaCtx.reset();
-            if (stat == FinishStatus::Succeed) {
+            if (stat == Shared::OperationStatus::Succeed) {
                 emit deviceFlashed(true);
-            } else if (stat == FinishStatus::Failed) {
+            } else if (stat == Shared::OperationStatus::Failed) {
                 emit deviceFlashed(false);
             }
             _changeState(State::Idle);
@@ -105,32 +95,32 @@ bool UpdaterImpl::_flash(QString const& firmwarePath, bool checksumEnabled)
 }
 
 
-bool UpdaterImpl::_cancel(void)
+bool client::UpdaterImpl::_cancel(void)
 {
     _updaterReplica->cancel();
     return true;
 }
 
 
-bool UpdaterImpl::_finish(void)
+bool client::UpdaterImpl::_finish(void)
 {
     _updaterReplica->finish();
     return true;
 }
 
 
-void UpdaterImpl::_handleReplicaLogMessage(QString msg, int type)
+void client::UpdaterImpl::_handleReplicaLogMessage(QString msg, int type)
 {
-    auto msgType = static_cast<LogMsgType>(type);
+    auto msgType = static_cast<Shared::LogMessageType>(type);
     switch (msgType) {
-        case LogMsgType::Info:    emit infoMessageReceived(msg);  break;
-        case LogMsgType::Warning: emit warnMessageReceived(msg);  break;
-        case LogMsgType::Error:   emit errorMessageReceived(msg); break;
+        case Shared::LogMessageType::Info:    emit infoMessageReceived(msg);  break;
+        case Shared::LogMessageType::Warning: emit warnMessageReceived(msg);  break;
+        case Shared::LogMessageType::Error:   emit errorMessageReceived(msg); break;
     }
 }
 
 
-void UpdaterImpl::_attachToUpdaterReplica(void)
+void client::UpdaterImpl::_attachToUpdaterReplica(void)
 {
     using Replica = EdgeFirmwareUpdaterIPCReplica;
 
@@ -152,9 +142,9 @@ void UpdaterImpl::_attachToUpdaterReplica(void)
 }
 
 
-void UpdaterImpl::_makeProxies(void)
+void client::UpdaterImpl::_makeProxies(void)
 {
-    connect(this, &UpdaterImpl::deviceFlashed,
+    connect(this, &client::UpdaterImpl::deviceFlashed,
         [this] (bool stat) {
             Q_UNUSED(stat);
             _closeUpdateSession();
@@ -163,14 +153,14 @@ void UpdaterImpl::_makeProxies(void)
 }
 
 
-void UpdaterImpl::_openUpdateSession(void)
+void client::UpdaterImpl::_openUpdateSession(void)
 {
     _updaterReplica->openSession();
     _sessionOpened = true;
 }
 
 
-void UpdaterImpl::_closeUpdateSession(void)
+void client::UpdaterImpl::_closeUpdateSession(void)
 {
     _updaterReplica->closeSession();
     _sessionOpened = false;
