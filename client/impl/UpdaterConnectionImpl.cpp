@@ -25,12 +25,22 @@ UpdaterConnectionImpl::UpdaterConnectionImpl(
 {
     _disconnectTimer.setInterval(_config.disconnectTimeout);
     _disconnectTimer.setSingleShot(true);
+
+    if (_config.enableHeartbeat) {
+        _heartbeatTimer.setInterval(_config.heartbeatPeriod);
+        _heartbeatTimer.setSingleShot(true);
+
+        QObject::connect(&_heartbeatTimer, &QTimer::timeout,
+                         this, &UpdaterConnectionImpl::_sendHeartbeat);
+    }
 }
 
 
 UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
 {
     _disconnectTimer.blockSignals(true);
+    _heartbeatTimer.blockSignals(true);
+    _heartbeatTimer.stop();
 
     if (Base::currentState() == State::Disconnecting) {
         qWarning() << "Deleting object in 'Disconnecting' state.";
@@ -62,13 +72,11 @@ UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
 }
 
 
-void UpdaterConnectionImpl::_establish(QString const& serverNodeName,
-                                   QString const& updaterExeName)
+void UpdaterConnectionImpl::_establish(QString const& updaterExeName)
 {
     Q_ASSERT(!_proc.get());
 
     _proc = _makeProcess();
-    _updaterNodeName = serverNodeName;
 
     if (_config.verbose) {
         QObject::connect(_proc.get(), &UpdaterProcess::readyRead,
@@ -97,6 +105,7 @@ void UpdaterConnectionImpl::
                 State::Aborted : State::Disconneted;
 
     Base::_changeState(state);
+    _heartbeatTimer.stop();
 }
 
 
@@ -104,7 +113,7 @@ void UpdaterConnectionImpl::_connectToUpdaterNode(void)
 {
     using Replica = EdgeFirmwareUpdaterIPCReplica;
 
-    auto success = _node.connectToNode(_updaterNodeName);
+    auto success = _node.connectToNode(_config.updaterReplicaNodeName);
 
     if (!success) {
         Base::_setErrorString("Can not connect to updater node");
@@ -116,6 +125,8 @@ void UpdaterConnectionImpl::_connectToUpdaterNode(void)
 
     QObject::connect(_replica.get(), &Replica::initialized,
         [this] (void) {
+            _heartbeatTimer.start();
+
             Base::_updater.reset(new UpdaterImpl(_replica));
             Base::_changeState(State::Established);
 
@@ -136,6 +147,15 @@ void UpdaterConnectionImpl::_connectToUpdaterNode(void)
                                                        replicaStateListener);
         }
     );
+}
+
+
+void UpdaterConnectionImpl::_sendHeartbeat(void)
+{
+    _heartbeatTimer.start();
+    emit _replica->heartbeat();
+
+    if (_config.verbose) { qDebug() << "Hearbeat sent";  }
 }
 
 

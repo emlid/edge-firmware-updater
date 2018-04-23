@@ -37,7 +37,7 @@ public:
         return _updater;
     }
 
-    void establish(QString const& serverNodeName, QString const& updaterExePath) {
+    void establish(QString const& updaterExePath) {
         auto updaterExeInfo = QFileInfo(updaterExePath);
         if (!updaterExeInfo.exists() || !updaterExeInfo.isExecutable()) {
             qWarning() << "Updater executable file is not exist or not executable.";
@@ -59,7 +59,7 @@ public:
 
             default:
                 _changeState(State::Connecting);
-                return _establish(serverNodeName, updaterExePath);
+                return _establish(updaterExePath);
         }
     }
 
@@ -113,8 +113,7 @@ private:
         }
     }
 
-    virtual void _establish(QString const& serverNodeName,
-                            QString const& updaterExePath) = 0;
+    virtual void _establish(QString const& updaterExePath) = 0;
     virtual void _sever(void) = 0;
 
     volatile State               _state;
