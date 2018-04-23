@@ -1,5 +1,7 @@
 CONFIG += client
 
+INCLUDEPATH += $${PWD}
+
 SOURCES += \
     $$PWD/Client.cpp \
     $$PWD/Updater.cpp
