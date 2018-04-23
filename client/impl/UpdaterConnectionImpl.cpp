@@ -74,8 +74,6 @@ client::UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
 
 void client::UpdaterConnectionImpl::_establish(QString const& updaterExeName)
 {
-    Q_ASSERT(!_proc.get());
-
     _proc = _makeProcess();
 
     if (_config.verbose) {
@@ -154,8 +152,6 @@ void client::UpdaterConnectionImpl::_sendHeartbeat(void)
 {
     _heartbeatTimer.start();
     emit _replica->heartbeat();
-
-    if (_config.verbose) { qDebug() << "Hearbeat sent";  }
 }
 
 
