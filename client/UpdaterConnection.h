@@ -2,6 +2,7 @@
 #define UPDATERCONNECTION_H
 
 #include <QtCore>
+#include <memory>
 
 #include "Updater.h"
 
