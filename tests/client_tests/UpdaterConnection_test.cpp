@@ -6,7 +6,13 @@
 // add necessary includes here
 
 namespace predefs {
+#ifndef Q_OS_WIN32
     static const auto updaterRelativePath = "../../main/fwupgrader";
+#elif defined QT_DEBUG
+    static const auto updaterRelativePath = "../../main/debug/fwupgrader.exe";
+#else
+    static const auto updaterRelativePath = "../../main/release/fwupgrader.exe";
+#endif
     static const auto updaterFileInfo = QFileInfo(updaterRelativePath);
 
     auto makeDefaultProcess(void) {
@@ -79,6 +85,7 @@ void UpdaterConnection_test::case_arguments(void)
 void UpdaterConnection_test::case_connection(void)
 {
     auto connection = predefs::makeUpdaterConnection();
+    qDebug() << predefs::updaterFileInfo.absoluteFilePath();
 
     QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
 
