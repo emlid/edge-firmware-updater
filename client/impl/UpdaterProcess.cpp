@@ -1,5 +1,4 @@
 #include "UpdaterProcess.h"
-#include "unistd.h"
 
 
 client::UpdaterProcess::UpdaterProcess(void)
@@ -54,9 +53,23 @@ static void macxStartRootProcess(QProcess* proc,
 }
 
 
-static void winStartRootProcess(QString const& program)
+static void winStartRootProcess(QProcess* proc,
+                                 QString const& program,
+                                 QStringList const& args,
+                                 QProcess::OpenMode const& mode)
 {
-    Q_UNUSED(program);
+    auto argsStr = args.join(' ');
+    auto argsEnvVar = QString("FW_ARGS=%1").arg(argsStr);
+    auto progEnvVar = QString("FW_PROGRAM=%1").arg(program);
+
+    auto env = proc->environment();
+    env.append(argsEnvVar);
+    env.append(progEnvVar);
+    proc->setEnvironment(env);
+
+    proc->setProgram("cmd.exe");
+    proc->setArguments({"/C", "%FW_PROGRAM% %FW_ARGS%"});
+    proc->open(mode);
 }
 
 
@@ -69,5 +82,7 @@ void client::UpdaterProcess::startAsAdmin(QString const& program,
     macxStartRootProcess(this, program, args, mode);
 #elif defined Q_OS_LINUX
     linuxStartRootProcess(this, program, args, mode);
+#elif defined Q_OS_WIN32
+    winStartRootProcess(this, program, args, mode);
 #endif
 }
