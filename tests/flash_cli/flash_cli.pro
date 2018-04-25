@@ -73,3 +73,4 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../rpi/librpi.a
 
 include(../../edge/edge_deps.pri)
 include(../../main/shared/shared.pri)
+win32:include(../../libs/win_deps.pri)
