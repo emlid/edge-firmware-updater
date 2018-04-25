@@ -2,36 +2,54 @@
 #include "unistd.h"
 
 
-client::UpdaterProcess::UpdaterProcess()
+client::UpdaterProcess::UpdaterProcess(void)
 { }
 
 
-
-static QString compose(QString const& str) {
-    static const QChar quote = '\'';
-    return QString(str).append(quote).prepend(quote);
-}
-
-
-static void linuxStartRootProcess(QString const& program)
+static void linuxStartRootProcess(QProcess* proc,
+                                  QString const& programPath,
+                                  QStringList const& args,
+                                  QProcess::OpenMode const& mode)
 {
-    Q_UNUSED(program);
+    constexpr auto graphicalSudo = "pkexec";
 
+    auto argsStr = args.join(' ');
+    auto argsEnvVar = QString("FW_ARGS=%1").arg(argsStr);
+    auto progEnvVar = QString("FW_PROGRAM=%1").arg(programPath);
+    auto sudoEnvVar = QString("FW_GSUDO=%1").arg(graphicalSudo);
+
+    auto env = proc->environment();
+    env.append(argsEnvVar);
+    env.append(progEnvVar);
+    env.append(sudoEnvVar);
+    proc->setEnvironment(env);
+
+    proc->setProgram("/bin/sh");
+    proc->setArguments({"-c", "${FW_GSUDO} \"${FW_PROGRAM}\" ${FW_ARGS}"});
+    proc->open(mode);
 }
 
 
 static void macxStartRootProcess(QProcess* proc,
                                  QString const& program,
+                                 QStringList const& args,
                                  QProcess::OpenMode const& mode)
 {
-    auto const graphicalSudo = "osascript";
-    auto const exec = "-e";
-    auto const script = QString("do shell script \"%1\" with administrator privileges")
-        .arg(compose(program));
+    auto argsStr = args.join(' ');
+    auto argsEnvVar = QString("FW_ARGS=%1").arg(argsStr);
+    auto progEnvVar = QString("FW_PROGRAM=%1").arg(program);
 
-    proc->setProgram(graphicalSudo);
-    proc->setArguments({exec, script});
+    auto env = proc->environment();
+    env.append(argsEnvVar);
+    env.append(progEnvVar);
+    proc->setEnvironment(env);
 
+    auto const script =
+        QString("do shell script \"\\\"${FW_PROGRAM}\\\" ${FW_ARGS}\" "
+                "with administrator privileges");
+
+    proc->setProgram("osascript");
+    proc->setArguments({"-e", script});
     proc->open(mode);
 }
 
@@ -43,9 +61,13 @@ static void winStartRootProcess(QString const& program)
 
 
 void client::UpdaterProcess::startAsAdmin(QString const& program,
-                              QStringList const& args,
-                              QProcess::OpenMode const& mode)
+                                          QStringList const& args,
+                                          QProcess::OpenMode const& mode)
 {
     Q_ASSERT(!program.isEmpty());
-    macxStartRootProcess(this, program, mode);
+#ifdef Q_OS_MACX
+    macxStartRootProcess(this, program, args, mode);
+#elif defined Q_OS_LINUX
+    linuxStartRootProcess(this, program, args, mode);
+#endif
 }
