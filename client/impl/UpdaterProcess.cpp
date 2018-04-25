@@ -54,22 +54,20 @@ static void macxStartRootProcess(QProcess* proc,
 
 
 static void winStartRootProcess(QProcess* proc,
-                                 QString const& program,
-                                 QStringList const& args,
-                                 QProcess::OpenMode const& mode)
+                                QString const& program,
+                                QStringList const& args,
+                                QProcess::OpenMode const& mode)
 {
     auto argsStr = args.join(' ');
     auto argsEnvVar = QString("FW_ARGS=%1").arg(argsStr);
-    auto progEnvVar = QString("FW_PROGRAM=%1").arg(program);
+    auto progEnvVar = QString("FW_PROGRAM=\"%1\"").arg(program);
 
     auto env = proc->environment();
     env.append(argsEnvVar);
     env.append(progEnvVar);
     proc->setEnvironment(env);
 
-    proc->setProgram("cmd.exe");
-    proc->setArguments({"/C", "%FW_PROGRAM% %FW_ARGS%"});
-    proc->open(mode);
+    proc->start("cmd.exe /C %FW_PROGRAM% %FW_ARGS%", mode);
 }
 
 
