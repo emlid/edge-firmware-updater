@@ -6,8 +6,8 @@
 // add necessary includes here
 
 namespace predefs {
-    static const auto binaryPath = QCoreApplication::applicationDirPath()
-            + "../../main/fwupgrader";
+    static const auto updaterRelativePath = "../../main/fwupgrader";
+    static const auto updaterFileInfo = QFileInfo(updaterRelativePath);
 
     auto makeDefaultProcess(void) {
         return std::unique_ptr<client::UpdaterProcess> {
@@ -34,7 +34,9 @@ public:
     UpdaterConnection_test() { }
     ~UpdaterConnection_test() = default;
 
-private slots:
+    void dirTest(QString const& dirName);
+
+ private slots:
     void case_initialState(void);
     void case_arguments(void);
     void case_connection(void);
@@ -43,6 +45,8 @@ private slots:
     void case_checkOnAsyncDisconnect(void);
     void case_checkWithoutHeartbeat(void);
     void case_checkWithHeartbeat(void);
+    void case_checkSpacesInPath(void);
+    void case_checkQuotesInPath(void);
 };
 
 
@@ -79,7 +83,7 @@ void UpdaterConnection_test::case_connection(void)
     QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
 
     qInfo() << "You will see window with username and passwd. Please, fill these fields";
-    connection->establish(predefs::binaryPath);
+    connection->establish(predefs::updaterFileInfo.absoluteFilePath());
     qInfo() << "Connecting...";
 
     QCOMPARE(connection->currentState(), client::UpdaterConnection::Connecting);
@@ -127,7 +131,7 @@ void UpdaterConnection_test::case_checkAsyncConnection(void)
 
     auto connection = predefs::makeUpdaterConnection();
     QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
-    connection->establish(predefs::binaryPath);
+    connection->establish(predefs::updaterFileInfo.absoluteFilePath());
 
     QVERIFY(checkConnection.wait());
     connection.reset();
@@ -141,7 +145,7 @@ void UpdaterConnection_test::case_checkAbort(void)
         [proc] (void) { return std::unique_ptr<client::UpdaterProcess>(proc); };
     auto connection = predefs::makeUpdaterConnection(mocProcessFactory);
 
-    connection->establish(predefs::binaryPath);
+    connection->establish(predefs::updaterFileInfo.absoluteFilePath());
     QCOMPARE(connection->currentState(), client::UpdaterConnection::Connecting);
 
     proc->kill();
@@ -159,7 +163,7 @@ void UpdaterConnection_test::case_checkOnAsyncDisconnect(void)
 
     auto connection = predefs::makeUpdaterConnection();
     QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
-    connection->establish(predefs::binaryPath);
+    connection->establish(predefs::updaterFileInfo.absoluteFilePath());
 
     QVERIFY(checkConnection.wait());
     connection->sever();
@@ -186,7 +190,7 @@ void UpdaterConnection_test::case_checkWithoutHeartbeat(void)
     QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
     QSignalSpy checkDisconnection(connection.get(), &client::UpdaterConnection::stateChanged);
 
-    connection->establish(predefs::binaryPath);
+    connection->establish(predefs::updaterFileInfo.absoluteFilePath());
     QVERIFY(checkConnection.wait());
     qInfo() << "Connected. Waiting for disconnection...";
 
@@ -205,7 +209,7 @@ void UpdaterConnection_test::case_checkWithHeartbeat(void)
     QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
     QSignalSpy checkDisconnection(connection.get(), &client::UpdaterConnection::stateChanged);
 
-    connection->establish(predefs::binaryPath);
+    connection->establish(predefs::updaterFileInfo.absoluteFilePath());
     QVERIFY(checkConnection.wait());
     qInfo() << "Connected.";
 
@@ -213,6 +217,64 @@ void UpdaterConnection_test::case_checkWithHeartbeat(void)
     QVERIFY(!checkDisconnection.wait(waitTime));
     QCOMPARE(connection->currentState(), client::UpdaterConnection::Established);
     qInfo() << "Not disconnected.";
+}
+
+
+void UpdaterConnection_test::dirTest(QString const& dirName)
+{
+    const struct {
+        QString tempDir;
+        QString dirWithSpaces;
+    } dirNames = {"temp", dirName};
+
+    auto workDir = QDir::home();
+
+    workDir.mkdir(dirNames.tempDir);
+    workDir.cd(dirNames.tempDir);
+
+    auto temporaryDirPath = workDir.absolutePath();
+
+    workDir.mkdir(dirNames.dirWithSpaces);
+    workDir.cd(dirNames.dirWithSpaces);
+
+    auto tmpExeName = predefs::updaterFileInfo.fileName();
+    auto tmpExePath = workDir.absolutePath() + '/' + tmpExeName;
+    QFile::copy(predefs::updaterFileInfo.absoluteFilePath(), tmpExePath);
+
+    qInfo() << QString("Firmware updater moved from %1 to %2")
+                   .arg(predefs::updaterFileInfo.absoluteFilePath())
+                   .arg(tmpExePath);
+
+    qInfo() <<  "Trying to establish connection with updater copy";
+
+    auto connection = predefs::makeUpdaterConnection();
+
+    QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
+
+    qInfo() << "You will see window with username and passwd. Please, fill these fields";
+    connection->establish(tmpExePath);
+    qInfo() << "Connecting...";
+
+    QCOMPARE(connection->currentState(), client::UpdaterConnection::Connecting);
+    QVERIFY(checkConnection.wait());
+    QVERIFY(connection->isEstablished());
+    QCOMPARE(connection->currentState(), client::UpdaterConnection::Established);
+
+    workDir.cd(temporaryDirPath);
+    workDir.removeRecursively();
+
+}
+
+
+void UpdaterConnection_test::case_checkSpacesInPath(void)
+{
+    dirTest("dir with spaces");
+}
+
+
+void UpdaterConnection_test::case_checkQuotesInPath(void)
+{
+    dirTest("dir'with\"quotes");
 }
 
 QTEST_MAIN(UpdaterConnection_test)
