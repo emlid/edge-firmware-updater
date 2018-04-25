@@ -75,6 +75,11 @@ void client::UpdaterProcess::startAsAdmin(QString const& program,
                                           QStringList const& args,
                                           QProcess::OpenMode const& mode)
 {
+    // suppress clang warnings
+    Q_UNUSED(winStartRootProcess);
+    Q_UNUSED(linuxStartRootProcess);
+    Q_UNUSED(macxStartRootProcess);
+
     Q_ASSERT(!program.isEmpty());
 #ifdef Q_OS_MACX
     macxStartRootProcess(this, program, args, mode);
