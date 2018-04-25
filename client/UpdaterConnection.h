@@ -45,7 +45,8 @@ public:
     void establish(QString const& updaterExePath) {
         auto updaterExeInfo = QFileInfo(updaterExePath);
         if (!updaterExeInfo.exists() || !updaterExeInfo.isExecutable()) {
-            qWarning() << "Updater executable file is not exist or not executable.";
+            qWarning() << "Updater executable file is not exist or not executable. "
+                       << updaterExePath;
             return;
         }
 
