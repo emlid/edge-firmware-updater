@@ -138,8 +138,6 @@ script:
   # compile
   - make -j$JOBS;
 
-
-after_success:
   # perform tests
   - if [ "${CONFIG}" = "debug" ]; then
       cd "${SHADOW_BUILD_DIR}/tests/util_tests" && ./util_tests &&
