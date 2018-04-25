@@ -59,3 +59,4 @@ include($${EDGE_PATH}/edge_deps.pri)
 include($${EDGE_PATH}/src.pri)
 
 INCLUDEPATH += $${SHARED_PATH} $${EDGE_PATH}
+win32:include(../../libs/win_deps.pri)
