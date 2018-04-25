@@ -96,11 +96,15 @@ void client::UpdaterConnectionImpl::_establish(QString const& updaterExeName)
 void client::UpdaterConnectionImpl::
     _handleProcessFinished(int exitCode, UpdaterProcess::ExitStatus status)
 {
-    Q_UNUSED(exitCode);
     Base::_setErrorString(_proc->readAllStandardError());
 
     auto state = status == UpdaterProcess::ExitStatus::CrashExit ?
                 State::Aborted : State::Disconneted;
+
+    if (exitCode) {
+        qDebug() << detailedErrorDescription();
+        qDebug() << "Process errored with exit code " << exitCode;
+    }
 
     Base::_changeState(state);
     _heartbeatTimer.stop();
