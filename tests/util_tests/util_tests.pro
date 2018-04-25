@@ -13,6 +13,7 @@ SOURCES += \
     PollTest.cpp
 
 include(../../util/src.pri)
+win32:include(../../libs/win_deps.pri)
 
 HEADERS += \
     FlashingServiceTest.h \
