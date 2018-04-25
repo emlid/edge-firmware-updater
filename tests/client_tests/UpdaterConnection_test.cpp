@@ -37,10 +37,10 @@ class UpdaterConnection_test : public QObject
     Q_OBJECT
 
 public:
-    UpdaterConnection_test() { }
+    UpdaterConnection_test() {}
     ~UpdaterConnection_test() = default;
 
-    void dirTest(QString const& dirName);
+    void pathTest(QString const& dirName);
 
  private slots:
     void case_initialState(void);
@@ -227,61 +227,59 @@ void UpdaterConnection_test::case_checkWithHeartbeat(void)
 }
 
 
-void UpdaterConnection_test::dirTest(QString const& dirName)
+void UpdaterConnection_test::pathTest(QString const& tempUpdaterName)
 {
-    const struct {
-        QString tempDir;
-        QString dirWithSpaces;
-    } dirNames = {"temp", dirName};
+    auto updaterFileName = predefs::updaterFileInfo.fileName();
+    auto updaterDir = predefs::updaterFileInfo.absolutePath();
+    auto tempUpdaterPath = updaterDir + '/' + tempUpdaterName;
+    QFile::rename(predefs::updaterFileInfo.absoluteFilePath(), tempUpdaterPath);
 
-    auto workDir = QDir::home();
+    qInfo() << QString("Rename updater from %1 to %2")
+                   .arg(updaterFileName)
+                   .arg(tempUpdaterName);
 
-    workDir.mkdir(dirNames.tempDir);
-    workDir.cd(dirNames.tempDir);
-
-    auto temporaryDirPath = workDir.absolutePath();
-
-    workDir.mkdir(dirNames.dirWithSpaces);
-    workDir.cd(dirNames.dirWithSpaces);
-
-    auto tmpExeName = predefs::updaterFileInfo.fileName();
-    auto tmpExePath = workDir.absolutePath() + '/' + tmpExeName;
-    QFile::copy(predefs::updaterFileInfo.absoluteFilePath(), tmpExePath);
-
-    qInfo() << QString("Firmware updater moved from %1 to %2")
-                   .arg(predefs::updaterFileInfo.absoluteFilePath())
-                   .arg(tmpExePath);
-
-    qInfo() <<  "Trying to establish connection with updater copy";
+    qInfo() <<  "Trying to establish connection with updater";
 
     auto connection = predefs::makeUpdaterConnection();
 
-    QSignalSpy checkConnection(connection.get(), &client::UpdaterConnection::established);
+    QSignalSpy checkConnection(connection.get(),
+                               &client::UpdaterConnection::established);
+
+    // reset original name
+    QObject::connect(connection.get(), &client::UpdaterConnection::destroyed,
+        [tempUpdaterPath, updaterDir, updaterFileName] (void) {
+            QFile::rename(tempUpdaterPath, updaterDir + '/' + updaterFileName);
+        }
+    );
 
     qInfo() << "You will see window with username and passwd. Please, fill these fields";
-    connection->establish(tmpExePath);
+    connection->establish(tempUpdaterPath);
     qInfo() << "Connecting...";
 
     QCOMPARE(connection->currentState(), client::UpdaterConnection::Connecting);
     QVERIFY(checkConnection.wait());
     QVERIFY(connection->isEstablished());
     QCOMPARE(connection->currentState(), client::UpdaterConnection::Established);
-
-    workDir.cd(temporaryDirPath);
-    workDir.removeRecursively();
-
 }
 
 
 void UpdaterConnection_test::case_checkSpacesInPath(void)
 {
-    dirTest("dir with spaces");
+#ifdef Q_OS_WIN
+    pathTest("up date r.exe");
+#else
+    pathTest("up date r");
+#endif
 }
 
 
 void UpdaterConnection_test::case_checkQuotesInPath(void)
 {
-    dirTest("dir'with\"quotes");
+#ifdef Q_OS_WIN
+    pathTest("up'dater.exe");
+#else
+    pathTest("up'dater");
+#endif
 }
 
 QTEST_MAIN(UpdaterConnection_test)
