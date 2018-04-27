@@ -22,6 +22,16 @@ void updater::FirmwareUpdateSession::initializeDevice(void)
     sendLogMessage("Initializing...");
 
     auto edgeManager = edge::makeEdgeManager(_sessionData.config);
+
+    QObject::connect(edgeManager.get(), &edge::IEdgeManager::infoMessageReceived,
+                     [this] (QString const& msg) { sendLogMessage(msg, MsgType::Info); });
+
+    QObject::connect(edgeManager.get(), &edge::IEdgeManager::warnMessageReceived,
+                     [this] (QString const& msg) { sendLogMessage(msg, MsgType::Warning); });
+
+    QObject::connect(edgeManager.get(), &edge::IEdgeManager::errorMessageReceived,
+                     [this] (QString const& msg) { sendLogMessage(msg, MsgType::Error); });
+
     Q_ASSERT(edgeManager.get());
 
     if (!(edgeManager->isEdgePlugged() || edgeManager->isEdgeInitialized())) {
@@ -33,7 +43,7 @@ void updater::FirmwareUpdateSession::initializeDevice(void)
     _sessionData.edgeDevice = edgeManager->initialize();
 
     if (!_sessionData.edgeDevice) {
-        sendLogMessage("Timeout: initialization failed.", MsgType::Error);
+        sendLogMessage("initialization failed.", MsgType::Error);
         emit initializingFinished(OpStatus::Failed);
     } else {
         emit edgeFirmwareVersion(_sessionData.edgeDevice->firmwareVersion());
