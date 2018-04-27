@@ -75,7 +75,7 @@ void UpdaterConnection_test::case_arguments(void)
     auto connection = predefs::makeUpdaterConnection();
 
     connection->establish("");
-    QCOMPARE(connection->currentState(), client::UpdaterConnection::Disconneted);
+    QCOMPARE(connection->currentState(), client::UpdaterConnection::Errored);
 
     connection->sever();
     QVERIFY(connection->currentState() != client::UpdaterConnection::Disconnecting);
