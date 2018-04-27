@@ -72,7 +72,8 @@ client::UpdaterConnectionImpl::~UpdaterConnectionImpl(void)
 }
 
 
-void client::UpdaterConnectionImpl::_establish(QString const& updaterExeName)
+void client::UpdaterConnectionImpl::_establish(QString const& updaterExeName,
+                                               QStringList const& updaterArgs)
 {
     _proc = _makeProcess();
 
@@ -89,7 +90,7 @@ void client::UpdaterConnectionImpl::_establish(QString const& updaterExeName)
             QObject::connect(_proc.get(), finishedSignal(),
                              this, &UpdaterConnectionImpl::_handleProcessFinished);
 
-    _proc->startAsAdmin(updaterExeName);
+    _proc->startAsAdmin(updaterExeName, updaterArgs);
 }
 
 

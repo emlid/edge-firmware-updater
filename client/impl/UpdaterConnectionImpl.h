@@ -54,7 +54,8 @@ private slots:
     void _sendHeartbeat(void);
 
 private:
-    virtual void _establish(QString const& updaterExePath) override;
+    virtual void _establish(QString const& updaterExePath,
+                            QStringList const& updaterArgs) override;
     virtual void _sever(void) override;
 
 

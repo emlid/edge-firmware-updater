@@ -42,7 +42,7 @@ public:
         return _updater;
     }
 
-    void establish(QString const& updaterExePath) {
+    void establish(QString const& updaterExePath, QStringList updaterArgs = {}) {
         switch (_state) {
             case State::Established:
                 qWarning() << "Connection already established";
@@ -68,7 +68,7 @@ public:
                 }
 
                 _changeState(State::Connecting);
-                return _establish(updaterExePath);
+                return _establish(updaterExePath, updaterArgs);
             }
         }
     }
@@ -124,7 +124,8 @@ private:
         }
     }
 
-    virtual void _establish(QString const& updaterExePath) = 0;
+    virtual void _establish(QString const& updaterExePath,
+                            QStringList const& updaterArgs) = 0;
     virtual void _sever(void) = 0;
 
     volatile State               _state;
