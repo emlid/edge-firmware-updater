@@ -13,6 +13,7 @@ namespace edge {
 
 class edge::EdgeManagerImpl : public IEdgeManager
 {
+    Q_OBJECT
 public:
     using DeviceListFunction_t = std::function<
         std::vector<std::unique_ptr<devlib::IStorageDeviceInfo>>(void)
@@ -28,14 +29,25 @@ public:
             edge::EdgeConfig const& config,
             std::unique_ptr<usb::IRpiBoot> rpiboot,
             DeviceListFunction_t deviceListFunction,
-            EdgeDeviceFactory_t edgeDeviceFactory
+            EdgeDeviceFactory_t edgeDeviceFactory,
+            QObject* parent = nullptr
             )
-        : _config(config),
+        : IEdgeManager(parent),
+          _config(config),
           _rpiboot(std::move(rpiboot)),
           _deviceListFunction(std::move(deviceListFunction)),
           _edgeDeviceFactory(std::move(edgeDeviceFactory))
     {
         Q_ASSERT(_rpiboot.get());
+
+        QObject::connect(_rpiboot.get(), &usb::IRpiBoot::infoMessageReceived,
+                         this,           &EdgeManagerImpl::infoMessageReceived);
+
+        QObject::connect(_rpiboot.get(), &usb::IRpiBoot::warnMessageReceived,
+                         this,           &EdgeManagerImpl::warnMessageReceived);
+
+        QObject::connect(_rpiboot.get(), &usb::IRpiBoot::errorMessageReceived,
+                         this,           &EdgeManagerImpl::errorMessageReceived);
     }
 
     virtual ~EdgeManagerImpl(void) = default;
