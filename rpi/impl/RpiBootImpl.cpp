@@ -26,13 +26,20 @@ typedef struct MESSAGE_S
 class RpiBootPrivate
 {
 public:
-    RpiBootPrivate(int vid, QList<int> const& pids)
+    RpiBootPrivate(int vid, QList<int> const& pids, usb::RpiBootImpl* parent)
         : _vid(vid),
           _pids(pids),
           _signed_boot(0),
           _verbose(1),
           _loop(0),
-          _directory(":/usbboot_files/") { }
+          _directory(":/usbboot_files/"),
+          _parent(parent)
+    { }
+
+
+    enum class InitializationError {
+        FailedToClaim, NoDevices, DeviceNotFound
+    };
 
     int vid(void) const { return _vid; }
 
@@ -54,6 +61,31 @@ public:
 
     int boot(void);
 
+    enum class MsgType { Info, Warn, Error };
+
+    void _sendMessage(QString const& msg, MsgType type = MsgType::Info) {
+        switch(type) {
+            case MsgType::Info: {
+                qInfo() << msg;
+                emit _parent->infoMessageReceived(msg);
+                break;
+            }
+
+            case MsgType::Warn: {
+                qWarning() << msg;
+                emit _parent->warnMessageReceived(msg);
+                break;
+            }
+
+            case MsgType::Error: {
+                qCritical() << msg;
+                emit _parent->errorMessageReceived(msg);
+                break;
+            }
+        }
+    }
+
+
 private:
     int _vid;
     QList<int> _pids;
@@ -67,6 +99,7 @@ private:
 
     void *second_stage_txbuf;
     boot_message_t boot_message;
+    usb::RpiBootImpl* _parent;
 };
 
 
@@ -74,8 +107,9 @@ static void initResources(void) {
     Q_INIT_RESOURCE(usbboot_files);
 }
 
-usb::RpiBootImpl::RpiBootImpl(int vid, QList<int> const& pids)
-    : _pimpl(new RpiBootPrivate(vid, pids))
+usb::RpiBootImpl::RpiBootImpl(int vid, QList<int> const& pids, QObject* parent)
+    : usb::IRpiBoot(parent),
+      _pimpl(new RpiBootPrivate(vid, pids, this))
 {
     ::initResources();
 }
@@ -160,7 +194,7 @@ int RpiBootPrivate::initialize_device(libusb_context ** ctx, libusb_device_handl
     libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
     if(config == NULL)
     {
-        qFatal("Failed to read config descriptor");
+        _sendMessage("Failed to read config descriptor", MsgType::Error);
         QThread::currentThread()->exit(-1);
     }
 
@@ -179,7 +213,8 @@ int RpiBootPrivate::initialize_device(libusb_context ** ctx, libusb_device_handl
     ret = libusb_claim_interface(*usb_device, interface);
     if (ret) {
         libusb_close(*usb_device);
-        qFatal("Failed to claim interface");
+        auto msg = "Failed to claim interface. Another program uses device uniquely.";
+        _sendMessage(msg, MsgType::Error);
         return ret;
     }
 
@@ -424,11 +459,14 @@ int RpiBootPrivate::boot(void)
 
     // Default to standard msd directory
 
+    _sendMessage("Preparing boot files...");
+
     QString bootcodePath(_directory + QString("bootcode.bin"));
     QFile second_stage(bootcodePath);
 
     if(!second_stage.open(QIODevice::ReadOnly)) {
-        qCritical() << "Unable to open 'bootcode.bin' from resources.";
+        auto msg = "Unable to open 'bootcode.bin' from resources.";
+        _sendMessage(msg, MsgType::Error);
         return -1;
     }
 
@@ -438,25 +476,29 @@ int RpiBootPrivate::boot(void)
         fp_sign.setFileName(bootsigPath);
 
         if (!fp_sign.open(QIODevice::ReadOnly)) {
-            qCritical() << "Unable to open 'bootsig.bin'\n";
+            auto msg = "Unable to open 'bootsig.bin'\n";
+            _sendMessage(msg, MsgType::Error);
             return -1;
         }
     }
 
     if (second_stage_prep(second_stage, fp_sign) != 0) {
-        qCritical() << "Failed to prepare the second stage bootcode";
+        auto msg = "Failed to prepare the second stage bootcode";
+        _sendMessage(msg, MsgType::Error);
         QThread::currentThread()->exit(-1);
     }
 
     int ret = libusb_init(&ctx);
 
     if (ret) {
-        qFatal("Failed to initialise libUSB");
+        auto msg = "Failed to initialise libUSB";
+        _sendMessage(msg, MsgType::Error);
         QThread::currentThread()->exit(-1);
     }
 
     libusb_set_debug(ctx, _verbose ? LIBUSB_LOG_LEVEL_WARNING : 0);
 
+    _sendMessage("Searching device... Waiting for BCM2835/6/7");
     do {
         int last_serial = -1;
         auto const maxPollingTime = 5000;
@@ -486,7 +528,7 @@ int RpiBootPrivate::boot(void)
 
             if (ret) {
                 if (totalPollingTime >= maxPollingTime) {
-                    qWarning() << "rpiboot timed out";
+                    _sendMessage("timed out", MsgType::Error);
                     return -1;
                 } else {
                     QThread::msleep(sleepTime);
@@ -499,10 +541,10 @@ int RpiBootPrivate::boot(void)
         last_serial = desc.iSerialNumber;
 
         if(desc.iSerialNumber == 0) {
-            qInfo() << "Sending bootcode.bin";
+            _sendMessage("Sending bootcode.bin");
             second_stage_boot(usb_device);
         } else {
-            qInfo() << "Second stage boot server";
+            _sendMessage("Second stage boot server");
             file_server(usb_device);
         }
 
