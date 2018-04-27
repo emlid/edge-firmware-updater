@@ -339,13 +339,27 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
 
     static QFile fp;
 
+    constexpr auto maxTimeouts = 3;
+    auto timeouts = 0;
+
     while(going) {
         char message_name[][20] = {"GetFileSize", "ReadFile", "Done"};
         int i = ep_read(&message, sizeof(message), usb_device);
         if(i < 0) {
             // Drop out if the device goes away
-            if(i == LIBUSB_ERROR_NO_DEVICE || i == LIBUSB_ERROR_IO)
+            if (i == LIBUSB_ERROR_TIMEOUT) {
+                if (timeouts <= maxTimeouts) {
+                    timeouts++;
+                } else {
+                    auto msg = "Timed out, device did not respond. "
+                               "Try to unplug and plug device";
+                    _sendMessage(msg, MsgType::Error);
+                    return -1;
+                }
+            } else if (i == LIBUSB_ERROR_NO_DEVICE || i == LIBUSB_ERROR_IO) {
                 break;
+            }
+
             QThread::sleep(1);
             continue;
         }
@@ -459,7 +473,7 @@ int RpiBootPrivate::boot(void)
     struct libusb_config_descriptor *config;
 
     // flush immediately
-    setbuf(stdout, NULL);
+    setbuf(stderr, NULL);
 
     // Default to standard msd directory
 
