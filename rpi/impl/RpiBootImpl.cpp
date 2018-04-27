@@ -37,8 +37,8 @@ public:
     { }
 
 
-    enum class InitializationError {
-        FailedToClaim, NoDevices, DeviceNotFound
+    enum class InitializationResult {
+        Success, FailedToClaim, DeviceNotFound, CanNotGetConfig
     };
 
     int vid(void) const { return _vid; }
@@ -47,7 +47,8 @@ public:
 
     libusb_device_handle* LIBUSB_CALL open_device_with_vid(libusb_context *ctx, uint16_t vendor_id);
 
-    int initialize_device(libusb_context ** ctx, libusb_device_handle ** usb_device);
+    auto initialize_device(libusb_context ** ctx, libusb_device_handle ** usb_device)
+        -> InitializationResult;
 
     int ep_write(void *buf, int len, libusb_device_handle * usb_device);
 
@@ -151,7 +152,7 @@ libusb_device_handle * LIBUSB_CALL RpiBootPrivate
             if(_pids.contains(desc.idProduct))
             {
                 if(_verbose) {
-                    qInfo() << "Device located successfully";
+                    _sendMessage("Device located successfully");
                 }
                 found = dev;
                 break;
@@ -178,7 +179,9 @@ out:
 }
 
 
-int RpiBootPrivate::initialize_device(libusb_context ** ctx, libusb_device_handle ** usb_device)
+auto RpiBootPrivate::initialize_device(
+        libusb_context ** ctx,  libusb_device_handle ** usb_device
+) -> InitializationResult
 {
     int ret = 0;
     int interface;
@@ -188,14 +191,14 @@ int RpiBootPrivate::initialize_device(libusb_context ** ctx, libusb_device_handl
     if (*usb_device == NULL)
     {
         QThread::usleep(200);
-        return -1;
+        return InitializationResult::DeviceNotFound;
     }
 
     libusb_get_active_config_descriptor(libusb_get_device(*usb_device), &config);
     if(config == NULL)
     {
         _sendMessage("Failed to read config descriptor", MsgType::Error);
-        QThread::currentThread()->exit(-1);
+        return InitializationResult::CanNotGetConfig;
     }
 
     // Handle 2837 where it can start with two interfaces, the first is mass storage
@@ -213,16 +216,17 @@ int RpiBootPrivate::initialize_device(libusb_context ** ctx, libusb_device_handl
     ret = libusb_claim_interface(*usb_device, interface);
     if (ret) {
         libusb_close(*usb_device);
-        auto msg = "Failed to claim interface. Another program uses device uniquely.";
+        auto msg = "Failed to claim interface. "
+                   "Another process has device opened for exclusive access.";
         _sendMessage(msg, MsgType::Error);
-        return ret;
+        return InitializationResult::FailedToClaim;
     }
 
     if(_verbose) {
-        qInfo("Initialised device correctly");
+        _sendMessage("Device initialized correctly");
     }
 
-    return ret;
+    return InitializationResult::Success;
 }
 
 
@@ -509,8 +513,16 @@ int RpiBootPrivate::boot(void)
 
         // Wait for a device to get plugged in
         do {
-            ret = initialize_device(&ctx, &usb_device);
-            if(ret == 0) {
+            auto initResult = initialize_device(&ctx, &usb_device);
+            if (initResult == InitializationResult::FailedToClaim) {
+                return -1;
+            } else if (initResult == InitializationResult::Success) {
+                ret = 0;
+            } else {
+                ret = -1;
+            }
+
+            if (ret == 0) {
                 libusb_get_device_descriptor(libusb_get_device(usb_device), &desc);
 
                 if(_verbose) {
