@@ -138,8 +138,8 @@ void client::UpdaterConnectionImpl::_connectToUpdaterNode(void)
                 [this] (Replica::State cur, Replica::State old) {
                     Q_UNUSED(cur);
                     if (old == Replica::State::Valid) {
-                        Base::_changeState(State::Aborted);
                         Base::_setErrorString("Firmware updater unexpectedly finished.");
+                        Base::_changeState(State::Aborted);
                     }
                 };
 
