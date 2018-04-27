@@ -43,13 +43,6 @@ public:
     }
 
     void establish(QString const& updaterExePath) {
-        auto updaterExeInfo = QFileInfo(updaterExePath);
-        if (!updaterExeInfo.exists() || !updaterExeInfo.isExecutable()) {
-            qWarning() << "Updater executable file is not exist or not executable. "
-                       << updaterExePath;
-            return;
-        }
-
         switch (_state) {
             case State::Established:
                 qWarning() << "Connection already established";
@@ -63,9 +56,20 @@ public:
                 qWarning() << "Connection is establishing";
                 return;
 
-            default:
+            default: {
+                auto updaterExeInfo = QFileInfo(updaterExePath);
+
+                if (!updaterExeInfo.exists() || !updaterExeInfo.isExecutable()) {
+                    auto message = "Updater executable file is not exist or not executable. "
+                                   + updaterExePath;
+                    _setErrorString(message);
+                    _changeState(State::Errored);
+                    return;
+                }
+
                 _changeState(State::Connecting);
                 return _establish(updaterExePath);
+            }
         }
     }
 
@@ -106,6 +110,7 @@ protected:
 
     void _setErrorString(QString const& description) {
         _errorString = description;
+        qCritical() << _errorString;
     }
 
     std::shared_ptr<Updater> _updater;
