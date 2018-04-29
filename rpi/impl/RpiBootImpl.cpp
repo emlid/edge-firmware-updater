@@ -14,7 +14,9 @@
 #include <libusb-1.0/libusb.h>
 #endif
 
-
+namespace  rpi {
+    Q_LOGGING_CATEGORY(rpilog, "rpiboot");
+}
 
 typedef struct MESSAGE_S
 {
@@ -67,19 +69,19 @@ public:
     void _sendMessage(QString const& msg, MsgType type = MsgType::Info) {
         switch(type) {
             case MsgType::Info: {
-                qInfo() << msg;
+                qCInfo(rpi::rpilog()) << msg;
                 emit _parent->infoMessageReceived(msg);
                 break;
             }
 
             case MsgType::Warn: {
-                qWarning() << msg;
+                qCWarning(rpi::rpilog()) << msg;
                 emit _parent->warnMessageReceived(msg);
                 break;
             }
 
             case MsgType::Error: {
-                qCritical() << msg;
+                qCCritical(rpi::rpilog()) << msg;
                 emit _parent->errorMessageReceived(msg);
                 break;
             }
@@ -144,7 +146,7 @@ libusb_device_handle * LIBUSB_CALL RpiBootPrivate
         if (r < 0)
             goto out;
         if(_verbose) {
-            qInfo() << QString()
+            qCInfo(rpi::rpilog) << QString()
                 .asprintf("Found device %u idVendor=0x%04x idProduct=0x%04x", i, desc.idVendor, desc.idProduct);
         }
 
@@ -166,7 +168,7 @@ libusb_device_handle * LIBUSB_CALL RpiBootPrivate
         if (r < 0)
         {
             if(_verbose) {
-                qInfo("Failed to open the requested device");
+                qCInfo(rpi::rpilog(), "Failed to open the requested device");
             }
             handle = NULL;
         }
@@ -239,7 +241,7 @@ int RpiBootPrivate::ep_write(void *buf, int len, libusb_device_handle * usb_devi
 
     if(ret != 0)
     {
-        qCritical("Failed control transfer");
+        qCCritical(rpi::rpilog(), "Failed control transfer");
         return ret;
     }
 
@@ -247,7 +249,7 @@ int RpiBootPrivate::ep_write(void *buf, int len, libusb_device_handle * usb_devi
     {
         ret = libusb_bulk_transfer(usb_device, _out_ep,(unsigned char*) buf, len, &a_len, 100000);
         if(_verbose) {
-            qInfo() << "libusb_bulk_transfer returned " << ret;
+            qCInfo(rpi::rpilog) << "libusb_bulk_transfer returned " << ret;
         }
     }
 
@@ -280,14 +282,14 @@ int RpiBootPrivate::second_stage_prep(QFile& fp, QFile& fp_sig)
     second_stage_txbuf = (uint8_t *) malloc(boot_message.length);
 
     if (second_stage_txbuf == NULL) {
-        printf("Failed to allocate memory\n");
+        qCCritical(rpi::rpilog(), "Failed to allocate memory");
         return -1;
     }
 
     auto size = fp.read((char*)second_stage_txbuf, boot_message.length);
 
     if (size != boot_message.length) {
-        printf("Failed to read second stage\n");
+        qCCritical(rpi::rpilog(), "Failed to read second stage");
         return -1;
     }
 
@@ -301,18 +303,18 @@ int RpiBootPrivate::second_stage_boot(libusb_device_handle *usb_device)
 
     size = ep_write(&boot_message, sizeof(boot_message), usb_device);
     if (size != sizeof(boot_message)) {
-        printf("Failed to write correct length, returned %d\n", size);
+        qCCritical(rpi::rpilog()) << "Failed to write correct length, returned" << size;
         return -1;
     }
 
     if(_verbose) {
-        qInfo() << "Writing " << boot_message.length << " bytes.";
+        qCInfo(rpi::rpilog) << "Writing " << boot_message.length << " bytes.";
     }
 
     size = ep_write(second_stage_txbuf, boot_message.length, usb_device);
 
     if (size != boot_message.length) {
-        qCritical() << "Failed to read correct length, returned " << size;
+        qCCritical(rpi::rpilog) << "Failed to read correct length, returned " << size;
         return -1;
     }
 
@@ -320,9 +322,9 @@ int RpiBootPrivate::second_stage_boot(libusb_device_handle *usb_device)
     size = ep_read((unsigned char *)&retcode, sizeof(retcode), usb_device);
 
     if (size > 0 && retcode == 0) {
-        qInfo() << "Successful read " <<  size << " bytes";
+        qCInfo(rpi::rpilog) << "Successful read " <<  size << " bytes";
     } else {
-        qCritical() << QString().asprintf("Failed : 0x%x", retcode);
+        qCCritical(rpi::rpilog) << QString().asprintf("Failed : 0x%x", retcode);
     }
 
     return retcode;
@@ -365,7 +367,7 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
         }
 
         if (_verbose) {
-            qInfo() << "Received message" << message_name[message.command] << ':'<< message.fname;
+            qCInfo(rpi::rpilog) << "Received message" << message_name[message.command] << ':'<< message.fname;
         }
 
         // Done can also just be null filename
@@ -381,7 +383,7 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                     fp.close();
                 }
 
-                qInfo() << "Request: reading file " << message.fname;
+                qCInfo(rpi::rpilog) << "Request: reading file " << message.fname;
 
                 fp.setFileName(_directory + QString(message.fname));
 
@@ -391,7 +393,7 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                     int file_size = fp.size();
 
                     if(_verbose) {
-                        qInfo() << "File size = " << file_size << "bytes";
+                        qCInfo(rpi::rpilog) << "File size = " << file_size << "bytes";
                     }
 
                     int sz = libusb_control_transfer(usb_device, LIBUSB_REQUEST_TYPE_VENDOR, 0,
@@ -403,7 +405,7 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                 } else {
                     ep_write(NULL, 0, usb_device);
                     if(_verbose) {
-                        qInfo() << "Cannot open file " << message.fname;
+                        qCInfo(rpi::rpilog) << "Cannot open file " << message.fname;
                     }
                     break;
                 }
@@ -415,7 +417,7 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                     int file_size;
                     void *buf;
 
-                    qInfo() << "Sending: " << message.fname;
+                    qCInfo(rpi::rpilog()) << "Sending: " << message.fname;
 
                     file_size = fp.size();
 
@@ -428,7 +430,7 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                     int read = fp.read((char*)buf, file_size);
 
                     if(read != file_size) {
-                        qCritical("Failed to read from input file");
+                        qCCritical(rpi::rpilog(), "Failed to read from input file");
                         free(buf);
                         return -1;
                     }
@@ -439,12 +441,12 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                     fp.close();
 
                     if(sz != file_size) {
-                        qCritical("Failed to write complete file to USB device");
+                        qCCritical(rpi::rpilog(), "Failed to write complete file to USB device");
                         return -1;
                     }
                 } else {
                     if(_verbose) {
-                        qCritical() << "No file " << message.fname << " found.";
+                        qCCritical(rpi::rpilog()) << "No file " << message.fname << " found.";
                     }
                     ep_write(NULL, 0, usb_device);
                 }
@@ -455,12 +457,12 @@ int RpiBootPrivate::file_server(libusb_device_handle * usb_device)
                 break;
 
             default:
-                qInfo("Unknown message");
+                qCInfo(rpi::rpilog(), "Unknown message");
                 return -1;
         }
     }
 
-    qInfo() << "Second stage boot server done";
+    qCInfo(rpi::rpilog) << "Second stage boot server done";
     return 0;
 }
 
@@ -523,7 +525,7 @@ int RpiBootPrivate::boot(void)
         auto const sleepTime  = 10;
         auto totalPollingTime = 0;
 
-        qInfo() << "Waiting for BCM2835/6/7";
+        qCInfo(rpi::rpilog) << "Waiting for BCM2835/6/7";
 
         // Wait for a device to get plugged in
         do {
@@ -540,7 +542,7 @@ int RpiBootPrivate::boot(void)
                 libusb_get_device_descriptor(libusb_get_device(usb_device), &desc);
 
                 if(_verbose) {
-                    qInfo() << "Found serial number " << desc.iSerialNumber;
+                    qCInfo(rpi::rpilog) << "Found serial number " << desc.iSerialNumber;
                 }
 
                 // Make sure we've re-enumerated since the last time
@@ -581,7 +583,7 @@ int RpiBootPrivate::boot(void)
 
     libusb_exit(ctx);
 
-    qInfo() << "Rpi boot successfully finished.";
+    qCInfo(rpi::rpilog) << "Rpi boot successfully finished.";
 
     return 0;
 }
