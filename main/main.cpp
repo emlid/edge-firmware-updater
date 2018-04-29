@@ -4,131 +4,59 @@
 
 #include <iostream>
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACX)
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-
+#include "utilities.h"
 #include "EdgeFirmwareUpdater.h"
 
 
-void messageHandler(QtMsgType msgType, const QMessageLogContext& context, QString const& msg)
+static QFile* logFile = nullptr;
+
+
+static void logHandler(QtMsgType msgType, QMessageLogContext const& ctx, QString const& msg)
 {
-    Q_UNUSED(context);
-
-    static auto  logFilename = QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
-            + "/.fwupgrader.log";
-    static QFile logFile(logFilename);
-
-    if (!logFile.isOpen()) {
-        auto successful = logFile.open(QIODevice::WriteOnly);
-        if (!successful) {
-            QTextStream(stderr) << "Can not open log file " << logFilename;
-            return;
-        }
-    }
-
-    QTextStream logDataStream(&logFile);
-    QTextStream errDataStream(stderr);
-
-    auto sendlog =
-        [&logDataStream, &errDataStream, &msg]
-            (QString const& prefix) -> void {
-                auto mess = QTime::currentTime().toString() + ": " + prefix + msg + '\n';
-                logDataStream << mess;
-                errDataStream << mess;
-                logDataStream.flush();
-                errDataStream.flush();
-            };
-
-    switch (msgType) {
-        case QtDebugMsg:
-            sendlog("debug: ");
-            break;
-
-        case QtCriticalMsg:
-            sendlog("critical: ");
-            break;
-
-        case QtFatalMsg:
-            sendlog("fatal: ");
-            std::abort();
-            break;
-
-        case QtWarningMsg:
-            sendlog("warn: ");
-            break;
-
-        case QtInfoMsg:
-            sendlog("info: ");
-            break;
-        default:
-            break;
-    }
+    updater::messageHandler(logFile, msgType, ctx, msg);
 }
 
 
-void reducePriviledge(void) {
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACX)
-    ::umask(0);
-#endif
-}
-
-
-QString updaterSocketName(void) {
+QString updaterNodeName(void) {
     return updater::shared::properties.updaterReplicaNodeName;
-}
-
-
-void chownSocket(void) {
-#ifdef Q_OS_MACX
-    auto env = QProcessEnvironment::systemEnvironment();
-
-    auto uid = -1;
-    auto gid = -1;
-    auto euid = ::geteuid();
-
-    if (env.contains("SUDO_UID")) {
-        uid = env.value("SUDO_UID").toInt();
-    }
-
-    if (env.contains("SUDO_GID")) {
-        gid = env.value("SUDO_GID").toInt();
-    }
-
-    auto socketPath = updaterSocketName().replace("local:", "");
-    ::chown(socketPath.toStdString().data(), uid, gid);
-
-    qInfo() << "OSX: uid: " << uid << " euid:" << euid << "gid" << gid;
-#endif
 }
 
 
 int main(int argc, char *argv[])
 {
+    // Register Metatypes
     qRegisterMetaType<updater::shared::LogMessageType>("updater::shared::LogMessageType");
     qRegisterMetaType<updater::shared::OperationStatus>("updater::shared::OperationStatus");
 
     QCoreApplication a(argc, argv);
-    qInstallMessageHandler(::messageHandler);
+    logFile = new QFile("/tmp/.fwupgrader.log");
 
-    ::reducePriviledge();
+    if (!logFile->open(QIODevice::WriteOnly)) {
+        qCWarning(logg::basic()) << "Can not open file for logging";
+    } else {
+        // Register log message handler
+        ::qInstallMessageHandler(logHandler);
+    }
 
-    QRemoteObjectHost serverNode(updaterSocketName());
+
+    updater::perm::reducePriviledge();
+
+    QRemoteObjectHost serverNode(updaterNodeName());
 
     // Remote our watcher to other processes
     EdgeFirmwareUpdater watcher;
     auto successful = serverNode.enableRemoting(&watcher);
 
     if (successful) {
-        qInfo() << "Remoting started.";
+        qCInfo(logg::basic()) << "Remoting started.";
     } else {
-        qCritical() << "Remoting failed.";
+        qCCritical(logg::basic()) << "Remoting failed.";
         std::exit(EXIT_FAILURE);
     }
 
-    ::chownSocket();
+    updater::perm::reduceRObjectNodePermissions(
+        ::updaterNodeName()
+    );
 
     return a.exec();
 }
