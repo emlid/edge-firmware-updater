@@ -24,11 +24,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp \
     FirmwareUpdateSession.cpp \
-    EdgeFirmwareUpdater.cpp
+    utilities.cpp
 
 HEADERS += \
     FirmwareUpdateSession.h \
-    EdgeFirmwareUpdater.h
+    EdgeFirmwareUpdater.h \
+    utilities.h
 
 include(shared/shared.pri)
 include(main_deps.pri)
