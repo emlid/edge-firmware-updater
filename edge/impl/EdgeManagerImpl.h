@@ -3,6 +3,7 @@
 
 #include "../EdgeManager.h"
 #include "../EdgeConfig.h"
+#include "logging.h"
 
 #include "rpi.h"
 #include "devlib.h"
