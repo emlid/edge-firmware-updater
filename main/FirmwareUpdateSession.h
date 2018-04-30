@@ -7,6 +7,7 @@
 #include "shared/shared.h"
 #include "edge.h"
 #include "devlib.h"
+#include "utilities.h"
 
 namespace updater {
     class FirmwareUpdateSession;
@@ -77,7 +78,22 @@ private:
     void sendLogMessage(QString msg,
                         updater::shared::LogMessageType type = updater::shared::LogMessageType::Info)
     {
-        qInfo() << msg; emit logMessage(msg, type);
+        using MsgType = updater::shared::LogMessageType;
+
+        emit logMessage(msg, type);
+        switch(type) {
+            case MsgType::Info:
+                qCInfo(logg::basic()) << msg;
+                break;
+
+            case MsgType::Warning:
+                qCWarning(logg::basic()) << msg;
+                break;
+
+            case MsgType::Error:
+                qCCritical(logg::basic()) << msg;
+                break;
+        }
     }
 
     struct SessionData_private {
