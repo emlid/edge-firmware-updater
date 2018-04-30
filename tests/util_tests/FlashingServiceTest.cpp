@@ -70,34 +70,3 @@ void FlashingServiceTest::checkCancellation_testcase(void)
 
     QCOMPARE(future.get(), util::IFlashingService::RetStatus::Cancelled);
 }
-
-
-void FlashingServiceTest::checkReadError_testcase(void)
-{
-    auto sourceData = QByteArray("Some data");
-    auto destData = QByteArray("Some data");
-
-    QBuffer inputBuffer(&sourceData);
-    QBuffer outputBuffer(&destData);
-
-    inputBuffer.open(QIODevice::WriteOnly);
-    outputBuffer.open(QIODevice::WriteOnly);
-
-    auto status = _flashingService->flash(&inputBuffer, &outputBuffer);
-    QCOMPARE(status, util::FlashingServiceImpl::RetStatus::ReadFail);
-}
-
-
-void FlashingServiceTest::checkWriteError_testcase(void)
-{
-    auto sourceData = QByteArray("Some data");
-    auto destData = QByteArray("Some data");
-
-    QBuffer inputBuffer(&sourceData);
-    QBuffer outputBuffer(&destData);
-
-    inputBuffer.open(QIODevice::ReadOnly);
-
-    auto status = _flashingService->flash(&inputBuffer, &outputBuffer);
-    QCOMPARE(status, util::FlashingServiceImpl::RetStatus::WriteFail);
-}

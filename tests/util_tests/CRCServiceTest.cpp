@@ -30,16 +30,6 @@ void CRCServiceTest::checkWithSmallBuffer_testcase(void)
 }
 
 
-void CRCServiceTest::checkErrors_testcase(void)
-{
-    QByteArray data = "Some data";
-    QBuffer buf(&data);
-
-    auto result = _crcService->computeCRC(&buf, buf.size());
-    QCOMPARE(result.second, util::IOService::RetStatus::ReadFail);
-    QCOMPARE(result.first, QByteArray());
-}
-
 void CRCServiceTest::checkFails_testcase(void)
 {
     QByteArray data = "Some data";

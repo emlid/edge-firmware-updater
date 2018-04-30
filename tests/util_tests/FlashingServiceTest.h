@@ -18,8 +18,6 @@ private slots:
     void checkWithSmallBuffer_testcase(void);
     void checkWithEmptyBuffer_testcase(void);
     void checkCancellation_testcase(void);
-    void checkReadError_testcase(void);
-    void checkWriteError_testcase(void);
 
 private:
     std::unique_ptr<util::IFlashingService> _flashingService;

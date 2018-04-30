@@ -13,7 +13,6 @@ public:
 
 private slots:
     void checkWithSmallBuffer_testcase(void);
-    void checkErrors_testcase(void);
     void checkFails_testcase(void);
     void checkCancellation_testcase(void);
 
