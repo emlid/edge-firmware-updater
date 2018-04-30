@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <QtCore>
+
 #include "EdgeDevice.h"
 
 namespace edge {

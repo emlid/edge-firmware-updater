@@ -5,6 +5,7 @@
 #include "../EdgeConfig.h"
 
 #include "devlib.h"
+#include "logging.h"
 
 namespace edge {
     class EdgeDeviceImpl;

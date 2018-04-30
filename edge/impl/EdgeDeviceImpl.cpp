@@ -2,6 +2,7 @@
 #include "devlib.h"
 #include "util.h"
 
+
 namespace impl {
     auto findPartition(
             devlib::IStorageDeviceInfo* storageDeviceInfo,
@@ -58,7 +59,7 @@ auto impl::temporaryMountTo(
             writableLocation(QStandardPaths::TempLocation) + '/' + dirName;
 
     if (!dirFactory(dirPath)) {
-        qWarning() << "can not make directory: " << dirPath;
+        qCWarning(edge::edgelog()) << "Can not make directory: " << dirPath;
         return {};
     }
 
@@ -75,8 +76,8 @@ auto impl::parseVersionFile(const QString &versionFileName,
     auto success = versionFile->open(QIODevice::ReadOnly);
 
     if (!success) {
-        qWarning() << "can not open version file: "
-                   << versionFileName;
+        qCWarning(edge::edgelog()) << "Can not open version file: "
+                             << versionFileName;
         return {};
     }
 
@@ -108,14 +109,21 @@ auto edge::EdgeDeviceImpl::isEdgeStillAvailable_core(void) const
 auto edge::EdgeDeviceImpl::firmwareVersion_core(void) const
     -> QString
 {
+    qCDebug(edgelog()) << "Search partitions with label "
+                       << _config.partitionWithVersiontFile();
+
     auto partWithVersionFile =
             impl::findPartition(_storageDeviceInfo.get(),
                                 _config.partitionWithVersiontFile());
     if (!partWithVersionFile) {
+        qCWarning(edgelog()) << "Can not get boot partition";
         return undefinedVersion();
     }
 
+    qCInfo(edgelog()) << "Waiting for automounting boot partition";
+
     using MntptPtr = std::unique_ptr<devlib::IMountpoint>;
+
     auto mntpt = util::poll<MntptPtr>(
         [&partWithVersionFile] () -> MntptPtr {
             auto mntpts = partWithVersionFile->mountpoints();
@@ -138,22 +146,35 @@ auto edge::EdgeDeviceImpl::firmwareVersion_core(void) const
     };
 
     if (mntpt) {
+        qCInfo(edgelog()) << "Partition is automounted by OS. "
+                             "Parsing file with firmware version..."
+                          << mntpt->fsPath();
         auto mntptPath = mntpt->fsPath();
         return parse(mntptPath);
+
     } else {
+        qCInfo(edgelog()) << "Partition is not automounted. "
+                             "Mounting boot partition manually...";
+
         auto tempMntpt = impl::temporaryMountTo(
                         partWithVersionFile.get(),
                         _config.mntptPathForBootPart(),
                         _dirFactory);
 
         if (!tempMntpt->isMounted()) {
-            qWarning() << "can not mount partition: "
-                       << partWithVersionFile->filePath();
+            qCWarning(edgelog()) << "Can not mount partition: "
+                                 << partWithVersionFile->filePath();
             return undefinedVersion();
         }
 
+        qCInfo(edgelog()) << "Partition successfully mounted. "
+                             "Parsing firmware version from "
+                          << tempMntpt->fsPath();
+
         auto version = parse(tempMntpt->fsPath());
         tempMntpt->umount();
+
+        qCInfo(edgelog()) << "Firmware version: " << version;
 
         return version;
     }

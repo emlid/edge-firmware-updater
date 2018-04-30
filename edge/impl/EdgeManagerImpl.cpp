@@ -29,12 +29,28 @@ auto edge::EdgeManagerImpl::isEdgeInitialized_core(void)
 
 }
 
+
+static auto logStorageDeviceInfo(devlib::IStorageDeviceInfo const* deviceInfo)
+{
+    qCInfo(edge::edgelog()) << "Short info: "
+                      << QString("vid: %1").arg(deviceInfo->vid())
+                      << QString("pid: %1").arg(deviceInfo->pid())
+                      << QString("filePath: %1").arg(deviceInfo->filePath());
+
+    auto mountpoints = deviceInfo->mountpoints();
+    qCInfo(edge::edgelog()) << QString("Mountpoints count: %1").arg(mountpoints.size());
+
+    auto partitions = deviceInfo->partitions();
+    qCInfo(edge::edgelog()) << QString("Partitions count: %1").arg(partitions.size());
+}
+
+
 auto edge::EdgeManagerImpl::initialize_core(void)
     -> std::unique_ptr<IEdgeDevice>
 {
     if (!isEdgeInitialized()) {
         if (_rpiboot->bootAsMassStorage() == -1) {
-            qWarning() << "Timeout: rpiboot failed";
+            qCWarning(edgelog()) << "Rpiboot failed";
             return {};
         }
     }
@@ -50,7 +66,9 @@ auto edge::EdgeManagerImpl::initialize_core(void)
             if (edgePtr == storageDevices.end()) {
                 return nullptr;
             } else {
-                auto device =_edgeDeviceFactory(_config, std::move(*edgePtr));
+                ::logStorageDeviceInfo((*edgePtr).get());
+
+                auto device = _edgeDeviceFactory(_config, std::move(*edgePtr));
                 storageDevices.erase(edgePtr);
                 return device;
             }
@@ -58,7 +76,7 @@ auto edge::EdgeManagerImpl::initialize_core(void)
     );
 
     if (!device) {
-        qWarning() << "timeout: edge as storage device not found";
+        qCWarning(edgelog()) << "Timeout: edge as storage device not found";
     }
 
     return device;

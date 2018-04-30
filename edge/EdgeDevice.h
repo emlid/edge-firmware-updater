@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <QIODevice>
+
 #include "StorageDeviceFile.h"
 
 namespace edge {
