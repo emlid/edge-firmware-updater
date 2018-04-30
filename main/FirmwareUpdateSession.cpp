@@ -1,6 +1,6 @@
 #include "FirmwareUpdateSession.h"
 
-#include <util.h>
+#include <utilities.h>
 #include <edge.h>
 
 #include <QFile>

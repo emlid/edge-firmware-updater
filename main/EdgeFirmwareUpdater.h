@@ -1,15 +1,19 @@
-#ifndef EDGEFIRMWAREUPDATER_H
+﻿#ifndef EDGEFIRMWAREUPDATER_H
 #define EDGEFIRMWAREUPDATER_H
 
 #include <QtCore>
 #include <memory>
 
+#include "utilities.h"
 #include "FirmwareUpdateSession.h"
 #include "rep_EdgeFirmwareUpdaterIPC_source.h"
 #include "edge.h"
 
+
 class EdgeFirmwareUpdater : public EdgeFirmwareUpdaterIPCSimpleSource
 {
+    using Updater = EdgeFirmwareUpdater;
+
     Q_OBJECT
 public:
     explicit EdgeFirmwareUpdater(QObject *parent = nullptr)
@@ -25,7 +29,7 @@ public:
 
         QObject::connect(&_heartbeatTimer, &QTimer::timeout,
             [this] (void) {
-                qWarning() << "Timeout: updater didn't receive heartbeat over"
+                qCWarning(logg::basic()) << "Timeout: updater didn't receive heartbeat over"
                            << _heartbeatTimer.interval() << "ms";
                 finish();
             }
@@ -36,9 +40,9 @@ public:
 
 public slots:
     void openSession(void) override {
-        qInfo() << "open sessiong message received";
+        qCInfo(logg::basic()) << "OpenSession: command received";
         if (_updateSession) {
-            emit logMessage("firmware update session not closed",
+            emit logMessage("Updater session is not closed",
                             int(updater::shared::Warning));
             return;
         }
@@ -49,35 +53,32 @@ public slots:
 
         _connectToSession();
         _sessionThread.start();
+        qCInfo(logg::basic()) << "OpenSession: performed";
     }
 
     void closeSession(void) override {
+        qCInfo(logg::basic()) << "CloseSession: command received";
         if (_updateSession) {
             _sessionThread.quit();
             _sessionThread.wait();
             _updateSession.reset();
+            qCInfo(logg::basic()) << "CloseSession: performed";
         } else {
-            qWarning() << "Sessiong already closed";
+            qCWarning(logg::basic()) << "CloseSession: Session already closed";
         }
     }
 
-    void initializeEdgeDevice (void) override {
-        Q_ASSERT(_updateSession);
-        qInfo() << "initialize edge device message received.";
-        emit _initializeEdgeDevice();
+    void initializeEdgeDevice(void) override {
+        checkSessionBeforePerform(&Updater::_initializeEdgeDevice);
     }
 
     void flash(QString firmwareFilename) override {
-        Q_ASSERT(_updateSession);
-        qInfo() << "flash edge device message received";
         _firmwareFilename = firmwareFilename;
-        emit _flash(firmwareFilename);
+        checkSessionBeforePerform(&Updater::_flash, firmwareFilename);
     }
 
     void checkOnCorrectness(void) override {
-        Q_ASSERT(_updateSession);
-        qInfo() << "compute crc message received";
-        emit _checkOnCorrectness(_firmwareFilename);
+        checkSessionBeforePerform(&Updater::_checkOnCorrectness, _firmwareFilename);
     }
 
     void finish(void) override {
@@ -85,8 +86,7 @@ public slots:
     }
 
     void cancel(void) override {
-        Q_ASSERT(_updateSession);
-        emit _cancel();
+        checkSessionBeforePerform(&Updater::_cancel);
     }
 
     void heartbeat(void) override {
@@ -123,7 +123,7 @@ private:
                          this, &EdgeFwUpdater::firmwareVersion);
 
         QObject::connect(_updateSession.get(), &UpdaterSession::cancelled,
-                         this, &EdgeFwUpdater::cancelled);
+                         this, &Updater::cancelled);
 
         QObject::connect(_updateSession.get(), &UpdaterSession::crcFinished,
                          this, &EdgeFwUpdater::checkOnCorrectnessFinished);
@@ -136,6 +136,18 @@ private:
 
         QObject::connect(_updateSession.get(), &UpdaterSession::progressChanged,
                          this, &EdgeFwUpdater::progressChanged);
+    }
+
+    template<class Signal_t, class ...Args>
+    void checkSessionBeforePerform(Signal_t signalPtr, Args&& ...args)
+    {
+        auto signal = std::mem_fn(signalPtr);
+
+        if (_updateSession) {
+            emit signal(this, std::forward<Args>(args)...);
+        } else {
+            qCCritical(logg::basic()) << "Can not perform. Session is not opened";
+        }
     }
 
     QTimer           _heartbeatTimer;
