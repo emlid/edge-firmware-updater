@@ -19,6 +19,9 @@
 
 
 namespace macxutil {
+    Q_LOGGING_CATEGORY(macxlog, "macx_native");
+
+
     struct MacxFileHandle : public devlib::native::io::FileHandle {
         int fd;
         constexpr MacxFileHandle(int in_fd) : fd(in_fd) {}
@@ -186,20 +189,20 @@ auto devlib::native::requestUsbDeviceList(void)
     mach_port_t masterPort;
     auto result = ::IOMasterPort(MACH_PORT_NULL, &masterPort);
     if (result != KERN_SUCCESS) {
-        qCritical() << "can not create master port";
+        qCCritical(macxutil::macxlog()) << "can not create master port";
         return {};
     }
 
     auto matchDictionary = IOServiceMatching(kIOUSBDeviceClassName);
     if (!matchDictionary) {
-        qCritical() << "can not create matching dictionary";
+        qCCritical(macxutil::macxlog()) << "can not create matching dictionary";
         return {};
     }
 
     io_iterator_t ioDevsIterator = 0;
     result = IOServiceGetMatchingServices(masterPort, matchDictionary, &ioDevsIterator);
     if (result != KERN_SUCCESS) {
-        qCritical() << "can not find any matching services";
+        qCCritical(macxutil::macxlog()) << "can not find any matching services";
         return {};
     }
 
@@ -245,7 +248,7 @@ auto devlib::native::umount(QString const& mntpt)
     auto mntptName = mntpt.toStdString();
 
     if (::unmount(mntptName.data(), MNT_FORCE) != 0) {
-        qWarning() << "can not unmount: " << mntpt;
+        qCWarning(macxutil::macxlog()) << "can not unmount: " << mntpt;
         return {};
     }
     return macxutil::makeLock();
@@ -308,7 +311,13 @@ auto devlib::native::io::read(FileHandle* handle, char *data, qint64 sz)
     auto tempBuffer = std::make_unique<char[]>(neededSize);
 
     readed = ::read(macxHandle->fd, tempBuffer.get(), neededSize);
-    std::memcpy(data, tempBuffer.get(), sz);
+    if (readed == -1) {
+        qCCritical(macxutil::macxlog()) << "Can not read from file:"
+                                        << ::strerror(errno);
+    } else {
+        std::memcpy(data, tempBuffer.get(), sz);
+    }
+
 
     return readed == neededSize ? sz : 0;
 }
@@ -334,6 +343,11 @@ auto devlib::native::io::write(FileHandle* handle, char const* data, qint64 sz)
 
     written = ::write(macxHandle->fd, tempBuffer.get(), neededSize);
 
+    if (written == -1) {
+        qCWarning(macxutil::macxlog()) << "Can not write to file: "
+                                       << ::strerror(errno);
+    }
+
     return written == neededSize ? sz : 0;
 }
 
@@ -342,7 +356,7 @@ auto devlib::native::io::open(char const* filename)
     -> std::unique_ptr<FileHandle>
 {
     if (!macxutil::isDiskName(filename)) {
-        qWarning() << filename << " is not diskname";
+        qCWarning(macxutil::macxlog()) << filename << " is not diskname";
         return {};
     }
 
@@ -351,11 +365,11 @@ auto devlib::native::io::open(char const* filename)
 
     auto fd = ::open(rawDiskName.toStdString().data(), O_RDWR | O_SYNC);
     if (::fcntl(fd, F_GLOBAL_NOCACHE, 1)) {
-        qWarning() << "can not disable buffering";
+        qCWarning(macxutil::macxlog()) << "can not disable buffering";
     }
 
     if (fd < 0) {
-        qWarning() << "open : errno :" << strerror(errno);
+        qCWarning(macxutil::macxlog()) << "open(2) :" << strerror(errno);
         return {};
     }
 
