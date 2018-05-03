@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<updater::shared::OperationStatus>("updater::shared::OperationStatus");
 
     QCoreApplication a(argc, argv);
-    logFile = new QFile("/tmp/.fwupgrader.log");
+    ::logFile = new QFile(updater::logFilePath());
 
-    if (!logFile->open(QIODevice::WriteOnly)) {
+    if (!::logFile->open(QIODevice::WriteOnly)) {
         qCWarning(logg::basic()) << "Can not open file for logging";
     } else {
         // Register log message handler
