@@ -12,7 +12,9 @@ namespace logg {
 
 void updater::perm::reduceRObjectNodePermissions(QString const& remoteObjNodeName)
 {
-#ifdef Q_OS_MACX
+#ifndef Q_OS_MACX
+    Q_UNUSED(remoteObjNodeName);
+#else
     constexpr auto sudoUidVar = "SUDO_UID";
     constexpr auto sudoGidVar = "SUDO_GID";
 
@@ -50,6 +52,17 @@ void updater::perm::reducePriviledge(void)
 {
 #if defined(Q_OS_LINUX) || defined(Q_OS_MACX)
     ::umask(0);
+#endif
+}
+
+
+auto updater::logFilePath(void) -> QString
+{
+    auto const logName = QString{"fwugprader.log"};
+#ifdef Q_OS_WIN
+    return QString("C:\\Temp\\%1").arg(logName);
+#else
+    return QString("/tmp/%1").arg(logName);
 #endif
 }
 

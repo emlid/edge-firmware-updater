@@ -17,6 +17,8 @@ namespace updater {
                         QtMsgType msgType,
                         QMessageLogContext const& context,
                         QString const& msg);
+
+    auto logFilePath(void) -> QString;
 }
 
 #endif // LOG_H
