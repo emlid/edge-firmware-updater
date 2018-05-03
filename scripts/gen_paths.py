@@ -13,7 +13,7 @@ def markdown(filename):
     return filename.endswith('.md')
 
 def pro_user(filename):
-    return filename.endswith('.pro.user')
+    return re.match(r".*\.pro.user\.?.*", filename)
 
 def add_qmake_pwd_prefix(filename):
     return re.sub(r"^../", '$${PWD}/../', filename)
