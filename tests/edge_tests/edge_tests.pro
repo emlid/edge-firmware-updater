@@ -10,7 +10,23 @@ SOURCES += \
     EdgeDeviceTest.cpp
 
 
+# Edge library
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../edge/release/ -ledge
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../edge/debug/ -ledge
+else:unix: LIBS += -L$$OUT_PWD/../../edge/ -ledge
+
+INCLUDEPATH += $$PWD/../../edge
+DEPENDPATH += $$PWD/../../edge
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../edge/release/libedge.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../edge/debug/libedge.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../edge/release/edge.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../edge/debug/edge.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../edge/libedge.a
+
+
+# Devlib library
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../devlib/release/ -ldevlib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../devlib/debug/ -ldevlib
@@ -25,6 +41,9 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/debug/devlib.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../devlib/libdevlib.a
 
+
+# Rpi library
+
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../rpi/release/ -lrpi
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../rpi/debug/ -lrpi
 else:unix: LIBS += -L$$OUT_PWD/../../rpi/ -lrpi
@@ -37,6 +56,9 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../r
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../rpi/release/rpi.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../rpi/debug/rpi.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../rpi/librpi.a
+
+
+# Util library
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../util/release/ -lutil
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../util/debug/ -lutil
@@ -56,7 +78,6 @@ EDGE_PATH = ../../edge/
 
 include($${SHARED_PATH}/shared.pri)
 include($${EDGE_PATH}/edge_deps.pri)
-include($${EDGE_PATH}/src.pri)
 
 INCLUDEPATH += $${SHARED_PATH} $${EDGE_PATH}
 win32:include(../../libs/win_deps.pri)
