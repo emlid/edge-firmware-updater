@@ -38,13 +38,27 @@ int main(int argc, char *argv[])
         ::qInstallMessageHandler(logHandler);
     }
 
-
     updater::perm::reducePriviledge();
 
     QRemoteObjectHost serverNode(updaterNodeName());
 
+    // Set Edge config
+    namespace conf = edge::tag;
+    auto edgeConfig = edge::EdgeConfig(
+                conf::Vid{0xa5c},
+                conf::Pid{0x2764},
+                conf::Pid{0x0001},
+                conf::VersionFileName{"issue.txt"},
+                conf::MntptPathForBootPart{"temp_mnt"},
+                conf::PartWithVersionFile{"boot"}
+    );
+
+    // Set heartbeat
+    auto heartbeatPeriod = updater::shared::properties.heartbeatEnabled ?
+                updater::shared::properties.heartbeatPeriod : 0;
+
     // Remote our watcher to other processes
-    EdgeFirmwareUpdater watcher;
+    EdgeFirmwareUpdater watcher{edgeConfig, heartbeatPeriod};
     auto successful = serverNode.enableRemoting(&watcher);
 
     if (successful) {

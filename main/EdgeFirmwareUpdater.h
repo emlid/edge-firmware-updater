@@ -16,15 +16,21 @@ class EdgeFirmwareUpdater : public EdgeFirmwareUpdaterIPCSimpleSource
 
     Q_OBJECT
 public:
-    explicit EdgeFirmwareUpdater(QObject *parent = nullptr)
+    explicit EdgeFirmwareUpdater(edge::EdgeConfig const& config,
+                                 int heartbeatPeriod = 0,
+                                 QObject *parent = nullptr)
         : EdgeFirmwareUpdaterIPCSimpleSource(parent),
-          _config(0xa5c, 0x2764, 0x0001, 1000, "issue.txt", "temp_mnt", "boot"),
+          _config(config),
           _flashingService(util::makeFlashingService()),
           _crcService(util::makeCRCService())
     {
         auto const heartbeatLatency = 1000;
 
-        _heartbeatTimer.setInterval(_config.heartbeatPeriod() + heartbeatLatency);
+        if (heartbeatPeriod == 0) {
+            return;
+        }
+
+        _heartbeatTimer.setInterval(heartbeatPeriod + heartbeatLatency);
         _heartbeatTimer.setSingleShot(true);
 
         QObject::connect(&_heartbeatTimer, &QTimer::timeout,
