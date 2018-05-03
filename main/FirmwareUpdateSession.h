@@ -29,14 +29,14 @@ public:
         auto progressReporter =
             [this] (auto curr, auto total) { emit this->progressChanged(util::computePercent(curr, total)); };
 
-        _flashDevice = [this, flashingService, cancellationCondition, progressReporter]
+        _flashDevice = [flashingService, cancellationCondition, progressReporter]
             (auto image, auto iodevice) {
                 return flashingService->flash(
                      image, iodevice, cancellationCondition, progressReporter
                 );
             };
 
-        _calculateCrc = [this, crcService, cancellationCondition, progressReporter]
+        _calculateCrc = [crcService, cancellationCondition, progressReporter]
             (auto file, auto length) {
                 return crcService->computeCRC(
                     file, length, cancellationCondition, progressReporter
