@@ -7,8 +7,14 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
+    namespace conf = edge::tag;
     auto config = edge::EdgeConfig(
-        0xa5c, 0x2764, 0x0001, 1000, "issue.txt", "temp_mnt", "boot"
+                conf::Vid{0xa5c},
+                conf::Pid{0x2764},
+                conf::Pid{0x0001},
+                conf::VersionFileName{"issue.txt"},
+                conf::MntptPathForBootPart{"temp_mnt"},
+                conf::PartWithVersionFile{"boot"}
     );
 
     auto edgeManager = edge::makeEdgeManager(config);

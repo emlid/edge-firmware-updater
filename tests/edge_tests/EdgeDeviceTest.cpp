@@ -109,10 +109,14 @@ EdgeDeviceTest::~EdgeDeviceTest() {  }
 
 void EdgeDeviceTest::checkVersionParsing_testcase()
 {
+    namespace conf = edge::tag;
     auto config = edge::EdgeConfig(
-        0x0a5c, 0x0001,
-        0x0001, updater::shared::properties.heartbeatPeriod,
-        "issue.txt", "/tmp", "boot"
+                conf::Vid{0xa5c},
+                conf::Pid{0x2764},
+                conf::Pid{0x0001},
+                conf::VersionFileName{"issue.txt"},
+                conf::MntptPathForBootPart{"temp_mnt"},
+                conf::PartWithVersionFile{"boot"}
     );
 
     auto storageDeviceInfo = std::make_unique<StorageDeviceInfoMock>();
