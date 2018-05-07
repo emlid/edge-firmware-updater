@@ -35,7 +35,7 @@ void updater::FirmwareUpdateSession::initializeDevice(void)
     Q_ASSERT(edgeManager.get());
 
     if (!(edgeManager->isEdgePlugged() || edgeManager->isEdgeInitialized())) {
-        sendLogMessage("Edge not plugged", MsgType::Error);
+        sendLogMessage("Edge is not plugged", MsgType::Error);
         emit initializingFinished(OpStatus::Failed);
         return;
     }
