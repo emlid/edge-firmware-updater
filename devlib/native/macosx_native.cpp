@@ -133,9 +133,17 @@ auto devlib::native::devicePartitions(QString const& devicePath)
     Q_ASSERT(!devicePath.isEmpty());
     auto deviceName = devicePath.split('/').last();
 
+    qCDebug(macxutil::macxlog()) << "Run 'diskutil list -plist'";
+
     QProcess diskutil;
     diskutil.start("diskutil list -plist", QIODevice::ReadOnly);
     diskutil.waitForFinished();
+
+    if (diskutil.error() != QProcess::ProcessError::UnknownError) {
+        qCWarning(macxutil::macxlog()) << "Diskutil failed. "
+                                       << diskutil.errorString()
+                                       << diskutil.readAllStandardError();
+    }
 
     auto devicePartitionnsList = std::vector<
         std::tuple<QString, QString>
@@ -143,7 +151,18 @@ auto devlib::native::devicePartitions(QString const& devicePath)
 
     QDomDocument domDocument;
 
-    if (!domDocument.setContent(&diskutil) ) {
+    struct {
+        QString msg;
+        int line, col;
+    } docError{"", 0, 0};
+
+    if (!domDocument.setContent(&diskutil, &docError.msg, &docError.line, &docError.col) ) {
+        qCWarning(macxutil::macxlog()) << "Can not create DOM document "
+                                          "from diskutil output. "
+                                       << "Detailed: "
+                                       << "msg: "  << docError.msg
+                                       << "line: " << docError.line
+                                       << "col: "  << docError.col;
         return {};
     }
 
@@ -152,6 +171,7 @@ auto devlib::native::devicePartitions(QString const& devicePath)
             extractArrayWithPartitionsOfDevice(docElement, deviceName);
 
     if (partitionsList.isNull()) {
+        qCWarning(macxutil::macxlog()) << "diskutil: Partitions list is empty";
         return {};
     }
 
@@ -171,6 +191,10 @@ auto devlib::native::devicePartitions(QString const& devicePath)
             macxutil::extractValueByKey(child, "VolumeName",
                 [&partLabel] (auto const& value) { partLabel = value; });
         }
+
+        qCDebug(macxutil::macxlog()) << "Found partition with "
+                                     << "Name: " << partName
+                                     << "Label: " << partLabel;
 
         devicePartitionnsList.push_back(
             std::make_tuple(partName.prepend("/dev/"), partLabel)
