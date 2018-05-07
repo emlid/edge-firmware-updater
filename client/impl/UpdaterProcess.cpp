@@ -38,7 +38,7 @@ static void macxStartRootProcess(QProcess* proc,
     auto argsEnvVar = QString("FW_ARGS=%1").arg(argsStr);
     auto progEnvVar = QString("FW_PROGRAM=%1").arg(program);
 
-    auto env = proc->environment();
+    auto env = QProcessEnvironment::systemEnvironment().toStringList();
     env.append(argsEnvVar);
     env.append(progEnvVar);
     proc->setEnvironment(env);
