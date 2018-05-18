@@ -19,7 +19,7 @@ For use Firmware Updater from your project, you should include `main/shared/shar
 
 + Find Edge device in the system
 + Boot Edge as mass storage (via rpiboot)
-+ Get the verision of current firmware
++ Get the version of current firmware
 + Flash image
 + Validate writing (CRC)
 
