@@ -8,6 +8,7 @@
 
 #include "UpdaterConnection.h"
 #include "UpdaterProcess.h"
+#include "../../main/shared/shared.h"
 
 class EdgeFirmwareUpdaterIPCReplica;
 
@@ -22,33 +23,42 @@ public:
     struct Config {
         int disconnectTimeout;
         int connectTimeout;
+        int heartbeatPeriod;
+        bool enableHeartbeat;
+        QString updaterReplicaNodeName;
         bool verbose;
 
-        constexpr static Config defaultConfig(void) {
-            return {1500, 1500, true};
+        static Config defaultConfig(void) {
+            return {
+                1500, 1500,
+                updater::shared::properties.heartbeatPeriod,
+                updater::shared::properties.heartbeatEnabled,
+                updater::shared::properties.updaterReplicaNodeName,
+                true
+            };
         }
     };
 
     UpdaterConnectionImpl(ProcessFactory_t const& procFactory,
-                      Config const& config = Config::defaultConfig(),
-                      QObject* parent = nullptr);
+                          Config const& config = Config::defaultConfig(),
+                          QObject* parent = nullptr);
     ~UpdaterConnectionImpl(void) override;
 
 private slots:
     void _handleProcessFinished(int exitCode, UpdaterProcess::ExitStatus);
     void _connectToUpdaterNode(void);
+    void _sendHeartbeat(void);
 
 private:
-    virtual void _establish(QString const& serverNodeName,
-                            QString const& updaterExePath) override;
-    virtual void _sever(void) override;
+    void _establish(QString const& updaterExePath) override;
+    void _sever(void) override;
 
 
     Config     _config;
-    QString    _updaterNodeName;
 
     QRemoteObjectNode _node;
     QTimer _disconnectTimer;
+    QTimer _heartbeatTimer;
 
     std::shared_ptr<EdgeFirmwareUpdaterIPCReplica> _replica;
     std::unique_ptr<UpdaterProcess> _proc;
