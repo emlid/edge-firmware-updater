@@ -43,15 +43,7 @@ int main(int argc, char *argv[])
     QRemoteObjectHost serverNode(updaterNodeName());
 
     // Set Edge config
-    namespace conf = edge::tag;
-    auto edgeConfig = edge::EdgeConfig(
-                conf::Vid{0xa5c},
-                conf::Pid{0x2764},
-                conf::Pid{0x0001},
-                conf::VersionFileName{"issue.txt"},
-                conf::MntptPathForBootPart{"temp_mnt"},
-                conf::PartWithVersionFile{"boot"}
-    );
+    auto edgeConfig = edge::makeDefaultEdgeConfig();
 
     // Set heartbeat
     auto heartbeatPeriod = updater::shared::properties.heartbeatEnabled ?

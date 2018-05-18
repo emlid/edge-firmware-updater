@@ -36,3 +36,17 @@ auto edge::makeEdgeManager(const edge::EdgeConfig &config)
         local::deviceList, local::edgeDeviceFactory
     );
 }
+
+
+auto edge::makeDefaultEdgeConfig(void)
+    -> EdgeConfig
+{
+    return EdgeConfig{
+        tag::Vid{0xa5c},
+        tag::Pid{0x2764},
+        tag::Pid{0x0001},
+        tag::VersionFileName{"issue.txt"},
+        tag::MntptPathForBootPart{"temp_mnt"},
+        tag::PartWithVersionFile{"boot"}
+    };
+}

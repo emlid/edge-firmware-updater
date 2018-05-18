@@ -11,6 +11,9 @@
 namespace edge {
     auto makeEdgeManager(edge::EdgeConfig const& config)
         -> std::unique_ptr<edge::IEdgeManager>;
+
+    auto makeDefaultEdgeConfig(void)
+        -> EdgeConfig;
 }
 
 #endif // EDGE_H
