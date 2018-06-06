@@ -1,0 +1,3 @@
+[submodule "devlib"]
+	path = devlib
+	url = https://github.com/emlid/devlib.git
