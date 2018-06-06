@@ -7,7 +7,6 @@ SUBDIRS += \
     rpiboot_cli \
     edge_tests \
     edge_cli \
-    devlib_cli \
     flash_cli
 
 !EXCLUDE_CLIENT {
