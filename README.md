@@ -56,6 +56,15 @@ For use Firmware Updater from your project, you should include `main/shared/shar
 | **Windows** | Download [libusb](https://github.com/libusb/libusb/releases/download/v1.0.21/libusb-1.0.21.7z):  extract it into the `C:\libusb` directory |
 | **OSX** | `brew install libusb` |
 
+**Note**: On Windows you should install drivers for rpiboot. Download `.exe` from
+[official usbboot repo](https://github.com/raspberrypi/usbboot/tree/master/win32/redist)
+and install drivers for `BCM2708` and `BCM2710` using command line (Run `cmd.exe` as administrator):
+
+``` bash
+.\wdi-simple.exe -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2763 -t 0
+.\wdi-simple.exe -n "Raspberry Pi USB boot" -v 0x0a5c -p 0x2764 -t 0
+```
+
 ### Make
 
 + From directory with project (use shadow build), type in terminal:
