@@ -1,2 +1,6 @@
-!*.[pro,cpp,md,h,cc,c,elf,bin,qrc,py,rep,sh,gitignore]
-*
+.*
+*.pro.user
+*.pro.user.*
+*.o
+*.a
+*.dll
