@@ -34,4 +34,3 @@ HEADERS += \
 include(shared/shared.pri)
 include(main_deps.pri)
 !NO_LIBS:win32:include(../libs/win_deps.pri)
-

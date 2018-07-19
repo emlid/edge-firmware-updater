@@ -30,6 +30,7 @@ SUBDIRS += \
     main \
     edge \
 
+devlib.subdir = devlib/devlib
 edge.depends = rpi util devlib
 main.depends = edge
 

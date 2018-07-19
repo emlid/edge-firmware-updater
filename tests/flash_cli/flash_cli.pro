@@ -31,18 +31,19 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../edge/libedge.a
 
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../devlib/release/ -ldevlib
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../devlib/debug/ -ldevlib
-else:unix: LIBS += -L$$OUT_PWD/../../devlib/ -ldevlib
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../devlib/devlib/release/ -ldevlib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../devlib/devlib/debug/ -ldevlib
+else:unix: LIBS += -L$$OUT_PWD/../../devlib/devlib/ -ldevlib
 
-INCLUDEPATH += $$PWD/../../devlib
-DEPENDPATH += $$PWD/../../devlib
+INCLUDEPATH += $$PWD/../../devlib/devlib
+DEPENDPATH += $$PWD/../../devlib/devlib
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/release/libdevlib.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/debug/libdevlib.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/release/devlib.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/debug/devlib.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../devlib/libdevlib.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/devlib/release/libdevlib.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/devlib/debug/libdevlib.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/devlib/release/devlib.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../devlib/devlib/debug/devlib.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../devlib/devlib/libdevlib.a
+
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../util/release/ -lutil
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../util/debug/ -lutil
